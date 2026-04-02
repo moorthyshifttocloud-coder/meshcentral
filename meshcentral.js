@@ -4116,7 +4116,7 @@ function getConfig(createSampleConfig) {
     if (args.configfile) { configFilePath = common.joinPath(datapath, args.configfile); }
     if (fs.existsSync(configFilePath)) {
         // Load and validate the configuration file
-        try { config = require(configFilePath); } catch (ex) { console.log('ERROR: Unable to parse ' + configFilePath + '.'); return null; }
+        try { config = require(path.resolve(configFilePath)); } catch (ex) { console.log('ERROR: Unable to parse ' + configFilePath + '.'); return null; }
         if (config.domains == null) { config.domains = {}; }
         for (i in config.domains) { if ((i.split('/').length > 1) || (i.split(' ').length > 1)) { console.log("ERROR: Error in config.json, domain names can't have spaces or /."); return null; } }
     } else {
