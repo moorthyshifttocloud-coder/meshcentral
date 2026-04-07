@@ -1,5 +1,4 @@
-﻿
-<!DOCTYPE html>
+{{!-- <!DOCTYPE html>
 <html dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
 <head lang="en">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -18,358 +17,66 @@
     {{{customJSTags}}}
     <title>{{{title}}} - Login</title>
     <style>
-        /* ── Body & background ── */
-        #body {
-            background: linear-gradient(135deg, #1a2340 0%, #2d3a6b 100%);
-            font-family: Arial, Helvetica, sans-serif;
+        {{!-- #body {
+            background-color: cadetblue;
+            background: linear-gradient(to bottom right, #369, #036);
         }
 
-        /* ── Central layout ── */
-        #centralTable {
-            height: 100%;
-            z-index: 1;
+        #flink a:link {
+            color: #c8c8c8;
         }
 
-        #logincell {
-            vertical-align: middle;
-            padding: 24px;
+        #flink a:visited {
+            color: #c8c8c8;
         }
 
-        /* ── Page title ── */
-        #logincell > div[style*="font-size:46px"] {
-            color: #e8edf5 !important;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+        #flink a:hover {
+            color: #c8c8c8;
         }
 
-        /* ── Login panel card ── */
-        #loginpanel,
-        #createpanel,
-        #resetpanel,
-        #tokenpanel,
-        #resettokenpanel,
-        #resetpasswordpanel,
-        #checkemailpanel,
-        #waitpushpanel {
-            background: rgba(255, 255, 255, 0.97);
-            border-radius: 14px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
-            padding: 28px 32px;
-            max-width: 340px;
-            margin: 0 auto;
+        #flink a:active {
+            color: #c8c8c8;
         }
 
-        /* ── Inputs: username, password, token, email ── */
-        #username,
-        #password,
-        #remail,
-        #tokenInput,
-        #resetTokenInput {
-            box-sizing: border-box !important;
-            width: 280px !important;
-            border: 1.5px solid #c9d4e8 !important;
-            border-radius: 8px !important;
-            padding: 10px 12px !important;
-            background-color: #f5f7fc !important;
-            font-size: 14px !important;
-            color: #1a2340 !important;
-            outline: none !important;
-            transition: border-color 0.2s, box-shadow 0.2s;
+        #welcomeText a:link {
+            color: #FFF;
         }
 
-        #username:focus,
-        #password:focus,
-        #remail:focus,
-        #tokenInput:focus,
-        #resetTokenInput:focus {
-            border-color: #4a7fd4 !important;
-            background-color: #fff !important;
-            box-shadow: 0 0 0 3px rgba(74, 127, 212, 0.15) !important;
-        }
-
-        /* ── Hint/show-hint row ── */
-        #showPassHintLink {
-            box-sizing: border-box !important;
-            width: 280px !important;
-            border: 1.5px solid #c9d4e8 !important;
-            border-radius: 8px !important;
-            padding: 8px 12px !important;
-            background-color: #f5f7fc !important;
-            font-size: 13px !important;
-        }
-
-        /* ── Log In / primary action button ── */
-        #loginButton,
-        #eresetButton,
-        #tokenOkButton,
-        #resetTokenOkButton {
-            box-sizing: border-box !important;
-            width: 280px !important;
-            border: none !important;
-            border-radius: 8px !important;
-            padding: 11px 0 !important;
-            background: linear-gradient(135deg, #2d5fb3, #1a3d7a) !important;
-            color: #fff !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.3px;
-            cursor: pointer !important;
-            transition: opacity 0.18s, transform 0.12s;
-        }
-
-        #loginButton:hover,
-        #eresetButton:hover,
-        #tokenOkButton:hover,
-        #resetTokenOkButton:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        #loginButton:active,
-        #eresetButton:active,
-        #tokenOkButton:active,
-        #resetTokenOkButton:active {
-            transform: translateY(0);
-        }
-
-        /* ── Secondary / account action links ── */
-        #resetAccountDiv,
-        #newAccountDiv {
-            font-size: 13px;
-            color: #5a6a8a;
-            padding: 4px 0 !important;
-        }
-
-        #resetAccountDiv a,
-        #newAccountDiv a {
-            color: #2d5fb3;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        #resetAccountDiv a:hover,
-        #newAccountDiv a:hover {
-            text-decoration: underline;
-        }
-
-        /* ── Auth strategies section ── */
-        #authStrategies {
-            margin-top: 4px;
-            font-size: 13px;
-            color: #5a6a8a;
-        }
-
-        #authStrategies hr {
-            border: none;
-            border-top: 1px solid #e2e8f0;
-            margin: 12px 0;
-        }
-
-        /* ── HR dividers inside panels ── */
-        #loginpanel hr,
-        #createpanel hr,
-        #resetpanel hr,
-        #tokenpanel hr,
-        #resettokenpanel hr,
-        #resetpasswordpanel hr,
-        #checkemailpanel hr {
-            border: none;
-            border-top: 1px solid #e2e8f0;
-            margin: 14px 0;
-        }
-
-        /* ── Back to login links ── */
-        #createpanel a[href="#"],
-        #resetpanel a[href="#"],
-        #tokenpanel a[href="#"],
-        #resettokenpanel a[href="#"],
-        #resetpasswordpanel a[href="#"],
-        #checkemailpanel a[href="#"] {
-            color: #2d5fb3;
-            font-size: 13px;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        /* ── Account Creation / Reset headings ── */
-        #createpanel b,
-        #resetpanel b,
-        #resetpasswordpanel b {
-            color: #1a2340;
-            font-size: 17px;
-            font-weight: 700;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        /* ── Create/Reset form inputs ── */
-        #createpanel input[type=text],
-        #createpanel input[type=password],
-        #resetpanel input[type=text],
-        #resetpasswordpanel input[type=password],
-        #checkemailpanel input[type=text] {
-            border: 1.5px solid #c9d4e8;
-            border-radius: 8px;
-            padding: 8px 10px;
-            font-size: 14px;
-            background-color: #f5f7fc;
-            color: #1a2340;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        #createpanel input[type=text]:focus,
-        #createpanel input[type=password]:focus,
-        #resetpanel input[type=text]:focus,
-        #resetpasswordpanel input[type=password]:focus {
-            border-color: #4a7fd4;
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(74, 127, 212, 0.15);
-        }
-
-        /* ── Create / Reset submit buttons ── */
-        #createButton,
-        #resetPassButton {
-            border: none;
-            border-radius: 8px;
-            padding: 9px 20px;
-            background: linear-gradient(135deg, #2d5fb3, #1a3d7a);
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.18s;
-        }
-
-        #createButton:hover,
-        #resetPassButton:hover { opacity: 0.88; }
-
-        #createButton:disabled,
-        #resetPassButton:disabled {
-            background: #b0bcd6;
-            cursor: not-allowed;
-        }
-
-        /* ── Language select ── */
-        #d2langselect {
-            box-sizing: border-box !important;
-            width: 280px !important;
-            border: 1.5px solid #c9d4e8 !important;
-            border-radius: 8px !important;
-            padding: 9px 10px !important;
-            font-size: 14px !important;
-            background: #f5f7fc !important;
-            color: #1a2340 !important;
-        }
-
-        /* ── Welcome text row ── */
-        #welcomeText {
-            color: #c8d8f0 !important;
-            font-size: 14px;
-            text-align: center;
-            margin: 12px 20px;
-        }
-
-        #welcomeText a:link,
         #welcomeText a:visited {
-            color: #7eb8f7;
-            text-decoration: none;
+            color: #FFF;
         }
 
         #welcomeText a:hover {
-            color: #a8d0ff;
-            text-decoration: underline;
+            color: #FFF;
         }
 
         #welcomeText a:active {
-            color: #5a9ee0;
-        }
+            color: #FFF;
+        } --}}
+        #body {
+    background: linear-gradient(135deg, #1a2340, #2d3a6b);
+}
 
-        /* ── Footer link row ── */
-        #flink {
-            font-size: 12px;
-        }
+#flink a:link,
+#flink a:visited,
+#flink a:hover,
+#flink a:active {
+    color: #94a3b8;
+}
 
-        #flink a:link,
-        #flink a:visited,
-        #flink a:hover,
-        #flink a:active {
-            color: #94a3b8;
-            text-decoration: none;
-        }
+#welcomeText a:link,
+#welcomeText a:visited {
+    color: #7eb8f7;
+}
 
-        #flink a:hover { text-decoration: underline; }
+#welcomeText a:hover {
+    color: #a8d0ff;
+    text-decoration: underline;
+}
 
-        /* ── Dialog box ── */
-        #dialog {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.22);
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-        }
-
-        #dialogHeader {
-            background: #f5f7fc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 10px 16px;
-        }
-
-        #id_dialogtitle {
-            font-weight: 700;
-            font-size: 15px;
-            color: #1a2340;
-        }
-
-        #dialogBody {
-            padding: 16px;
-            font-size: 14px;
-            color: #2c3a5a;
-        }
-
-        #idx_dlgButtonBar {
-            padding: 10px 16px;
-            background: #f5f7fc;
-            border-top: 1px solid #e2e8f0;
-            text-align: right;
-        }
-
-        #idx_dlgOkButton,
-        #idx_dlgCancelButton {
-            border: none;
-            border-radius: 7px;
-            padding: 7px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: 8px;
-        }
-
-        #idx_dlgOkButton {
-            background: linear-gradient(135deg, #2d5fb3, #1a3d7a);
-            color: #fff;
-        }
-
-        #idx_dlgCancelButton {
-            background: #e8edf5;
-            color: #1a2340;
-        }
-
-        /* ── Push panel image ── */
-        #waitpushpanelimage {
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* ── Checkbox label ── */
-        #tokenInputRememberLabel,
-        #tokenInputRememberLabel2 {
-            font-size: 13px;
-            color: #5a6a8a;
-        }
-
-        /* ── Message success / error ── */
-        .msg.success b { color: #1a6b3c; }
-        .msg.error b { color: #8C001A; }
+#welcomeText a:active {
+    color: #5a9ee0;
+}
     </style>
 </head>
 <body id="body" onload="if (typeof(startup) !== 'undefined') startup();" class="arg_hide login">
@@ -1383,4 +1090,4 @@
 
     </script>
 </body>
-</html>
+</html> --}}
