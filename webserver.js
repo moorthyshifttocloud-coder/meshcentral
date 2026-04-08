@@ -7429,7 +7429,8 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
                         obj.app.get(url + 'auth-github', function (req, res, next) {
                             var domain = getDomain(req);
                             if (domain.passport == null) { next(); return; }
-                            domain.passport.authenticate('github-' + domain.id, { scope: ['user:email'] })(req, res, next);
+                            // domain.passport.authenticate('github-' + domain.id, { scope: ['user:email'] })(req, res, next);
+                            domain.passport.authenticate('github-' + domain.id, { scope: ['user:email'], prompt: 'consent' })(req, res, next);
                         });
                         obj.app.get(url + 'auth-github-callback', function (req, res, next) {
                             var domain = getDomain(req);
@@ -8101,7 +8102,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
             passport.use('github-' + domain.id, new GitHubStrategy(options,
                 function (token, tokenSecret, profile, cb) {
                     parent.authLog('setupDomainAuthStrategy', 'Github profile: ' + JSON.stringify(profile));
-                    var user = { sid: '~github:' + profile.id, name: profile.displayName, strategy: 'github' };
+                    var user = { sid: '~github:' + profile.id, name: profile.displayName || profile.username, strategy: 'github' };
                     if ((typeof profile.emails == 'object') && (profile.emails[0] != null) && (typeof profile.emails[0].value == 'string')) { user.email = profile.emails[0].value; }
                     return cb(null, user);
                 }
