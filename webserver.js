@@ -6045,13 +6045,22 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
                 var xdomain = (domain.dns == null) ? domain.id : '';
                 if (xdomain != '') xdomain += '/';
                 var meshsettings = '';
-                if (req.query.ac != '4') { // If MeshCentral Assistant Monitor Mode, DONT INCLUDE SERVER DETAILS!
+                if (req.query.ac != 'AssistantMonitor') { // If MeshCentral Assistant Monitor Mode, DONT INCLUDE SERVER DETAILS!
                     meshsettings += '\r\nMeshName=' + mesh.name + '\r\nMeshType=' + mesh.mtype + '\r\nMeshID=0x' + meshidhex + '\r\nServerID=' + serveridhex + '\r\n';
                     if (obj.args.lanonly != true) { meshsettings += 'MeshServer=wss://' + serverName + ':' + httpsPort + '/' + xdomain + 'agent.ashx\r\n'; } else {
                         meshsettings += 'MeshServer=local\r\n';
                         if ((obj.args.localdiscovery != null) && (typeof obj.args.localdiscovery.key == 'string') && (obj.args.localdiscovery.key.length > 0)) { meshsettings += 'DiscoveryKey=' + obj.args.localdiscovery.key + '\r\n'; }
                     }
-                    if ((req.query.tag != null) && (typeof req.query.tag == 'string') && (obj.common.isAlphaNumeric(req.query.tag) == true)) { meshsettings += 'Tag=' + encodeURIComponent(req.query.tag) + '\r\n'; }
+                    if ((req.query.tag != null) || (req.query.agentproxy != null)) {
+                        var tags = [];
+                        if ((req.query.tag != null) && (typeof req.query.tag == 'string') && (req.query.tag.match(/^[A-Za-z0-9\s\.\-_]+$/) != null)) { tags.push(req.query.tag); }
+                        if ((req.query.agentproxy != null) && (typeof req.query.agentproxy == 'string')) {
+                            meshsettings += 'WebProxy=' + req.query.agentproxy.replace(/\r|\n/g, '') + '\r\n';
+                            tags.push('Proxy:' + req.query.agentproxy.replace(/\r|\n/g, '').replace(/,/g, ' '));
+                            console.log('DEBUG: Embedding proxy in settings: ' + req.query.agentproxy);
+                        }
+                        if (tags.length > 0) { meshsettings += 'Tag=~ServerTags:' + encodeURIComponent(tags.join(',')) + '\r\n'; }
+                    }
                     if ((req.query.installflags != null) && (req.query.installflags != 0) && (parseInt(req.query.installflags) == req.query.installflags)) { meshsettings += 'InstallFlags=' + parseInt(req.query.installflags) + '\r\n'; }
                 }
                 if (req.query.id == '10006') { // Assistant settings and customizations
@@ -6088,6 +6097,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
                     }
                     if (domain.agentTranslations != null) { meshsettings += 'translation=' + domain.agentTranslations + '\r\n'; } // Translation strings, not for MeshCentral Assistant
                 }
+                console.log('DEBUG: Generated .msh tag line: ' + meshsettings.split('\r\n').filter(l => l.startsWith('Tag=')).join(''));
                 setContentDispositionHeader(res, 'application/octet-stream', meshfilename, null, argentInfo.rname);
                 if (argentInfo.mtime != null) { res.setHeader('Last-Modified', argentInfo.mtime.toUTCString()); }
                 if (domain.meshAgentBinaries && domain.meshAgentBinaries[req.query.id]) {
@@ -6643,7 +6653,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
             meshsettings += 'MeshServer=local\r\n';
             if ((obj.args.localdiscovery != null) && (typeof obj.args.localdiscovery.key == 'string') && (obj.args.localdiscovery.key.length > 0)) { meshsettings += 'DiscoveryKey=' + obj.args.localdiscovery.key + '\r\n'; }
         }
-        if ((req.query.tag != null) && (typeof req.query.tag == 'string') && (obj.common.isAlphaNumeric(req.query.tag) == true)) { meshsettings += 'Tag=' + encodeURIComponent(req.query.tag) + '\r\n'; }
+        if ((req.query.tag != null) && (typeof req.query.tag == 'string') && (req.query.tag.match(/^[A-Za-z0-9\s\.\-_]+$/) != null)) { meshsettings += 'Tag=' + encodeURIComponent(req.query.tag) + '\r\n'; }
         if ((req.query.installflags != null) && (req.query.installflags != 0) && (parseInt(req.query.installflags) == req.query.installflags)) { meshsettings += 'InstallFlags=' + parseInt(req.query.installflags) + '\r\n'; }
         if ((domain.agentnoproxy === true) || (obj.args.lanonly == true)) { meshsettings += 'ignoreProxyFile=1\r\n'; }
         if (obj.args.agentconfig) { for (var i in obj.args.agentconfig) { meshsettings += obj.args.agentconfig[i] + '\r\n'; } }

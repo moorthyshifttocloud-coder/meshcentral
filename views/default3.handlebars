@@ -6672,6 +6672,67 @@
             copyTextToClip(c);
         }
 
+        function promptProxyDownload(downloadUrl) {
+            var servername = serverinfo.name;
+            if ((servername.indexOf('.') == -1) || ((features & 2) != 0)) { servername = window.location.hostname; }
+            
+            var x = "Do you use a proxy network for this agent?" + '<br /><br />';
+            x += '<label style="cursor:pointer;user-select:none"><input type="checkbox" id="dpProxyToggle" onchange="validateProxyDialog()" /> ' + "Yes, I use a proxy network" + '</label><br /><br />';
+            x += '<div id="dpProxyArea" style="display:none">';
+            x += addHtmlFormFloating("Proxy Server", '<input class="form-control" id="dpProxyServer" placeholder="proxy.company.local" onkeyup="validateProxyDialog()" onchange="validateProxyDialog()" />');
+            x += addHtmlFormFloating("Port", '<input class="form-control" id="dpProxyPort" placeholder="8080" onkeyup="validateProxyDialog()" onchange="validateProxyDialog()" />');
+            x += addHtmlFormFloating("Username (opt)", '<input class="form-control" id="dpProxyUser" onkeyup="validateProxyDialog()" onchange="validateProxyDialog()" />');
+            x += addHtmlFormFloating("Password (opt)", '<input class="form-control" id="dpProxyPass" type="password" onkeyup="validateProxyDialog()" onchange="validateProxyDialog()" />');
+            x += '</div>';
+            
+            setModalContent('xxAddAgent', "Agent Configuration", x);
+            showModal('xxAddAgentModal', 'idx_dlgOkButton', function() {
+                var toggle = Q('dpProxyToggle').checked;
+                if (!toggle) {
+                    // Direct Download
+                    downloadFile(downloadUrl, null, true);
+                } else {
+                    // Construct proxy string and download
+                    var s = Q('dpProxyServer').value.trim();
+                    var p = Q('dpProxyPort').value.trim();
+                    var u = Q('dpProxyUser').value.trim();
+                    var pass = Q('dpProxyPass').value;
+                    
+                    var auth = '';
+                    if (u && pass) { auth = encodeURIComponent(u) + ':' + encodeURIComponent(pass) + '@'; }
+                    else if (u) { auth = encodeURIComponent(u) + '@'; }
+                    
+                    var proxyStr = 'http://' + auth + s + ':' + p;
+                    downloadFile(downloadUrl + '&agentproxy=' + encodeURIComponent(proxyStr), null, true);
+                }
+            });
+            
+            setTimeout(validateProxyDialog, 50);
+        }
+        
+        function validateProxyDialog() {
+            if (Q('dpProxyToggle') == null) return;
+            var toggle = Q('dpProxyToggle').checked;
+            QV('dpProxyArea', toggle);
+            
+            var btn = Q('idx_dlgOkButton');
+            if (btn != null) {
+                btn.innerText = 'Download Agent';
+                if (!toggle) {
+                    btn.disabled = false;
+                } else {
+                    var s = Q('dpProxyServer').value.trim();
+                    var p = Q('dpProxyPort').value.trim();
+                    
+                    if (s === '' || p === '' || isNaN(p)) {
+                        btn.disabled = true;
+                    } else {
+                        btn.disabled = false;
+                    }
+                }
+            }
+        }
+
         function addAgentToMeshClick() {
             var v = Q('aginsSelect').value;
             QV('agins_windows', v == 0);
@@ -6691,9 +6752,9 @@
             QV('asinsTypeDiv', (v == 7));
 
             // Fix the links if needed
-            Q('aginsw32lnk').onclick = function () { downloadFile((Q('aginsw32lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : ''), null, true); }
-            Q('aginsw64lnk').onclick = function () { downloadFile((Q('aginsw64lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : ''), null, true); }
-            Q('aginswa64lnk').onclick = function () { downloadFile((Q('aginswa64lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : ''), null, true); }
+            Q('aginsw32lnk').onclick = function () { promptProxyDownload((Q('aginsw32lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : '')); }
+            Q('aginsw64lnk').onclick = function () { promptProxyDownload((Q('aginsw64lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : '')); }
+            Q('aginswa64lnk').onclick = function () { promptProxyDownload((Q('aginswa64lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : '')); }
             Q('aginsw32unlnk').onclick = function () { downloadFile((Q('aginsw32lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : ''), null, true); }
             Q('aginsw64unlnk').onclick = function () { downloadFile((Q('aginsw64lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : ''), null, true); }
             Q('aginswa64unlnk').onclick = function () { downloadFile((Q('aginswa64lnk').name.split('installflags=')[0]) + 'installflags=' + Q('aginsType').value + (urlargs.key ? ('&key=' + urlargs.key) : ''), null, true); }
@@ -8749,8 +8810,16 @@
                 }
 
                 // Node tags
-                var groupingTags = '<i>' + "None" + '</i>';
-                if (node.tags != null) { groupingTags = ''; for (var i in node.tags) { groupingTags += '<span class=tagSpan>' + EscapeHtml(node.tags[i]) + '</span> '; } }
+                var groupingTags = '<i>' + "None" + '</i>', proxyTag = null;
+                if (node.tags != null) {
+                    groupingTags = '';
+                    for (var i in node.tags) {
+                        if (node.tags[i].startsWith('Proxy:')) { proxyTag = node.tags[i].substring(6); }
+                        else { groupingTags += '<span class=tagSpan>' + EscapeHtml(node.tags[i]) + '</span> '; }
+                    }
+                    if (groupingTags == '') { groupingTags = '<i>' + "None" + '</i>'; }
+                }
+                if (proxyTag != null) { x += addDeviceAttribute("Proxy", '<code style="font-size:12px">' + EscapeHtml(proxyTag) + '</code>'); }
                 if ((meshrights & 4) != 0) {
                     x += addDeviceAttribute("Tags", '<span onclick=showEditNodeValueDialog(3) style=line-height:26px;cursor:pointer>' + groupingTags + ' <i class="fa-solid fa-pencil fa-xs" role="button"></i></span>');
                 } else {
@@ -13410,7 +13479,9 @@
 
             // MeshAgent
             if (node.agent) {
-                var x = '';
+                var x = '', proxyTag = null;
+                if (node.tags != null) { for (var i in node.tags) { if (node.tags[i].startsWith('Proxy:')) { proxyTag = node.tags[i].substring(6); break; } } }
+                if (proxyTag != null) { x += addDetailItem("Proxy", proxyTag); }
                 if ((node.agent != null) && (node.agent.id != null) && (node.agent.ver != null)) {
                     var str = '';
                     if (node.agent.id <= agentsStr.length) { str = agentsStr[node.agent.id]; } else { str = agentsStr[0]; }

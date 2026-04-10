@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Setup</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --modal-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8, #dbeafe);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .modal {
+            background: var(--modal-bg);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 24px 30px;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .modal-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-row label {
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .proxy-form {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .proxy-form.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-main);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .form-group input.error {
+            border-color: var(--danger);
+            background: #fef2f2;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+
+        .test-btn {
+            background: none;
+            border: 1px dashed var(--border);
+            color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+            margin-bottom: 16px;
+        }
+        .test-btn:hover { background: #f0fdf4; border-color: var(--success); color: var(--success); }
+
+        .modal-footer {
+            padding: 20px 30px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        /* Command Result State */
+        #resultView { display: none; }
+        .cmd-box {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-all;
+            margin: 16px 0;
+            user-select: all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal" id="setupModal">
+    <div class="modal-header">
+        <h2>Agent Installation</h2>
+        <p>Configure network settings before installing</p>
+    </div>
+    
+    <div class="modal-body" id="configView">
+        <div class="toggle-row">
+            <label for="proxyToggle" style="user-select: none;">Do you use a proxy network?</label>
+            <label class="switch">
+                <input type="checkbox" id="proxyToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="proxy-form" id="proxyForm">
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label>Proxy Server / IP</label>
+                    <input type="text" id="proxyServer" placeholder="e.g. proxy.company.local">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Port</label>
+                    <input type="text" id="proxyPort" placeholder="8080">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username (Optional)</label>
+                    <input type="text" id="proxyUser" placeholder="proxy_user">
+                </div>
+                <div class="form-group">
+                    <label>Password (Optional)</label>
+                    <input type="password" id="proxyPass" placeholder="••••••••">
+                </div>
+            </div>
+            
+            <div id="errorBox" class="error-msg"></div>
+
+            <button type="button" class="test-btn" id="testBtn">
+                Test Connection
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-body" id="resultView">
+        <div style="text-align:center; margin-bottom: 16px;">
+            <svg viewBox="0 0 24 24" width="48" height="48" stroke="var(--success)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <h3 style="margin-top: 12px; font-size: 18px; color: var(--text-main);">Ready to Install</h3>
+            <p style="color:var(--text-muted); font-size:14px; margin-top:8px;">Run the following command in an elevated terminal.</p>
+        </div>
+        <div class="cmd-box" id="cmdOutput"></div>
+    </div>
+
+    <div class="modal-footer" id="footerConfig">
+        <button class="btn btn-primary" id="installBtn">Generate Installer</button>
+    </div>
+    <div class="modal-footer" id="footerResult" style="display:none;">
+        <button class="btn" id="backBtn" style="background:var(--border); color:var(--text-main);">Back</button>
+        <button class="btn btn-primary" id="copyBtn">Copy Command</button>
+    </div>
+</div>
+
+<script>
+    // Elements
+    const toggle = document.getElementById('proxyToggle');
+    const proxyForm = document.getElementById('proxyForm');
+    const proxyServer = document.getElementById('proxyServer');
+    const proxyPort = document.getElementById('proxyPort');
+    const proxyUser = document.getElementById('proxyUser');
+    const proxyPass = document.getElementById('proxyPass');
+    const errorBox = document.getElementById('errorBox');
+    
+    // UI logic
+    toggle.addEventListener('change', (e) => {
+        if(e.target.checked) {
+            proxyForm.classList.add('active');
+        } else {
+            proxyForm.classList.remove('active');
+            errorBox.innerText = '';
+            proxyServer.classList.remove('error');
+            proxyPort.classList.remove('error');
+        }
+    });
+
+    // Test connection mockup
+    document.getElementById('testBtn').addEventListener('click', function() {
+        if(!validateProxy()) return;
+        const btn = this;
+        btn.innerHTML = 'Testing...';
+        btn.style.borderColor = '#94a3b8';
+        btn.style.color = '#94a3b8';
+        
+        setTimeout(() => {
+            btn.innerHTML = 'Connection Successful ✓';
+            btn.style.borderColor = 'var(--success)';
+            btn.style.color = 'var(--success)';
+        }, 800);
+    });
+
+    // Validate
+    function validateProxy() {
+        errorBox.innerText = '';
+        proxyServer.classList.remove('error');
+        proxyPort.classList.remove('error');
+
+        if(toggle.checked) {
+            let valid = true;
+            if(!proxyServer.value.trim()) {
+                proxyServer.classList.add('error');
+                valid = false;
+            }
+            if(!proxyPort.value.trim() || isNaN(proxyPort.value.trim())) {
+                proxyPort.classList.add('error');
+                valid = false;
+            }
+            
+            if(!valid) {
+                errorBox.innerText = 'Please provide a valid proxy server and numeric port.';
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Generate action
+    document.getElementById('installBtn').addEventListener('click', () => {
+        if(!validateProxy()) return;
+        
+        // Save config
+        if(toggle.checked) {
+            localStorage.setItem('agent_proxy_cfg', JSON.stringify({
+                server: proxyServer.value.trim(),
+                port: proxyPort.value.trim(),
+                user: proxyUser.value.trim()
+            }));
+        } else {
+            localStorage.removeItem('agent_proxy_cfg');
+        }
+
+        // Generate Command
+        const hostUrl = window.location.hostname === '' ? 'yourserver.com' : window.location.hostname;
+        const baseCmd = 'meshagent.exe -install -server https://' + hostUrl;
+        let finalCmd = baseCmd;
+
+        if(toggle.checked) {
+            const svr = proxyServer.value.trim();
+            const pt = proxyPort.value.trim();
+            const u = proxyUser.value.trim();
+            const p = proxyPass.value;
+            
+            let auth = '';
+            if(u && p) {
+                auth = `${encodeURIComponent(u)}:${encodeURIComponent(p)}@`;
+            } else if (u) {
+                auth = `${encodeURIComponent(u)}@`;
+            }
+            
+            const proxyStr = `http://${auth}${svr}:${pt}`;
+            finalCmd = `${baseCmd} -proxy "${proxyStr}"`;
+        }
+
+        document.getElementById('cmdOutput').innerText = finalCmd;
+        
+        // Switch Views
+        document.getElementById('configView').style.display = 'none';
+        document.getElementById('footerConfig').style.display = 'none';
+        
+        document.getElementById('resultView').style.display = 'block';
+        document.getElementById('footerResult').style.display = 'flex';
+    });
+
+    // Copy to clipboard
+    document.getElementById('copyBtn').addEventListener('click', (e) => {
+        const txt = document.getElementById('cmdOutput').innerText;
+        navigator.clipboard.writeText(txt);
+        e.target.innerText = 'Copied!';
+        setTimeout(() => e.target.innerText = 'Copy Command', 2000);
+    });
+
+    // Back button
+    document.getElementById('backBtn').addEventListener('click', () => {
+        document.getElementById('configView').style.display = 'block';
+        document.getElementById('footerConfig').style.display = 'flex';
+        
+        document.getElementById('resultView').style.display = 'none';
+        document.getElementById('footerResult').style.display = 'none';
+    });
+
+    // Load saved preferences
+    window.onload = () => {
+        const saved = localStorage.getItem('agent_proxy_cfg');
+        if(saved) {
+            try {
+                const conf = JSON.parse(saved);
+                toggle.checked = true;
+                proxyForm.classList.add('active');
+                proxyServer.value = conf.server || '';
+                proxyPort.value = conf.port || '';
+                proxyUser.value = conf.user || '';
+            } catch(e) {}
+        }
+    };
+</script>
+</body>
+</html>

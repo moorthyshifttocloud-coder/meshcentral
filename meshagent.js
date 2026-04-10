@@ -28,6 +28,15 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
     obj.agentCoreCheck = 0;
     obj.remoteaddr = req.clientIp;
     obj.remoteaddrport = obj.remoteaddr + ':' + ws._socket.remotePort;
+
+    // Extract proxy information from headers
+    obj.proxyInfo = '';
+    if (req.headers['x-forwarded-for']) { obj.proxyInfo += 'X-Forwarded-For: ' + req.headers['x-forwarded-for'] + ' '; }
+    if (req.headers['via']) { obj.proxyInfo += 'Via: ' + req.headers['via'] + ' '; }
+    if (req.headers['forwarded']) { obj.proxyInfo += 'Forwarded: ' + req.headers['forwarded'] + ' '; }
+    if (req.headers['x-real-ip']) { obj.proxyInfo += 'X-Real-IP: ' + req.headers['x-real-ip'] + ' '; }
+    if (obj.proxyInfo == '') { obj.proxyInfo = 'None'; } else { obj.proxyInfo = obj.proxyInfo.trim(); }
+
     obj.nonce = parent.crypto.randomBytes(48).toString('binary');
     //ws._socket.setKeepAlive(true, 240000); // Set TCP keep alive, 4 minutes
     if (args.agentidletimeout != 0) { ws._socket.setTimeout(args.agentidletimeout, function () { obj.close(1); }); } // Inactivity timeout of 2:30 minutes, by default agent will WebSocket ping every 2 minutes and server will pong back.
@@ -296,7 +305,7 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
                                     obj.sendBinary(common.ShortToStr(10) + common.ShortToStr(0));
 
                                     // We got the agent file open on the server side, tell the agent we are sending an update ending with the SHA384 hash of the result
-                                    //console.log("Agent update file open.");
+                                    console.log('DEBUG: Starting agent binary download from disk for ' + obj.remoteaddrport + ' (Proxy: ' + obj.proxyInfo + ')');
                                     obj.sendBinary(common.ShortToStr(13) + common.ShortToStr(0)); // Command 13, start mesh agent download
 
                                     // Send the first mesh agent update data block
@@ -330,6 +339,7 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
                                 obj.sendBinary(common.ShortToStr(10) + common.ShortToStr(0));
 
                                 // We got the agent file open on the server side, tell the agent we are sending an update ending with the SHA384 hash of the result
+                                console.log('DEBUG: Starting agent binary download from RAM for ' + obj.remoteaddrport + ' (Proxy: ' + obj.proxyInfo + ')');
                                 obj.sendBinary(common.ShortToStr(13) + common.ShortToStr(0)); // Command 13, start mesh agent download
 
                                 // Send the first mesh agent update data block
@@ -395,7 +405,7 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
                                     obj.agentUpdate.ptr += bytesRead;
                                     if (bytesRead == parent.parent.agentUpdateBlockSize) { obj.sendBinary(obj.agentUpdate.buf); } else { obj.sendBinary(obj.agentUpdate.buf.slice(0, bytesRead + 4)); } // Command 14, mesh agent next data block
                                     if ((bytesRead < parent.parent.agentUpdateBlockSize) || (obj.agentUpdate.ptr == obj.agentExeInfo.size)) {
-                                        parent.parent.debug('agentupdate', "Completed agent #" + obj.agentExeInfo.id + " update from disk, ptr=" + obj.agentUpdate.ptr + ".");
+                                        console.log('DEBUG: Completed agent binary download from disk for ' + obj.remoteaddrport + ' (Proxy: ' + obj.proxyInfo + ')');
                                         obj.sendBinary(common.ShortToStr(13) + common.ShortToStr(0) + obj.agentExeInfo.hash); // Command 13, end mesh agent download, send agent SHA384 hash
                                         try { parent.fs.close(obj.agentUpdate.fd); } catch (ex) { }
                                         parent.parent.taskLimiter.completed(obj.agentUpdate.taskid); // Indicate this task complete
@@ -415,7 +425,7 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
                             }
 
                             if (obj.agentUpdate.ptr == obj.agentUpdate.agentUpdateData.length) {
-                                parent.parent.debug('agentupdate', "Completed agent #" + obj.agentExeInfo.id + " update from RAM, ptr=" + obj.agentUpdate.ptr + ".");
+                                console.log('DEBUG: Completed agent binary download from RAM for ' + obj.remoteaddrport + ' (Proxy: ' + obj.proxyInfo + ')');
                                 obj.sendBinary(common.ShortToStr(13) + common.ShortToStr(0) + obj.agentUpdate.agentUpdateHash); // Command 13, end mesh agent download, send agent SHA384 hash
                                 parent.parent.taskLimiter.completed(obj.agentUpdate.taskid); // Indicate this task complete
                                 delete obj.agentUpdate.buf;
@@ -457,6 +467,7 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
                         if (parent.parent.supportsProxyCertificatesRequest !== false) {
                             obj.badWebCert = Buffer.from(parent.crypto.randomBytes(16), 'binary').toString('base64');
                             parent.wsagentsWithBadWebCerts[obj.badWebCert] = obj; // Add this agent to the list of of agents with bad web certificates.
+                            console.log('DEBUG: Bad web certificate detected for ' + obj.remoteaddrport + ', updating proxy certificates. (Proxy: ' + obj.proxyInfo + ')');
                             parent.parent.updateProxyCertificates(false);
                         }
                         parent.agentStats.agentBadWebCertHashCount++;
@@ -2035,6 +2046,7 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
     function ChangeAgentTag(tag) {
         if ((obj.agentInfo == null) || (obj.agentInfo.capabilities & 0x40)) return;
         if ((tag != null) && (tag.length == 0)) { tag = null; }
+        if (tag != null) { try { tag = decodeURIComponent(tag); } catch (e) { } }
 
         // If the device is pending a change, hold.
         if (obj.deviceChanging === true) {

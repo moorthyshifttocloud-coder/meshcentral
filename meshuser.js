@@ -6544,7 +6544,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
     function serverCommandFiles(command) {
         // Send the full list of server files to the browser app
-        updateUserFiles(user, ws, domain);
+        updateUserFiles(user, ws, domain, command.meshid);
     }
 
     function serverCommandGetClip(command) {
@@ -8433,35 +8433,40 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
         }
     };
 
-    function updateUserFiles(user, ws, domain) {
+    function updateUserFiles(user, ws, domain, meshid) {
         if ((user == null) || (user.siteadmin == null) || ((user.siteadmin & 8) == 0)) return;
 
         // Request the list of server files
-        var files = { action: 'files', filetree: { n: 'Root', f: {} } };
-
-        // Add user files
-        files.filetree.f[user._id] = { t: 1, n: 'My Files', f: {} };
-        files.filetree.f[user._id].maxbytes = parent.getQuota(user._id, domain);
-        var usersplit = user._id.split('/'), domainx = 'domain';
+        var files = { action: 'files', filetree: { n: 'Root', f: {} }, meshid: meshid };
+        var domainx = 'domain';
+        var usersplit = user._id.split('/');
         if (usersplit[1].length > 0) domainx = 'domain-' + usersplit[1];
 
-        // Read all files recursively
-        try {
-            files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2]));
-        } catch (e) {
-            // TODO: We may want to fake this file structure until it's needed.
-            // Got an error, try to create all the folders and try again...
-            try { fs.mkdirSync(parent.filespath); } catch (e) { }
-            try { fs.mkdirSync(parent.path.join(parent.filespath, domainx)); } catch (e) { }
-            try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2])); } catch (e) { }
-            try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2] + '/Public')); } catch (e) { }
-            try { files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2])); } catch (e) { }
+        // Add user files
+        if (meshid == null) {
+            files.filetree.f[user._id] = { t: 1, n: 'My Files', f: {} };
+            files.filetree.f[user._id].maxbytes = parent.getQuota(user._id, domain);
+
+            // Read all files recursively
+            try {
+                files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2]));
+            } catch (e) {
+                // TODO: We may want to fake this file structure until it's needed.
+                // Got an error, try to create all the folders and try again...
+                try { fs.mkdirSync(parent.filespath); } catch (e) { }
+                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx)); } catch (e) { }
+                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2])); } catch (e) { }
+                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2] + '/Public')); } catch (e) { }
+                try { files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2])); } catch (e) { }
+            }
         }
 
         // Add files for each mesh
         const meshes = parent.GetAllMeshWithRights(user, MESHRIGHT_SERVERFILES);
         for (var i in meshes) {
             const mesh = meshes[i];
+            if ((meshid != null) && (mesh._id != meshid)) continue;
+            if (meshid == null) continue; // In the main file tab, don't show any mesh folders.
             var meshsplit = mesh._id.split('/');
             files.filetree.f[mesh._id] = { t: 4, n: mesh.name, f: {} };
             files.filetree.f[mesh._id].maxbytes = parent.getQuota(mesh._id, domain);
