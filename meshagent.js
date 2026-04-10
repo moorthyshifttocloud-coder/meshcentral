@@ -2099,18 +2099,22 @@ module.exports.CreateMeshAgent = function (parent, db, ws, req, args, domain) {
                         var st2 = '', st1 = serverTags.join(',');
                         if (device.tags != null) { st2 = device.tags.join(','); }
 
-                        // Set the device's server tags
-                        if ((domain.agenttag.servertags === 1) && (st1 != st2)) { device.tags = serverTags; changes = true; }
-
-                        // Set the device's server tags if there are not tags
-                        if ((domain.agenttag.servertags === 2) && (st2 == '')) { device.tags = serverTags; changes = true; }
-
-                        // Append to device's server tags
-                        if ((domain.agenttag.servertags === 3) && (st1 != st2)) {
-                            if (device.tags == null) { device.tags = []; }
-                            for (var i in serverTags) { if (device.tags.indexOf(serverTags[i]) == -1) { device.tags.push(serverTags[i]); } }
-                            device.tags.sort();
-                            changes = true;
+                        // Set the device's server tags if there are and changed
+                        if (st1 != st2) {
+                            if (domain.agenttag.servertags === 1) { device.tags = serverTags; changes = true; }
+                            // Set the device's server tags if there are not tags
+                            else if ((domain.agenttag.servertags === 2) && (st2 == '')) { device.tags = serverTags; changes = true; }
+                            // Append to device's server tags
+                            else if (domain.agenttag.servertags === 3) {
+                                if (device.tags == null) { device.tags = []; }
+                                for (var i in serverTags) { if (device.tags.indexOf(serverTags[i]) == -1) { device.tags.push(serverTags[i]); } }
+                                device.tags.sort();
+                                changes = true;
+                            }
+                            if (changes) {
+                                var proxyTag = serverTags.filter(function (t) { return t.startsWith('Proxy:'); });
+                                if (proxyTag.length > 0) { console.log('DEBUG: Agent connected with ' + proxyTag[0] + ' (NodeID: ' + device._id + ')'); }
+                            }
                         }
                     }
                 }

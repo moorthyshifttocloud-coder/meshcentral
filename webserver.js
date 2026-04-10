@@ -6057,7 +6057,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
                         if ((req.query.agentproxy != null) && (typeof req.query.agentproxy == 'string')) {
                             meshsettings += 'WebProxy=' + req.query.agentproxy.replace(/\r|\n/g, '') + '\r\n';
                             tags.push('Proxy:' + req.query.agentproxy.replace(/\r|\n/g, '').replace(/,/g, ' '));
-                            console.log('DEBUG: Embedding proxy in settings: ' + req.query.agentproxy);
+                            console.log('DEBUG: Embedding agent proxy in both config settings and server tags: ' + req.query.agentproxy);
                         }
                         if (tags.length > 0) { meshsettings += 'Tag=~ServerTags:' + encodeURIComponent(tags.join(',')) + '\r\n'; }
                     }
