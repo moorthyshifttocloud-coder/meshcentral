@@ -4502,7 +4502,8 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
         if (splitpath[0] == 'user' && (objid != user._id)) return null; // User validation, only self allowed
         if (splitpath[0] == 'mesh') { if ((obj.GetMeshRights(user, objid) & 32) == 0) { return null; } } // Check mesh server file rights
         if (splitpath[1] != '') { serverpath += '-' + splitpath[1]; } // Add the domain if needed
-        serverpath += ('/' + splitpath[0] + '-' + splitpath[2]);
+        var safeServerName = splitpath[2].replace(/[\\\/:\*\?"<>\|]/g, '_');
+        serverpath += ('/' + splitpath[0] + '-' + safeServerName);
         for (var i = 3; i < splitpath.length; i++) { if (obj.common.IsFilenameValid(splitpath[i]) == true) { serverpath += '/' + splitpath[i]; filename = splitpath[i]; } else { return null; } } // Check that each folder is correct
         return { fullpath: obj.path.resolve(obj.filespath, serverpath), path: serverpath, name: filename, quota: obj.getQuota(objid, domain) };
     };
@@ -4826,6 +4827,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
 
                     // See if we need to create the folder
                     var domainx = 'domain';
+                    var usersplit = user._id.split('/');
                     if (domain.id.length > 0) { domainx = 'domain-' + usersplit[1]; }
                     try { obj.fs.mkdirSync(obj.parent.filespath); } catch (ex) { }
                     try { obj.fs.mkdirSync(obj.parent.path.join(obj.parent.filespath, domainx)); } catch (ex) { }

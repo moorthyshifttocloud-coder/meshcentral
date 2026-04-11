@@ -55,12 +55,13 @@
         .mc-hero {
             flex: 0 0 45%;
             position: relative;
-            background: linear-gradient(180deg, #f8fafc 0%, #036 100%);
-            border-right: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #090e17 0%, #172554 100%);
+            border-right: 1px solid #1e293b;
             display: flex;
             flex-direction: column;
-            padding: 60px 50px;
+            padding: 60px 80px;
             overflow: hidden;
+            justify-content: space-between;
         }
 
         /* decorative radial glow matching the light theme */
@@ -97,13 +98,13 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: auto;
+            margin-bottom: 0;
         }
 
         .mc-hero-logo-icon {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #036, #036);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -120,12 +121,12 @@
         .mc-hero-logo-text {
             font-size: 22px;
             font-weight: 800;
-            color: #0f172a;
+            color: #f8fafc;
             letter-spacing: -0.5px;
         }
 
         .mc-hero-logo-text span {
-            color: #036;
+            color: #60a5fa;
         }
 
         /* Centre content */
@@ -134,19 +135,22 @@
             z-index: 2;
             display: flex;
             flex-direction: column;
+            margin-top: auto;
+            margin-bottom: auto;
+            text-align: left;
         }
 
         .mc-hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(37, 99, 235, 0.08);
-            border: 1px solid rgba(37, 99, 235, 0.15);
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
             border-radius: 999px;
             padding: 6px 14px;
             font-size: 13px;
             font-weight: 600;
-            color: #036;
+            color: #93c5fd;
             margin-bottom: 24px;
             width: fit-content;
             animation: fadeUp 0.6s ease both;
@@ -156,21 +160,21 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #036;
-            box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+            background: #60a5fa;
+            box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
         }
 
         .mc-hero-headline {
             font-size: 42px;
             font-weight: 800;
             line-height: 1.15;
-            color: #0f172a;
+            color: #f8fafc;
             letter-spacing: -1px;
             animation: fadeUp 0.7s 0.1s ease both;
         }
 
         .mc-hero-headline .accent {
-            background: linear-gradient(90deg, #036, rgb(30, 58, 87));
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -179,7 +183,7 @@
         .mc-hero-sub {
             margin-top: 18px;
             font-size: 16px;
-            color: #475569;
+            color: #94a3b8;
             line-height: 1.6;
             max-width: 420px;
             font-weight: 400;
@@ -199,27 +203,30 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            background: #ffffff;
-            border: 1px solid rgba(37, 99, 235, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 14px 20px;
             font-size: 15px;
-            color: #334155;
+            color: #e2e8f0;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: all 0.2s;
             width: fit-content;
         }
 
         .mc-hero-pill:hover {
-            border-color: #036;
-            color: #036;
+            border-color: #60a5fa;
+            color: #ffffff;
+            background: rgba(59, 130, 246, 0.12);
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
         }
 
         .mc-hero-pill svg {
-            stroke: #036;
+            stroke: #60a5fa;
             width: 22px;
             height: 22px;
             flex-shrink: 0;
@@ -228,13 +235,13 @@
 
         /* Footer inside hero */
         .mc-hero-footer {
-            margin-top: auto;
+            margin-top: 0;
             position: relative;
             z-index: 2;
             font-size: 13px;
-            color: #94a3b8;
+            color: #64748b;
             font-weight: 500;
-            text-align: center;
+            text-align: left;
         }
 
         /* ═══════════════════════════════
@@ -947,11 +954,14 @@
         <aside class="mc-hero">
             <!-- Logo -->
             <div class="mc-hero-logo">
-                <div class="mc-hero-logo-icon">
+                {{!-- <div class="mc-hero-logo-icon">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                     </svg>
-                </div>
+                </div> --}}
+                <img src="images/banner-logo-new.png" style="max-height: 48px; max-width: 100%; object-fit: contain;"
+                    alt="Cloud Desktop" />
+
                 <span class="mc-hero-logo-text">{{{title1}}}</span>
             </div>
 
@@ -1558,6 +1568,20 @@
         var autofido = (decodeURIComponent('{{{autofido}}}') === 'true');
         var twoFactorCookieDays = parseInt('{{{twoFactorCookieDays}}}');
         var authStrategies = '{{{authStrategies}}}'.split(',');
+
+        function togglePasswordVis() {
+            var p = document.getElementById("password");
+            var icon = document.getElementById("passEyeIcon");
+            if (p) {
+                if (p.type === "password") {
+                    p.type = "text";
+                    if (icon) icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                } else {
+                    p.type = "password";
+                    if (icon) icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />';
+                }
+            }
+        }
         var tokenTimeout = parseInt('{{{tokenTimeout}}}');
         var websocket = null;
         var formSubmitted = false;

@@ -239,7 +239,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
         } else return null;
         var rootfolder = meshpath[0], rootfoldersplit = rootfolder.split('/'), domainx = 'domain';
         if (rootfoldersplit[1].length > 0) domainx = 'domain-' + rootfoldersplit[1];
-        var path = parent.path.join(parent.filespath, domainx, rootfoldersplit[0] + '-' + rootfoldersplit[2]);
+        var path = parent.path.join(parent.filespath, domainx, rootfoldersplit[0] + '-' + rootfoldersplit[2].replace(/[\\\/:\*\?"<>\|]/g, '_'));
         for (var i = 1; i < meshpath.length; i++) { if (common.IsFilenameValid(meshpath[i]) == false) { path = null; break; } path += ("/" + meshpath[i]); }
         return path;
     }
@@ -8440,6 +8440,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
         var files = { action: 'files', filetree: { n: 'Root', f: {} }, meshid: meshid };
         var domainx = 'domain';
         var usersplit = user._id.split('/');
+        var safeUserName = usersplit[2].replace(/[\\\/:\*\?"<>\|]/g, '_');
         if (usersplit[1].length > 0) domainx = 'domain-' + usersplit[1];
 
         // Add user files
@@ -8449,15 +8450,15 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
             // Read all files recursively
             try {
-                files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2]));
+                files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + safeUserName));
             } catch (e) {
                 // TODO: We may want to fake this file structure until it's needed.
                 // Got an error, try to create all the folders and try again...
                 try { fs.mkdirSync(parent.filespath); } catch (e) { }
                 try { fs.mkdirSync(parent.path.join(parent.filespath, domainx)); } catch (e) { }
-                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2])); } catch (e) { }
-                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2] + '/Public')); } catch (e) { }
-                try { files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + usersplit[2])); } catch (e) { }
+                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + safeUserName)); } catch (e) { }
+                try { fs.mkdirSync(parent.path.join(parent.filespath, domainx + '/user-' + safeUserName + '/Public')); } catch (e) { }
+                try { files.filetree.f[user._id].f = readFilesRec(parent.path.join(parent.filespath, domainx + '/user-' + safeUserName)); } catch (e) { }
             }
         }
 
