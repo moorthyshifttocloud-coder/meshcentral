@@ -51,7 +51,8 @@
     <script keeplink=1 type="text/javascript" src="scripts/ol{{{min}}}.js"></script>
     <script keeplink=1 type="text/javascript" src="scripts/ol3-contextmenu{{{min}}}.js"></script>
     <script keeplink=1 type="text/javascript" src="scripts/purify{{{min}}}.js"></script>
-    <script keeplink=1 type="text/javascript" src="scripts/marked{{{min}}}.js"></script>
+    <script type="text/javascript" src="scripts/marked{{{min}}}.js"></script>
+    <script type="text/javascript" src="scripts/fontawesome/all{{{min}}}.js"></script>
     {{{customJSTags}}}
     <title>{{{title}}}</title>
 </head>
@@ -166,7 +167,7 @@
         <div id="notifiyBox" class="notifiyBox" style="display:none"></div>
         <div id=masthead class=noselect>
             <div style="float:left">{{{titlehtml}}}</div>
-            <div class="title" onclick="go(1,event)">{{{title1}}}</div>
+            <div class="title" onclick="go(2,event)">{{{title1}}}</div>
             <div class="title2">{{{title2}}}</div>
             <div style="float:right">
                 <div id=notificationCount onclick="clickNotificationIcon()" class="unselectable" style="display: none;"
@@ -181,28 +182,32 @@
         </div>
         <div id="page_leftbar">
             <div style="height:16px"></div>
-            <div id=LeftMenuMyDevices tabindex=0 class="lbbutton lbbuttonsel" title="My Devices" onmouseup=go(1,event)
+            <div id=LeftMenuDashboard tabindex=0 class="lbbutton" title="Dashboard" onmouseup=go(1,event)
                 onkeypress="if (event.key=='Enter') { go(1); }">
                 <div class="lbtg lb2"></div>
             </div>
-            <div id=LeftMenuMyAccount tabindex=0 class="lbbutton" title="My Account" onmouseup=go(2,event)
+            <div id=LeftMenuMyDevices tabindex=0 class="lbbutton" title="My Devices" onmouseup=go(2,event)
                 onkeypress="if (event.key=='Enter') { go(2); }">
+                <div class="lbtg lb2"></div>
+            </div>
+            <div id=LeftMenuMyAccount tabindex=0 class="lbbutton" title="My Account" onmouseup=go(3,event)
+                onkeypress="if (event.key=='Enter') { go(3); }">
                 <div class="lbtg lb1"></div>
             </div>
-            <div id=LeftMenuMyEvents tabindex=0 class="lbbutton" title="My Events" onmouseup=go(3,event)
-                onkeypress="if (event.key=='Enter') { go(3); }">
+            <div id=LeftMenuMyEvents tabindex=0 class="lbbutton" title="My Events" onmouseup=go(4,event)
+                onkeypress="if (event.key=='Enter') { go(4); }">
                 <div class="lbtg lb3"></div>
             </div>
-            <div id=LeftMenuMyFiles tabindex=0 class="lbbutton" style="display:none" title="My Files"
-                onmouseup=go(5,event) onkeypress="if (event.key=='Enter') { go(5); }">
-                <div class="lbtg lb4"></div>
-            </div>
             <div id=LeftMenuMyUsers tabindex=0 class="lbbutton" style="display:none" title="My Users"
-                onmouseup=go(4,event) onkeypress="if (event.key=='Enter') { go(4); }">
+                onmouseup=go(5,event) onkeypress="if (event.key=='Enter') { go(5); }">
                 <div class="lbtg lb5"></div>
             </div>
-            <div id=LeftMenuMyServer tabindex=0 class="lbbutton" style="display:none" title="My Server"
+            <div id=LeftMenuMyFiles tabindex=0 class="lbbutton" style="display:none" title="My Files"
                 onmouseup=go(6,event) onkeypress="if (event.key=='Enter') { go(6); }">
+                <div class="lbtg lb4"></div>
+            </div>
+            <div id=LeftMenuMyServer tabindex=0 class="lbbutton" style="display:none" title="My Server"
+                onmouseup=go(7,event) onkeypress="if (event.key=='Enter') { go(7); }">
                 <div class="lbtg lb6"></div>
             </div>
         </div>
@@ -263,18 +268,20 @@
                     </div>
                     <table id=MainMenuSpan cellpadding=0 cellspacing=0 class=style1>
                         <tr>
-                            <td tabindex=0 id=MainMenuMyDevices class="topbar_td style3x" onmouseup=go(1,event)
-                                onkeypress="if (event.key == 'Enter') go(1)">My Devices</td>
-                            <td tabindex=0 id=MainMenuMyAccount class="topbar_td style3x" onmouseup=go(2,event)
-                                onkeypress="if (event.key == 'Enter') go(2)">My Account</td>
-                            <td tabindex=0 id=MainMenuMyEvents class="topbar_td style3x" onmouseup=go(3,event)
-                                onkeypress="if (event.key == 'Enter') go(3)">My Events</td>
-                            <td tabindex=0 id=MainMenuMyFiles class="topbar_td style3x" onmouseup=go(5,event)
-                                onkeypress="if (event.key == 'Enter') go(5)">My Files</td>
-                            <td tabindex=0 id=MainMenuMyUsers class="topbar_td style3x" onmouseup=go(4,event)
-                                onkeypress="if (event.key == 'Enter') go(4)">My Users</td>
-                            <td tabindex=0 id=MainMenuMyServer class="topbar_td style3x" onmouseup=go(6,event)
-                                onkeypress="if (event.key == 'Enter') go(6)">My Server</td>
+                            <td tabindex=0 id=MainMenuDashboard class="topbar_td style3x" onmouseup=go(1,event)
+                                onkeypress="if (event.key == 'Enter') go(1)">Dashboard</td>
+                            <td tabindex=0 id=MainMenuMyDevices class="topbar_td style3x" onmouseup=go(2,event)
+                                onkeypress="if (event.key == 'Enter') go(2)">My Devices</td>
+                            <td tabindex=0 id=MainMenuMyAccount class="topbar_td style3x" onmouseup=go(3,event)
+                                onkeypress="if (event.key == 'Enter') go(3)">My Account</td>
+                            <td tabindex=0 id=MainMenuMyEvents class="topbar_td style3x" onmouseup=go(4,event)
+                                onkeypress="if (event.key == 'Enter') go(4)">My Events</td>
+                            <td tabindex=0 id=MainMenuMyUsers class="topbar_td style3x" onmouseup=go(5,event)
+                                onkeypress="if (event.key == 'Enter') go(5)">My Users</td>
+                            <td tabindex=0 id=MainMenuMyFiles class="topbar_td style3x" onmouseup=go(6,event)
+                                onkeypress="if (event.key == 'Enter') go(6)">My Files</td>
+                            <td tabindex=0 id=MainMenuMyServer class="topbar_td style3x" onmouseup=go(7,event)
+                                onkeypress="if (event.key == 'Enter') go(7)">My Server</td>
                             <td class="topbar_td_end style3">&nbsp;</td>
                         </tr>
                     </table>
@@ -339,8 +346,8 @@
                     <div id=UsersSubMenuSpan style="display:none">
                         <table id=UsersSubMenu cellpadding=0 cellspacing=0 class=style1>
                             <tr>
-                                <td tabindex=0 id=UsersGeneral class="topbar_td style3x" onmouseup=go(4,event)
-                                    onkeypress="if (event.key == 'Enter') go(4)">Users</td>
+                                <td tabindex=0 id=UsersGeneral class="topbar_td style3x" onmouseup=go(5,event)
+                                    onkeypress="if (event.key == 'Enter') go(5)">Users</td>
                                 <td tabindex=0 id=UsersGroups class="topbar_td style3x" onmouseup=go(50,event)
                                     onkeypress="if (event.key == 'Enter') go(50)">Groups</td>
                                 <td tabindex=0 id=UsersRecordings class="topbar_td style3x" onmouseup=go(52,event)
@@ -352,8 +359,8 @@
                     <div id=ServerSubMenuSpan style="display:none">
                         <table id=ServerSubMenu cellpadding=0 cellspacing=0 class=style1>
                             <tr>
-                                <td tabindex=0 id=ServerGeneral class="topbar_td style3x" onmouseup=go(6,event)
-                                    onkeypress="if (event.key == 'Enter') go(6)">General</td>
+                                <td tabindex=0 id=ServerGeneral class="topbar_td style3x" onmouseup=go(7,event)
+                                    onkeypress="if (event.key == 'Enter') go(7)">General</td>
                                 <td tabindex=0 id=ServerStats class="topbar_td style3x" onmouseup=go(40,event)
                                     onkeypress="if (event.key == 'Enter') go(40)">Stats</td>
                                 <td tabindex=0 id=ServerConsole class="topbar_td style3x" onmouseup=go(115,event)
@@ -381,7 +388,589 @@
                 <div id=p0message><span id=p0span>Server disconnected</span>, <href onclick=reload()
                         style=cursor:pointer><u>click to reconnect</u></href>.</div>
             </div>
-            <div id=p1 style="display:none">
+
+            <style>
+                /* Refined Modern Dashboard Styles */
+                .dash-container {
+                    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                    padding: 12px;
+                    margin: 0 auto;
+                    max-height: 100%;
+                    overflow-y: auto;
+                }
+
+                /* Welcome Banner */
+                .dash-banner {
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                    padding: 30px 40px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                body.night .dash-banner {
+                    background: #1e293b;
+                    border-color: #334155;
+                }
+
+                .dash-banner::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 300px;
+                    height: 100%;
+                    background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.05), transparent);
+                }
+
+                .dash-banner-text h2 {
+                    margin: 0;
+                    font-size: 1.75rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                }
+
+                .dash-banner-text h2 span {
+                    color: #0ea5e9 !important;
+                }
+
+                body.night .dash-banner-text h2 {
+                    color: #f8fafc;
+                }
+
+                body.night .dash-banner-text h2 span {
+                    color: #38bdf8 !important;
+                }
+
+                .dash-banner-text p {
+                    margin: 8px 0 0 0;
+                    color: #64748b;
+                    font-size: 1.1rem;
+                }
+
+                body.night .dash-banner-text p {
+                    color: #94a3b8;
+                }
+
+                .btn-orange {
+                    background-color: #f97316;
+                    color: #fff !important;
+                    padding: 12px 32px;
+                    border-radius: 30px;
+                    font-weight: 700;
+                    text-decoration: none;
+                    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+                    transition: all 0.3s ease;
+                    z-index: 2;
+                }
+
+                .btn-orange:hover {
+                    background-color: #ea580c;
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 20px -3px rgba(249, 115, 22, 0.4);
+                }
+
+                /* Main Layout */
+                .dash-main-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 350px;
+                    gap: 15px;
+                }
+
+                .dash-left-col {
+                    display: grid;
+                    grid-template-columns: 1.2fr 1fr;
+                    gap: 30px;
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                    padding: 20px;
+                    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+                }
+
+                body.night .dash-left-col {
+                    background: #1e293b;
+                    border-color: #334155;
+                }
+
+                .dash-section-title {
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                    margin-bottom: 40px;
+                    grid-column: span 2;
+                    position: relative;
+                    padding-bottom: 15px;
+                }
+
+                .dash-section-title::after {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    bottom: 0;
+                    width: 60px;
+                    height: 3px;
+                    background: #0ea5e9;
+                    border-radius: 2px;
+                }
+
+                /* Stepper */
+                .stepper-container {
+                    position: relative;
+                    padding-left: 20px;
+                }
+
+                .stepper-line {
+                    position: absolute;
+                    left: 39px;
+                    top: 20px;
+                    bottom: 20px;
+                    width: 2px;
+                    background: repeating-linear-gradient(to bottom, #cbd5e1, #cbd5e1 5px, transparent 5px, transparent 10px);
+                }
+
+                body.night .stepper-line {
+                    background: repeating-linear-gradient(to bottom, #475569, #475569 5px, transparent 5px, transparent 10px);
+                }
+
+                .step-item {
+                    display: flex;
+                    gap: 25px;
+                    margin-bottom: 45px;
+                    position: relative;
+                    z-index: 2;
+                }
+
+                .step-box {
+                    width: 40px;
+                    height: 40px;
+                    background: #0369a1;
+                    color: white !important;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 800;
+                    font-size: 1.2rem;
+                    flex-shrink: 0;
+                    border: 4px solid #fff;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                }
+
+                body.night .step-box {
+                    border-color: #1e293b;
+                }
+
+                .step-content h4 {
+                    margin: 0 0 8px 0;
+                    font-size: 1.15rem;
+                    font-weight: 700;
+                    color: #334155;
+                }
+
+                body.night .step-content h4 {
+                    color: #e2e8f0;
+                }
+
+                .step-links {
+                    display: flex;
+                    gap: 12px;
+                    font-size: 0.85rem;
+                }
+
+                .step-links a {
+                    color: #0ea5e9 !important;
+                    text-decoration: none;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                .step-links span.dot {
+                    color: #cbd5e1;
+                }
+
+                /* Illustration Area */
+                .illustration-container {
+                    position: relative;
+                    background: #f8fafc;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 250px;
+                    overflow: hidden;
+                }
+
+                body.night .illustration-container {
+                    background: #0f172a;
+                }
+
+                .play-overlay {
+                    position: absolute;
+                    width: 70px;
+                    height: 70px;
+                    background: rgba(14, 165, 233, 0.9);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white !important;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    box-shadow: 0 0 30px rgba(14, 165, 233, 0.4);
+                    transition: transform 0.3s ease;
+                    z-index: 3;
+                }
+
+                .play-overlay:hover {
+                    transform: scale(1.1);
+                }
+
+                .illu-art {
+                    font-size: 120px;
+                    color: #e2e8f0;
+                    opacity: 0.6;
+                }
+
+                body.night .illu-art {
+                    color: #1e293b;
+                }
+
+                /* Right Panel Card */
+                .features-card {
+                    background: #fff1f2;
+                    border: 1px solid #fecdd3;
+                    border-radius: 16px;
+                    padding: 20px;
+                    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                body.night .features-card {
+                    background: #451a1a;
+                    border-color: #991b1b;
+                }
+
+                .features-card h3 {
+                    margin: 0 0 25px 0;
+                    font-size: 1.3rem;
+                    font-weight: 800;
+                    color: #9f1239;
+                }
+
+                body.night .features-card h3 {
+                    color: #fda4af;
+                }
+
+                .feature-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    flex-grow: 1;
+                }
+
+                .feature-list li {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 18px;
+                    font-size: 0.95rem;
+                    color: #4c0519;
+                    font-weight: 500;
+                }
+
+                body.night .feature-list li {
+                    color: #fecdd3;
+                }
+
+                .feature-list i {
+                    color: #e11d48;
+                    font-size: 1.1rem;
+                }
+
+                .btn-rounded {
+                    display: block;
+                    padding: 12px;
+                    border-radius: 30px;
+                    text-align: center;
+                    font-weight: 700;
+                    text-decoration: none;
+                    font-size: 0.95rem;
+                    margin-top: 15px;
+                    border: 1px solid transparent;
+                    transition: all 0.2s;
+                }
+
+                .btn-light-red {
+                    background: #fff;
+                    color: #e11d48 !important;
+                    border: 1px solid #fca5a5;
+                }
+
+                body.night .btn-light-red {
+                    background: #881337;
+                    color: #fff !important;
+                    border-color: #9f1239;
+                }
+
+                .btn-light-red:hover {
+                    background: #ffe4e6;
+                }
+
+                /* Security Banner */
+                .security-banner-new {
+                    grid-column: span 2;
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                    padding: 25px 40px;
+                    display: flex;
+                    align-items: center;
+                    gap: 30px;
+                    margin-top: 30px;
+                    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+                }
+
+                body.night .security-banner-new {
+                    background: #1e293b;
+                    border-color: #334155;
+                }
+
+                .sec-tag {
+                    background: #0ea5e9;
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 30px;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .sec-info {
+                    flex-grow: 1;
+                }
+
+                .sec-intro {
+                    margin: 0 0 10px 0;
+                    font-weight: 600;
+                    color: #475569;
+                    font-size: 0.95rem;
+                }
+
+                body.night .sec-intro {
+                    color: #cbd5e1;
+                }
+
+                .sec-features {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                }
+
+                .sec-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: #f1f5f9;
+                    color: #475569;
+                    padding: 6px 14px;
+                    border-radius: 8px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                    border: 1px solid transparent;
+                    cursor: default;
+                }
+
+                .sec-item:hover {
+                    transform: translateY(-2px);
+                    background: #fff;
+                    border-color: #e2e8f0;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                }
+
+                body.night .sec-item:hover {
+                    background: #1e293b;
+                    border-color: #475569;
+                }
+
+                body.night .sec-item {
+                    background: #334155;
+                    color: #cbd5e1;
+                }
+
+                .sec-item i:first-child {
+                    color: #0ea5e9;
+                    font-size: 1rem;
+                }
+
+                .sec-item.active {
+                    background: #f0fdf4;
+                    color: #166534;
+                    border-color: #bbf7d0;
+                }
+
+                body.night .sec-item.active {
+                    background: #064e3b;
+                    color: #d1fae5;
+                    border-color: #065f46;
+                }
+
+                .sec-item.active i:last-child {
+                    color: #22c55e;
+                    font-size: 0.8rem;
+                }
+
+                .sec-links {
+                    display: flex;
+                    gap: 20px;
+                    font-size: 0.95rem;
+                    color: #64748b;
+                }
+
+                .sec-links span {
+                    border-left: 1px solid #e2e8f0;
+                    padding-left: 20px;
+                }
+
+                body.night .sec-links span {
+                    border-color: #334155;
+                }
+            </style>
+            <div id="p1" class="dash-container" style="display:none">
+                <!-- Top Welcome Banner -->
+                <div class="dash-banner">
+                    <div class="dash-banner-text">
+                        <h2>Hello <span id="dashGreetingName" class="LogoffLinkColor"></span>, Welcome to MeshCentral!
+                        </h2>
+                        <p>Manage and secure all your remote devices from a single centralized dashboard.</p>
+                    </div>
+                    <a href="#" onclick="return account_createMesh()" class="btn-orange">Quick Setup</a>
+                </div>
+
+                <script>
+                    // Populate username in dashboard
+                    function populateDashboardUsername() {
+                        var nameSpan = document.getElementById('dashGreetingName');
+                        if (nameSpan && typeof userinfo !== 'undefined' && userinfo) {
+                            nameSpan.textContent = userinfo.realname || userinfo.name || "";
+                        } else {
+                            setTimeout(populateDashboardUsername, 500); // Retry if userinfo isn't ready
+                        }
+                    }
+                    populateDashboardUsername();
+                </script>
+
+                <!-- Main Section -->
+                <div class="dash-main-grid">
+                    <div class="dash-left-col">
+                        <h3 class="dash-section-title">Get Started with Remote Management in 3 Simple Steps!</h3>
+
+                        <!-- Stepper -->
+                        <div class="stepper-container">
+                            <div class="stepper-line"></div>
+
+                            <div class="step-item">
+                                <div class="step-box">1</div>
+                                <div class="step-content">
+                                    <h4>Create Device Groups</h4>
+                                    <div class="step-links">
+                                        <a href="#" onclick="return account_createMesh()"><i
+                                                class="fa-solid fa-plus-circle"></i> Create Group</a>
+                                        <span class="dot">•</span>
+                                        <a href="https://meshcommander.com/meshcentral2/userguide" target="_blank"><i
+                                                class="fa-solid fa-book"></i> User Guide</a>
+                                        <span class="dot">•</span>
+                                        <a href="#">Setup Wizard</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="step-item">
+                                <div class="step-box">2</div>
+                                <div class="step-content">
+                                    <h4>Download & Install MeshAgents</h4>
+                                    <div class="step-links">
+                                        <a href="#" onclick="go(2)"><i class="fa-solid fa-download"></i> Download
+                                            Now</a>
+                                        <span class="dot">•</span>
+                                        <a href="#"><i class="fa-solid fa-circle-play"></i> Setup Video</a>
+                                        <span class="dot">•</span>
+                                        <a href="#">Deployment</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="step-item">
+                                <div class="step-box">3</div>
+                                <div class="step-content">
+                                    <h4>Connect, Remote Desktop & Manage</h4>
+                                    <div class="step-links">
+                                        <a href="#" onclick="go(2)"><i class="fa-solid fa-desktop"></i> Open Console</a>
+                                        <span class="dot">•</span>
+                                        <a href="#"><i class="fa-solid fa-file-invoice"></i> View Logs</a>
+                                        <span class="dot">•</span>
+                                        <a href="#">Security Rules</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Illustration Area -->
+                        <div class="illustration-container">
+                            <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
+                            <i class="fa-solid fa-network-wired illu-art"></i>
+                        </div>
+
+                        <!-- Security Banner embedded in main col -->
+                        <div class="security-banner-new">
+                            <div class="sec-tag"><i class="fa-solid fa-shield-halved"></i> Security</div>
+                            <div class="sec-info">
+
+                                <div class="sec-features">
+                                    <div class="sec-item"><i class="fa-solid fa-lock"></i> HTTPS (SSL/TLS)</div>
+                                    <div class="sec-item active"><i class="fa-solid fa-key"></i> 2FA Enabled <i
+                                            class="fa-solid fa-circle-check"></i></div>
+                                    <div class="sec-item"><i class="fa-solid fa-users-gear"></i> Role-based Access</div>
+                                    <div class="sec-item"><i class="fa-solid fa-file-contract"></i> Audit Logs</div>
+                                    <div class="sec-item"><i class="fa-solid fa-id-card-clip"></i> Device Auth</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel Card -->
+                    <div class="dash-right-col">
+                        <div class="features-card">
+                            <h3>MeshCentral Features</h3>
+                            <ul class="feature-list">
+                                <li><i class="fa-solid fa-circle-check"></i> Remote Desktop Control (KVM)</li>
+                                <li><i class="fa-solid fa-circle-check"></i> Files Access & Management</li>
+                                <li><i class="fa-solid fa-circle-check"></i> Remote Terminal & SSH Console</li>
+                                <li><i class="fa-solid fa-circle-check"></i> Intel&reg; AMT Out-of-Band Management</li>
+                                <li><i class="fa-solid fa-circle-check"></i> Detailed Event Logs & Reports</li>
+                                <li><i class="fa-solid fa-circle-check"></i> Multi-User Permissions & Profiles</li>
+                                <li><i class="fa-solid fa-circle-check"></i> 2FA / 2-Step Verification Support</li>
+                            </ul>
+
+                            <a href="#" onclick="go(2)" class="btn-rounded btn-light-red">Download MeshAgent</a>
+                            <a href="#" onclick="go(3)" class="btn-rounded btn-light-red">Account Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id=p2 style="display:none">
                 <div id="p1title">
                     <div style="display:none" id="devListToolbarViewIcons">
                         <div id=devViewPageState
@@ -575,7 +1164,7 @@
                 </div>
                 <div id="xmap-info-window"></div>
             </div>
-            <div id=p2 style="display:none">
+            <div id=p3 style="display:none">
                 <div id="p2title">
                     <h1>My Account</h1>
                 </div>
@@ -677,7 +1266,7 @@
                     <br style=clear:both />
                 </div>
             </div>
-            <div id=p3 style="display:none">
+            <div id=p4 style="display:none">
                 <div id="p3title">
                     <h1>My Events</h1>
                 </div>
@@ -717,7 +1306,7 @@
                 </table>
                 <div id=p3events></div>
             </div>
-            <div id=p4 style="display:none">
+            <div id=p5 style="display:none">
                 <div id="p4title">
                     <h1>My Users</h1>
                 </div>
@@ -754,7 +1343,7 @@
                 </table>
                 <div id="p3users"></div>
             </div>
-            <div id=p5 style="display:none">
+            <div id=p6 style="display:none">
                 <div id="p5title">
                     <h1>My Files</h1>
                 </div>
@@ -825,7 +1414,7 @@
                     </tr>
                 </table>
             </div>
-            <div id=p6 style="display:none">
+            <div id=p7 style="display:none">
                 <div id="p6info" style="overflow-y:auto">
                     <div id="p6title">
                         <img id=MainMeshImage src="serverpic.ashx">
@@ -3296,10 +3885,10 @@
                     for (var i in stars) { if (getNodeFromId(i) == null) { delete stars[i]; } }
 
                     // If we are currently looking at a node this is now gone, change the view.
-                    if ((currentNode != null) && (IsNodeViewable(currentNode) == false)) { currentNode = null; go(1); }
+                    if ((currentNode != null) && (IsNodeViewable(currentNode) == false)) { currentNode = null; go(2); }
 
                     // Change the reference to the current node
-                    if (currentNode != null) { currentNode = getNodeFromId(currentNode._id); if (currentNode != null) { gotoDevice(currentNode._id, xxcurrentView, true); } else { go(1); } }
+                    if (currentNode != null) { currentNode = getNodeFromId(currentNode._id); if (currentNode != null) { gotoDevice(currentNode._id, xxcurrentView, true); } else { go(2); } }
 
                     // Update device paging
                     devicePagingState = (message.totalcount == null) ? null : { total: message.totalcount, skip: message.skip, limit: message.limit };
@@ -4111,11 +4700,11 @@
                                     nodes = newnodes;
 
                                     // If we are looking at a node that is no longer visible, move back to "My Devices"
-                                    if ((xxcurrentView >= 10) && (xxcurrentView < 20) && currentNode && !IsNodeViewable(currentNode)) { setDialogMode(0); go(1); }
+                                    if ((xxcurrentView >= 10) && (xxcurrentView < 20) && currentNode && !IsNodeViewable(currentNode)) { setDialogMode(0); go(2); }
                                 }
                             }
                             mainUpdate(4 + 128 + 8192 + 16384);
-                            if (currentNode && !IsNodeViewable(currentNode)) { currentNode = null; if ((xxcurrentView >= 10) && (xxcurrentView < 20)) { go(1); } }
+                            if (currentNode && !IsNodeViewable(currentNode)) { currentNode = null; if ((xxcurrentView >= 10) && (xxcurrentView < 20)) { go(2); } }
                             //meshserver.send({ action: 'files' }); // TODO: Why do we need to do this??
 
                             // If we are looking at a mesh that is now deleted, move back to "My Account"
@@ -4952,12 +5541,13 @@
             if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && xterm == null) { terminal.m.TermHandleKeyDown(e); if ((e.keyCode >= 37) && (e.keyCode <= 40)) { haltEvent(e); } }
             if (!xxdialogMode && (xxcurrentView == 13) && (e.keyCode == 116) && (p13filetree != null)) { haltEvent(e); return false; } // F5 Refresh on files
             if (!xxdialogMode && ((xxcurrentView == 15) || (xxcurrentView == 115))) { return agentConsoleHandleKeys(e); }
-            if (!xxdialogMode && (xxcurrentView == 4)) {
+            if (!xxdialogMode && (xxcurrentView == 5)) {
+                var processed = 0;
                 if ((e.keyCode === 8) && (userSearchFocus == 0)) { var x = Q('UserSearchInput').value; Q('UserSearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
                 if (e.keyCode === 27) { Q('UserSearchInput').value = ''; processed = 1; }
                 if (processed > 0) { if (processed == 1) { mainUpdate(5); } return haltEvent(e); }
             }
-            if (xxdialogMode || (xxcurrentView != 1) || (e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
+            if (xxdialogMode || (xxcurrentView != 2) || (e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
             var processed = 0;
             if (Q('viewselect').value < 4) {
                 if ((e.keyCode === 8) && (searchFocus == 0)) { var x = Q('SearchInput').value; Q('KvmSearchInput').value = Q('SearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
@@ -5046,7 +5636,7 @@
         var deviceHeaders = {};
         var oldviewmode = 0;
         function updateDevices() {
-            if ((nodes == null) || (xxcurrentView != 1)) { return; }
+            if ((nodes == null) || (xxcurrentView != 2)) { return; }
             var r = '', c = 0, current = null, count = 0, scount = 0, displayedMeshes = {}, view = Q('viewselect').value, groups = {}, groupCount = {};
             QV('xdevices', view != 4);
             QV('xdevicesmap', view == 4);
@@ -5368,7 +5958,7 @@
                 p1updateInfo();
 
                 // Take care of KVM surfaces in desktop view mode
-                if (((view == 3) || (view == 5)) && (xxcurrentView == 1)) {
+                if (((view == 3) || (view == 5)) && (xxcurrentView == 2)) {
 
                     // Figure out and adjust the size to fill the width of the div
                     var vsize = [{ x: 180, y: 101 }, { x: 302, y: 169 }, { x: 454, y: 255 }][Q('sizeselect').selectedIndex];
@@ -15800,7 +16390,7 @@
             QS('meshSecurityChartDiv')['width'] = (graphsCount > 3) ? '23%' : '31%';
         }
 
-        function p21setDevicesFilter(filter) { go(1); Q('KvmSearchInput').value = Q('SearchInput').value = filter; mainUpdate(5); }
+        function p21setDevicesFilter(filter) { go(2); Q('KvmSearchInput').value = Q('SearchInput').value = filter; mainUpdate(5); }
 
         //
         // MY FILES
@@ -19663,7 +20253,7 @@
             setSessionActivity();
             if (xxcurrentView == 11) { deskAdjust(); }
             else if (xxcurrentView == 10) { mainUpdate(256); }
-            else if (xxcurrentView == 1) { mainUpdate(4); }
+            else if (xxcurrentView == 2) { mainUpdate(4); }
         }
         function messagebox(t, m) { setSessionActivity(); QH('id_dialogMessage', m); setDialogMode(1, t, 1); }
         function statusbox(t, m) { setSessionActivity(); QH('id_dialogMessage', m); setDialogMode(1, t); }
@@ -19679,7 +20269,7 @@
         function go(x, event) {
             if (event && ((event.which == 3) || (event.button == 2))) return; // ignore right clicks as they are handled elsewhere
             // Remind the user to add two factor authentication
-            if ((features & 0x00040000) && (count2factoraAuths() == 0) && (x > 2)) { x = 2; setDialogMode(2, "Account Security", 1, null, "Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" tab and look at the \"Account Security\" section."); }
+            if ((features & 0x00040000) && (count2factoraAuths() == 0) && (x != 1) && (x != 2) && (x != 3)) { x = 3; messagebox("Account Security", "Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" tab and look at the \"Account Security\" section."); }
 
             if (pluginHandler != null) pluginHandler.callHook('goPageStart', x, event);
             setSessionActivity();
@@ -19716,7 +20306,7 @@
             if ((xxcurrentView == 11) && (desktop != null) && (desktop.m.recordedData != null)) { deskRecordSession(); }
 
             // If we are trying to go to "My Users" and we are not a user manager, move to recordings
-            if (((x == 4) && (userinfo != null) && ((userinfo.siteadmin & 2) == 0)) || ((features & 4) != 0) && (userinfo != null) && (userinfo._id.split('/')[2][0] != '~')) { x = 52; }
+            if (((x == 5) && (userinfo != null) && ((userinfo.siteadmin & 2) == 0)) || ((features & 4) != 0) && (userinfo != null) && (userinfo._id.split('/')[2][0] != '~')) { x = 52; }
 
             // Stop the list graph if active
             if (xxcurrentView == 17) deviceDetailsStatsClear();
@@ -19745,14 +20335,14 @@
             }
 
             // Remove top bar selection
-            var mainBarItems = ['MainMenuMyDevices', 'MainMenuMyAccount', 'MainMenuMyEvents', 'MainMenuMyFiles', 'MainMenuMyUsers', 'MainMenuMyServer'];
+            var mainBarItems = ['MainMenuDashboard', 'MainMenuMyDevices', 'MainMenuMyAccount', 'MainMenuMyEvents', 'MainMenuMyUsers', 'MainMenuMyFiles', 'MainMenuMyServer'];
             for (var i in mainBarItems) {
                 QC(mainBarItems[i]).remove('fullselect');
                 QC(mainBarItems[i]).remove('semiselect');
             }
 
             // Remove left bar selection
-            var leftBarItems = ['LeftMenuMyDevices', 'LeftMenuMyAccount', 'LeftMenuMyEvents', 'LeftMenuMyFiles', 'LeftMenuMyUsers', 'LeftMenuMyServer'];
+            var leftBarItems = ['LeftMenuDashboard', 'LeftMenuMyDevices', 'LeftMenuMyAccount', 'LeftMenuMyEvents', 'LeftMenuMyUsers', 'LeftMenuMyFiles', 'LeftMenuMyServer'];
             for (var i in leftBarItems) {
                 QC(leftBarItems[i]).remove('lbbuttonsel');
                 QC(leftBarItems[i]).remove('lbbuttonsel2');
@@ -19765,27 +20355,31 @@
             var backView = 0;
             if (goBackStack.length > 0) { backView = goBackStack[goBackStack.length - 1]; }
 
-            // My Devices
-            if (x == 1 || (backView == 1) || ((backView == 0) && (x >= 10 && x < 20))) {
+            // Dashboard
+            if (x == 1) {
+                QC('MainMenuDashboard').add(mainMenuActiveClass);
+                QC('LeftMenuDashboard').add(leftMenuActiveClass);
+            } else if (x == 2 || (backView == 2) || ((backView == 0) && (x >= 10 && x < 20))) {
+                // My Devices
                 QC('MainMenuMyDevices').add(mainMenuActiveClass);
                 QC('LeftMenuMyDevices').add(leftMenuActiveClass);
-            } else if (x == 2 || (backView == 2) || ((backView == 0) && (x >= 20 && x < 30))) {
+            } else if (x == 3 || (backView == 3) || ((backView == 0) && (x >= 20 && x < 30))) {
                 // My Account
                 QC('MainMenuMyAccount').add(mainMenuActiveClass);
                 QC('LeftMenuMyAccount').add(leftMenuActiveClass);
-            } else if ((x == 3) || (x == 60)) {
+            } else if ((x == 4) || (x == 60)) {
                 // My Events
                 QC('MainMenuMyEvents').add(mainMenuActiveClass);
                 QC('LeftMenuMyEvents').add(leftMenuActiveClass);
-            } else if (x == 4 || (x >= 30 && x < 40) || (x == 50) || (x == 51) || (x == 52)) {
+            } else if (x == 5 || (x >= 30 && x < 40) || (x == 50) || (x == 51) || (x == 52)) {
                 // My Users
                 QC('MainMenuMyUsers').add(mainMenuActiveClass);
                 QC('LeftMenuMyUsers').add(leftMenuActiveClass);
-            } else if (x == 5) {
+            } else if (x == 6) {
                 // My Files
                 QC('MainMenuMyFiles').add(mainMenuActiveClass);
                 QC('LeftMenuMyFiles').add(leftMenuActiveClass);
-            } else if ((x == 6) || (x == 115) || (x >= 40 && x < 50)) {
+            } else if (x == 7 || (x == 115) || (x >= 40 && x < 50)) {
                 // My Server
                 QC('MainMenuMyServer').add(mainMenuActiveClass);
                 QC('LeftMenuMyServer').add(leftMenuActiveClass);
@@ -19803,10 +20397,10 @@
             QV('UserDummyMenuSpan', (x == 51) || ((x < 10) && (x != 6) && webPageFullScreen));
             QV('MeshSubMenuSpan', (x >= 20) && (x < 30));
             QV('UserSubMenuSpan', (x >= 30) && (x < 40));
-            QV('ServerSubMenuSpan', x == 6 || x == 115 || x == 40 || x == 41 || x == 42 || x == 43);
-            QV('UsersSubMenuSpan', x == 4 || x == 50 || x == 52);
-            QV('EventsSubMenuSpan', (x == 3) || (x == 60));
-            var panels = { 3: 'EventsLive', 4: 'UsersGeneral', 10: 'MainDev', 11: 'MainDevDesktop', 12: 'MainDevTerminal', 13: 'MainDevFiles', 14: 'MainDevAmt', 15: 'MainDevConsole', 16: 'MainDevEvents', 17: 'MainDevInfo', 19: 'MainDevPlugins', 20: 'MeshGeneral', 21: 'MeshSummary', 30: 'UserGeneral', 31: 'UserEvents', 6: 'ServerGeneral', 40: 'ServerStats', 41: 'ServerTrace', 42: 'ServerPlugins', 50: 'UsersGroups', 52: 'UsersRecordings', 60: 'EventsReport', 115: 'ServerConsole' };
+            QV('ServerSubMenuSpan', x == 7 || x == 115 || x == 40 || x == 41 || x == 42 || x == 43);
+            QV('UsersSubMenuSpan', x == 5 || x == 50 || x == 52);
+            QV('EventsSubMenuSpan', (x == 4) || (x == 60));
+            var panels = { 1: 'MainMenuDashboard', 4: 'EventsLive', 5: 'UsersGeneral', 10: 'MainDev', 11: 'MainDevDesktop', 12: 'MainDevTerminal', 13: 'MainDevFiles', 14: 'MainDevAmt', 15: 'MainDevConsole', 16: 'MainDevEvents', 17: 'MainDevInfo', 19: 'MainDevPlugins', 20: 'MeshGeneral', 21: 'MeshSummary', 30: 'UserGeneral', 31: 'UserEvents', 7: 'ServerGeneral', 40: 'ServerStats', 41: 'ServerTrace', 42: 'ServerPlugins', 50: 'UsersGroups', 52: 'UsersRecordings', 60: 'EventsReport', 115: 'ServerConsole' };
             for (var i in panels) {
                 QC(panels[i]).remove('style3x');
                 QC(panels[i]).remove('style3sel');
@@ -19822,10 +20416,10 @@
             QV('p15BackButton', (x != 115) && ((args.hide & 32) == 0) && ('{{currentNode}}'.toLowerCase() == '')); // For device console, only show the back button if not hidden and not in single device view mode.
             if ((x == 15) || (x == 115)) { setupConsole(); }
 
-            if (x == 1) mainUpdate(4);
+            if (x == 2) mainUpdate(4);
 
             // Setup web notifications
-            if ((x == 2) && Notification) { QV('accountEnableNotificationsSpan', Notification.permission != 'granted'); }
+            if ((x == 3) && Notification) { QV('accountEnableNotificationsSpan', Notification.permission != 'granted'); }
 
             // Fetch the server timeline stats if needed
             if ((x == 40) && (serverTimelineStats == null)) { refreshServerTimelineStats(); }

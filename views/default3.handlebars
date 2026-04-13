@@ -277,25 +277,25 @@
             <div style="height:24px"></div>
             <nav class="nav flex-column">
                 <a class="nav-link text-center text-white" id="LeftMenuDashboard" href="#" data-target="dashboard"
-                    onclick=go(7,event) onkeypress="if (event.key=='Enter') { go(7); }" title="Dashboard"><i
+                    onclick=go(1,event) onkeypress="if (event.key=='Enter') { go(1); }" title="Dashboard"><i
                         class="fa-solid fa-gauge-high me-2"></i></a>
-                <a class="nav-link active text-center text-white lbbuttonsel" id="LeftMenuMyDevices" href="#"
-                    data-target="general" onclick=go(1,event) onkeypress="if (event.key=='Enter') { go(1); }"><i
+                <a class="nav-link text-center text-white" id="LeftMenuMyDevices" href="#"
+                    data-target="general" onclick=go(2,event) onkeypress="if (event.key=='Enter') { go(2); }"><i
                         class="fa-solid fa-computer me-2"></i></a>
                 <a class="nav-link text-center text-white" id="LeftMenuMyAccount" href="#" data-target="account"
-                    onclick=go(2,event) onkeypress="if (event.key=='Enter') { go(2); }"><i
+                    onclick=go(3,event) onkeypress="if (event.key=='Enter') { go(3); }"><i
                         class="fa-solid fa-user-gear me-2"></i></a>
                 <a class="nav-link text-center text-white" id="LeftMenuMyEvents" href="#" data-target="events"
-                    onclick=go(3,event) onkeypress="if (event.key=='Enter') { go(3); }"><i
-                        class="fa-solid fa-calendar-alt me-2"></i></a>
-                <a class="nav-link text-center text-white" id="LeftMenuMyFiles" href="#" data-target="files"
-                    onclick=go(5,event) onkeypress="if (event.key=='Enter') { go(5); }"><i
-                        class="fa-solid fa-folder-open me-2"></i></a>
-                <a class="nav-link text-center text-white" id="LeftMenuMyUsers" href="#" data-target="users"
                     onclick=go(4,event) onkeypress="if (event.key=='Enter') { go(4); }"><i
+                        class="fa-solid fa-calendar-alt me-2"></i></a>
+                <a class="nav-link text-center text-white" id="LeftMenuMyUsers" href="#" data-target="users"
+                    onclick=go(5,event) onkeypress="if (event.key=='Enter') { go(5); }"><i
                         class="fa-solid fa-users me-2"></i></a>
-                <a class="nav-link text-center text-white" id="LeftMenuMyServer" href="#" data-target="server"
+                <a class="nav-link text-center text-white" id="LeftMenuMyFiles" href="#" data-target="files"
                     onclick=go(6,event) onkeypress="if (event.key=='Enter') { go(6); }"><i
+                        class="fa-solid fa-folder-open me-2"></i></a>
+                <a class="nav-link text-center text-white" id="LeftMenuMyServer" href="#" data-target="server"
+                    onclick=go(7,event) onkeypress="if (event.key=='Enter') { go(7); }"><i
                         class="fa-solid fa-server me-2"></i></a>
             </nav>
         </div>
@@ -305,20 +305,20 @@
                     <span id=logoutControlSpan2></span>
                     <table id=MainMenuSpan cellpadding=0 cellspacing=0 class=style1>
                         <tr>
-                            <td tabindex=0 id=MainMenuDashboard class="topbar_td style3x" onmouseup=go(7,event)
-                                onkeypress="if (event.key == 'Enter') go(7)">Dashboard</td>
-                            <td tabindex=0 id=MainMenuMyDevices class="topbar_td style3x" onmouseup=go(1,event)
-                                onkeypress="if (event.key == 'Enter') go(1)">My Devices</td>
-                            <td tabindex=0 id=MainMenuMyAccount class="topbar_td style3x" onmouseup=go(2,event)
-                                onkeypress="if (event.key == 'Enter') go(2)">My Account</td>
-                            <td tabindex=0 id=MainMenuMyEvents class="topbar_td style3x" onmouseup=go(3,event)
-                                onkeypress="if (event.key == 'Enter') go(3)">My Events</td>
-                            <td tabindex=0 id=MainMenuMyFiles class="topbar_td style3x" onmouseup=go(5,event)
-                                onkeypress="if (event.key == 'Enter') go(5)">My Files</td>
-                            <td tabindex=0 id=MainMenuMyUsers class="topbar_td style3x" onmouseup=go(4,event)
-                                onkeypress="if (event.key == 'Enter') go(4)">My Users</td>
-                            <td tabindex=0 id=MainMenuMyServer class="topbar_td style3x" onmouseup=go(6,event)
-                                onkeypress="if (event.key == 'Enter') go(6)">My Server</td>
+                            <td tabindex=0 id=MainMenuDashboard class="topbar_td style3x" onmouseup=go(1,event)
+                                onkeypress="if (event.key == 'Enter') go(1)">Dashboard</td>
+                            <td tabindex=0 id=MainMenuMyDevices class="topbar_td style3x" onmouseup=go(2,event)
+                                onkeypress="if (event.key == 'Enter') go(2)">My Devices</td>
+                            <td tabindex=0 id=MainMenuMyAccount class="topbar_td style3x" onmouseup=go(3,event)
+                                onkeypress="if (event.key == 'Enter') go(3)">My Account</td>
+                            <td tabindex=0 id=MainMenuMyEvents class="topbar_td style3x" onmouseup=go(4,event)
+                                onkeypress="if (event.key == 'Enter') go(4)">My Events</td>
+                            <td tabindex=0 id=MainMenuMyUsers class="topbar_td style3x" onmouseup=go(5,event)
+                                onkeypress="if (event.key == 'Enter') go(5)">My Users</td>
+                            <td tabindex=0 id=MainMenuMyFiles class="topbar_td style3x" onmouseup=go(6,event)
+                                onkeypress="if (event.key == 'Enter') go(6)">My Files</td>
+                            <td tabindex=0 id=MainMenuMyServer class="topbar_td style3x" onmouseup=go(7,event)
+                                onkeypress="if (event.key == 'Enter') go(7)">My Server</td>
                             <td class="topbar_td_end style3">&nbsp;</td>
                         </tr>
                     </table>
@@ -396,8 +396,8 @@
                     <div id=ServerSubMenuSpan style="display:none">
                         <table id=ServerSubMenu cellpadding=0 cellspacing=0 class=style1>
                             <tr>
-                                <td tabindex=0 id=ServerGeneral class="topbar_td style3x" onmouseup=go(6,event)
-                                    onkeypress="if (event.key == 'Enter') go(6)">General</td>
+                                <td tabindex=0 id=ServerGeneral class="topbar_td style3x" onmouseup=go(7,event)
+                                    onkeypress="if (event.key == 'Enter') go(7)">General</td>
                                 <td tabindex=0 id=ServerStats class="topbar_td style3x" onmouseup=go(40,event)
                                     onkeypress="if (event.key == 'Enter') go(40)">Stats</td>
                                 <td tabindex=0 id=ServerConsole class="topbar_td style3x" onmouseup=go(115,event)
@@ -879,7 +879,7 @@
                 }
             </style>
 
-            <div id="p7" class="dash-container" style="display:none">
+            <div id="p1" class="dash-container" style="display:none">
                 <!-- Top Welcome Banner -->
                 <div class="dash-banner">
                     <div class="dash-banner-text">
@@ -933,7 +933,7 @@
                                 <div class="step-content">
                                     <h4>Download & Install MeshAgents</h4>
                                     <div class="step-links">
-                                        <a href="#" onclick="go(1)"><i class="fa-solid fa-download"></i> Download
+                                        <a href="#" onclick="go(2)"><i class="fa-solid fa-download"></i> Download
                                             Now</a>
                                         <span class="dot">•</span>
                                         <a href="#"><i class="fa-solid fa-circle-play"></i> Setup Video</a>
@@ -948,7 +948,7 @@
                                 <div class="step-content">
                                     <h4>Connect, Remote Desktop & Manage</h4>
                                     <div class="step-links">
-                                        <a href="#" onclick="go(1)"><i class="fa-solid fa-desktop"></i> Open Console</a>
+                                        <a href="#" onclick="go(2)"><i class="fa-solid fa-desktop"></i> Open Console</a>
                                         <span class="dot">•</span>
                                         <a href="#"><i class="fa-solid fa-file-invoice"></i> View Logs</a>
                                         <span class="dot">•</span>
@@ -995,14 +995,14 @@
                                 <li><i class="fa-solid fa-circle-check"></i> 2FA / 2-Step Verification Support</li>
                             </ul>
 
-                            <a href="#" onclick="go(1)" class="btn-rounded btn-light-red">Download MeshAgent</a>
-                            <a href="#" onclick="go(2)" class="btn-rounded btn-light-red">Account Profile</a>
+                            <a href="#" onclick="go(2)" class="btn-rounded btn-light-red">Download MeshAgent</a>
+                            <a href="#" onclick="go(3)" class="btn-rounded btn-light-red">Account Profile</a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id=p1 style="display:none">
+            <div id=p2 style="display:none">
                 <div id="p1title" class="d-flex justify-content-between align-items-center">
                     <div>
                         <h1>My Devices</h1>
@@ -1231,7 +1231,7 @@
                 </div>
                 <div id="xmap-info-window"></div>
             </div>
-            <div id=p2 style="display:none">
+            <div id=p3 style="display:none">
                 <div id="p2title">
                     <h1>My Account</h1>
                 </div>
@@ -1336,7 +1336,7 @@
                     <br style=clear:both />
                 </div>
             </div>
-            <div id=p3 style="display:none">
+            <div id=p4 style="display:none">
                 <div id="p3title">
                     <h1>My Events</h1>
                 </div>
@@ -1372,7 +1372,7 @@
                 </table>
                 <div id=p3events></div>
             </div>
-            <div id=p4 style="display:none">
+            <div id=p5 style="display:none">
                 <div id="p4title">
                     <h1>My Users</h1>
                 </div>
@@ -1409,7 +1409,7 @@
                 </table>
                 <div id="p3users"></div>
             </div>
-            <div id=p5 style="display:none">
+            <div id=p6 style="display:none">
                 <div id="p5title">
                     <h1>My Files</h1>
                 </div>
@@ -1479,7 +1479,7 @@
                     </tr>
                 </table>
             </div>
-            <div id=p6 style="display:none">
+            <div id=p7 style="display:none">
                 <div id="p6info" style="overflow-y:auto">
                     <div id="p6title">
                         <img id=MainMeshImage src="serverpic.ashx">
@@ -3913,7 +3913,7 @@
             QV('p2ServerActionsConfig', (siteRights & 16) && ((serverFeatures & 128) != 0));
             QV('MainMenuMyFiles', siteRights & 8);
             QV('LeftMenuMyFiles', siteRights & 8);
-            if (((siteRights & 8) == 0) && (xxcurrentView == 5)) { setDialogMode(0); go(1); }
+            if (((siteRights & 8) == 0) && (xxcurrentView == 6)) { setDialogMode(0); go(2); }
             if (currentNode != null) { gotoDevice(currentNode._id, xxcurrentView, true); }
 
             // Update user image
@@ -3935,13 +3935,13 @@
                 users = null;
                 wssessions = null;
                 mainUpdate(16384);
-                if (xxcurrentView == 4 || ((xxcurrentView >= 30) && (xxcurrentView < 40))) { setDialogMode(0); go(1); currentUser = null; }
+                if (xxcurrentView == 5 || ((xxcurrentView >= 30) && (xxcurrentView < 40))) { setDialogMode(0); go(2); currentUser = null; }
             }
             meshserver.send({ action: 'events', limit: parseInt(p3limitdropdown.value) });
             QV('ServerConsole', (userinfo.siteadmin === 0xFFFFFFFF) && ((serverFeatures & 16) != 0));
             QV('ServerTrace', (userinfo.siteadmin === 0xFFFFFFFF) && ((serverFeatures & 32) != 0));
-            if ((xxcurrentView == 115) && (userinfo.siteadmin != 0xFFFFFFFF)) { go(6); }
-            if ((xxcurrentView == 6) && ((userinfo.siteadmin & 21) == 0)) { go(1); }
+            if ((xxcurrentView == 115) && (userinfo.siteadmin != 0xFFFFFFFF)) { go(7); }
+            if ((xxcurrentView == 7) && ((userinfo.siteadmin & 21) == 0)) { go(3); }
 
             // If we are site administrator, register to get server statistics
             if ((siteRights & 21) != 0) { meshserver.send({ action: 'serverstats', interval: 10000 }); }
@@ -4278,10 +4278,10 @@
                     for (var i in stars) { if (getNodeFromId(i) == null) { delete stars[i]; } }
 
                     // If we are currently looking at a node this is now gone, change the view.
-                    if ((currentNode != null) && (IsNodeViewable(currentNode) == false)) { currentNode = null; go(1); }
+                    if ((currentNode != null) && (IsNodeViewable(currentNode) == false)) { currentNode = null; go(2); }
 
                     // Change the reference to the current node
-                    if (currentNode != null) { currentNode = getNodeFromId(currentNode._id); if (currentNode != null) { gotoDevice(currentNode._id, xxcurrentView, true); } else { go(1); } }
+                    if (currentNode != null) { currentNode = getNodeFromId(currentNode._id); if (currentNode != null) { gotoDevice(currentNode._id, xxcurrentView, true); } else { go(2); } }
 
                     // Update device paging
                     devicePagingState = (message.totalcount == null) ? null : { total: message.totalcount, skip: message.skip, limit: message.limit };
@@ -5109,11 +5109,11 @@
                                     nodes = newnodes;
 
                                     // If we are looking at a node that is no longer visible, move back to "My Devices"
-                                    if ((xxcurrentView >= 10) && (xxcurrentView < 20) && currentNode && !IsNodeViewable(currentNode)) { setDialogMode(0); go(1); }
+                                    if ((xxcurrentView >= 10) && (xxcurrentView < 20) && currentNode && !IsNodeViewable(currentNode)) { setDialogMode(0); go(2); }
                                 }
                             }
                             mainUpdate(4 + 128 + 8192 + 16384);
-                            if (currentNode && !IsNodeViewable(currentNode)) { currentNode = null; if ((xxcurrentView >= 10) && (xxcurrentView < 20)) { go(1); } }
+                            if (currentNode && !IsNodeViewable(currentNode)) { currentNode = null; if ((xxcurrentView >= 10) && (xxcurrentView < 20)) { go(2); } }
                             //meshserver.send({ action: 'files' }); // TODO: Why do we need to do this??
 
                             // If we are looking at a mesh that is now deleted, move back to "My Account"
@@ -5137,7 +5137,7 @@
                             // If we are looking at a mesh that is now deleted, move back to "My Account"
                             if (xxcurrentView >= 20 && xxcurrentView < 30 && currentMesh._id == message.event.meshid) { setDialogMode(0); go(2); }
                             // If we are looking at a node in the deleted mesh, move back to "My Devices"
-                            if (xxcurrentView >= 10 && xxcurrentView < 20 && currentNode && !IsNodeViewable(currentNode)) { setDialogMode(0); go(1); }
+                            if (xxcurrentView >= 10 && xxcurrentView < 20 && currentNode && !IsNodeViewable(currentNode)) { setDialogMode(0); go(2); }
                             break;
                         }
                         case 'addnode': {
@@ -5167,7 +5167,7 @@
                             if (index != -1) {
                                 var node = nodes[index];
                                 if (currentNode == node) {
-                                    if (xxcurrentView >= 10 && xxcurrentView < 20) { setDialogMode(0); go(1); }
+                                    if (xxcurrentView >= 10 && xxcurrentView < 20) { setDialogMode(0); go(2); }
                                     currentNode = null;
                                     // TODO: Correctly disconnect from this node (Desktop/Terminal/Files...)
                                 }
@@ -5251,7 +5251,7 @@
                                         // We don't see the new mesh, remove this device
                                         // TODO: Correctly disconnect from this node (Desktop/Terminal/Files...)
                                         if ((currentNode != null) && (currentNode._id == node._id)) {
-                                            if ((xxcurrentView >= 10) && (xxcurrentView < 20) && !IsNodeViewable(currentNode)) { currentNode = null; setDialogMode(0); go(1); }
+                                            if ((xxcurrentView >= 10) && (xxcurrentView < 20) && !IsNodeViewable(currentNode)) { currentNode = null; setDialogMode(0); go(2); }
                                         }
                                         var index = -1;
                                         for (var i in nodes) { if (nodes[i]._id == message.event.nodeid) { index = i; break; } }
@@ -5288,7 +5288,7 @@
 
                                     // TODO: Correctly disconnect from this node (Desktop/Terminal/Files...)
                                     if ((currentNode != null) && (currentNode._id == node._id)) {
-                                        if ((xxcurrentView >= 10) && (xxcurrentView < 20) && !IsNodeViewable(currentNode)) { currentNode = null; setDialogMode(0); go(1); }
+                                        if ((xxcurrentView >= 10) && (xxcurrentView < 20) && !IsNodeViewable(currentNode)) { currentNode = null; setDialogMode(0); go(2); }
                                     }
                                     nodes.splice(index, 1);
                                     mainUpdate(4 | 16);
@@ -5900,7 +5900,7 @@
             }
             if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && (xterm == null)) { return terminal.m.TermHandleKeys(e); }
             if (!xxdialogMode && ((xxcurrentView == 15) || (xxcurrentView == 115))) return agentConsoleHandleKeys(e);
-            if (!xxdialogMode && xxcurrentView == 4) {
+            if (!xxdialogMode && xxcurrentView == 5) {
                 if ((e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
                 var processed = 0;
                 if (e.key) {
@@ -5960,12 +5960,12 @@
             if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && xterm == null) { terminal.m.TermHandleKeyDown(e); if ((e.keyCode >= 37) && (e.keyCode <= 40)) { haltEvent(e); } }
             if (!xxdialogMode && (xxcurrentView == 13) && (e.keyCode == 116) && (p13filetree != null)) { haltEvent(e); return false; } // F5 Refresh on files
             if (!xxdialogMode && ((xxcurrentView == 15) || (xxcurrentView == 115))) { return agentConsoleHandleKeys(e); }
-            if (!xxdialogMode && (xxcurrentView == 4)) {
+            if (!xxdialogMode && (xxcurrentView == 5)) {
                 if ((e.keyCode === 8) && (userSearchFocus == 0)) { var x = Q('UserSearchInput').value; Q('UserSearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
                 if (e.keyCode === 27) { Q('UserSearchInput').value = ''; processed = 1; }
                 if (processed > 0) { if (processed == 1) { mainUpdate(5); } return haltEvent(e); }
             }
-            if (xxdialogMode || (xxcurrentView != 1) || (e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
+            if (xxdialogMode || (xxcurrentView != 2) || (e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
             var processed = 0;
             if (Q('viewselect').value < 4) {
                 if ((e.keyCode === 8) && (searchFocus == 0)) { var x = Q('SearchInput').value; Q('KvmSearchInput').value = Q('SearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
@@ -5993,7 +5993,7 @@
             }
             if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && xterm == null) { return terminal.m.TermHandleKeyUp(e); }
             if (!xxdialogMode && (xxcurrentView == 13) && (e.keyCode == 116) && (p13filetree != null)) { p13folderup(9999); haltEvent(e); return false; } // F5 Refresh on files
-            if (!xxdialogMode && (xxcurrentView == 4)) { if (((e.keyCode === 8) && (searchFocus == 0)) || e.keyCode === 27) { return haltEvent(e); } }
+            if (!xxdialogMode && (xxcurrentView == 5)) { if (((e.keyCode === 8) && (searchFocus == 0)) || e.keyCode === 27) { return haltEvent(e); } }
             if (xxdialogMode && (e.keyCode == 27)) { dialogclose(0); }
             if ((e.shiftKey == true) && (e.keyCode == 27)) { dialogclose(0); Q('KvmSearchInput').value = Q('SearchInput').value = ''; mainUpdate(5); if (desktop != null) { connectDesktop(); } if (terminal != null) { connectTerminal(); } if (files != null) { connectFiles(); } go(1); return; } // Shift-ESC: Reset the web page
             if (xxdialogMode || xxcurrentView != 0 || e.ctrlKey == true || (e.altKey == true) || (e.metaKey == true)) return;
@@ -6054,7 +6054,7 @@
         var deviceHeaders = {};
         var oldviewmode = 0;
         function updateDevices() {
-            if ((nodes == null) || (xxcurrentView != 1)) { return; }
+            if ((nodes == null) || (xxcurrentView != 2)) { return; }
             var r = '', c = 0, current = null, count = 0, scount = 0, displayedMeshes = {}, view = Q('viewselect').value, groups = {}, groupCount = {};
             QV('xdevices', view != 4);
             QV('xdevicesmap', view == 4);
@@ -6063,7 +6063,7 @@
             QVH('devMapToolbar', view == 4);
             QV('devListToolbarSize', (view == 3) || (view == 5));
             QV('devListToolbarSettings', view == 2);
-            QV('NoMeshesPanel', (nodes.length == 0) && (meshcount == 0) && (xxcurrentView == 1));
+            QV('NoMeshesPanel', (nodes.length == 0) && (meshcount == 0) && (xxcurrentView == 2));
             //QV('devListToolbarView', (meshcount != 0) && (nodes.length > 0));
             QV('devListToolbarViewIcons', nodes.length > 0);
             QV('devListToolbarSort', (nodes.length > 0) && (view != 4));
@@ -6369,7 +6369,7 @@
                 p1updateInfo();
 
                 // Take care of KVM surfaces in desktop view mode
-                if (((view == 3) || (view == 5)) && (xxcurrentView == 1)) {
+                if (((view == 3) || (view == 5)) && (xxcurrentView == 2)) {
 
                     // Figure out and adjust the size to fill the width of the div
                     var vsize = [{ x: 180, y: 101 }, { x: 302, y: 169 }, { x: 454, y: 255 }][Q('sizeselect').selectedIndex];
@@ -17449,7 +17449,7 @@
             QS('meshSecurityChartDiv')['width'] = (graphsCount > 3) ? '23%' : '31%';
         }
 
-        function p21setDevicesFilter(filter) { go(1); Q('KvmSearchInput').value = Q('SearchInput').value = filter; mainUpdate(5); }
+        function p21setDevicesFilter(filter) { go(2); Q('KvmSearchInput').value = Q('SearchInput').value = filter; mainUpdate(5); }
 
         //
         // MY FILES
@@ -21654,7 +21654,7 @@
             setSessionActivity();
             if (xxcurrentView == 11) { deskAdjust(); }
             else if (xxcurrentView == 10) { mainUpdate(256); }
-            else if (xxcurrentView == 1) { mainUpdate(4); }
+            else if (xxcurrentView == 2) { mainUpdate(4); }
         }
         function messagebox(t, m) { setSessionActivity(); QH('id_dialogMessage', m); setDialogMode(1, t, 1); }
         function statusbox(t, m) { setSessionActivity(); QH('id_dialogMessage', m); setDialogMode(1, t); }
@@ -21670,28 +21670,28 @@
 
         function goForward(id) { if (xxdialogMode) return; backStack.push(id); goStack(); }
         function goStack() {
-            if (backStack.length == 0) { go(2); return; }
+            if (backStack.length == 0) { go(3); return; }
             var id = backStack[backStack.length - 1], idtype = id.split('/')[0];
             if (idtype == 'node') { setupDeviceMenu(0); gotoDevice(id); }
-            if (idtype == 'mesh') { gotoMesh(id); }
-            if (idtype == 'devices') { go(1); }
-            if (idtype == 'account') { go(2); }
-            if (idtype == 'events') { go(3); }
-            if (idtype == 'users') { go(4); }
+            if (idtype == 'dashboard') { go(1); }
+            if (idtype == 'devices') { go(2); }
+            if (idtype == 'account') { go(3); }
+            if (idtype == 'events') { go(4); }
+            if (idtype == 'users') { go(5); }
             if (idtype == 'files') {
                 // Remind the user to add two factor authentication
-                if ((features & 0x00040000) && !((userinfo.otpsecret == 1) || (userinfo.otphkeys > 0) || (userinfo.otpkeys > 0) || ((features & 0x00800000) && (userinfo.otpekey == 1)))) { setDialogMode(2, "Account Security", 1, null, "Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" and look at the \"Account Security\" section."); return; }
-                go(5);
+                if ((features & 0x00040000) && !((userinfo.otpsecret == 1) || (userinfo.otphkeys > 0) || (userinfo.otpkeys > 0) || ((features & 0x00800000) && (userinfo.otpekey == 1)))) { messagebox("Account Security", "Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" and look at the \"Account Security\" section."); return; }
+                go(6);
             }
-            if (idtype == 'server') { go(6); }
+            if (idtype == 'server') { go(7); }
         }
 
         function go(x, event) {
             if (event && ((event.which == 3) || (event.button == 2))) return; // ignore right clicks as they are handled elsewhere
             // Remind the user to add two factor authentication
-            if ((features & 0x00040000) && (count2factoraAuths() == 0) && (x > 2)) {
-                x = 2;
-                setModalContent('xxAddAgent', "Account Security", 'Unable to access this feature until two - factor authentication is enabled.This is required for extra security.Go to the \"My Account\" tab and look at the \"Account Security\" section.');
+            if ((features & 0x00040000) && (count2factoraAuths() == 0) && (x != 1) && (x != 2) && (x != 3)) {
+                x = 3;
+                setModalContent('xxAddAgent', "Account Security", 'Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" tab and look at the \"Account Security\" section.');
                 showModal('xxAddAgentModal', 'idx_dlgOkButton');
             }
 
@@ -21731,7 +21731,7 @@
             if ((xxcurrentView == 11) && (desktop != null) && (desktop.m.recordedData != null)) { deskRecordSession(); }
 
             // If we are trying to go to "My Users" and we are not a user manager, move to recordings
-            if (((x == 4) && (userinfo != null) && ((userinfo.siteadmin & 2) == 0)) || ((features & 4) != 0) && (userinfo != null) && (userinfo._id.split('/')[2][0] != '~')) { x = 52; }
+            if (((x == 5) && (userinfo != null) && ((userinfo.siteadmin & 2) == 0)) || ((features & 4) != 0) && (userinfo != null) && (userinfo._id.split('/')[2][0] != '~')) { x = 52; }
 
             // Stop the list graph if active
             if (xxcurrentView == 17) deviceDetailsStatsClear();
@@ -21760,14 +21760,14 @@
             }
 
             // Remove top bar selection
-            var mainBarItems = ['MainMenuDashboard', 'MainMenuMyDevices', 'MainMenuMyAccount', 'MainMenuMyEvents', 'MainMenuMyFiles', 'MainMenuMyUsers', 'MainMenuMyServer'];
+            var mainBarItems = ['MainMenuDashboard', 'MainMenuMyDevices', 'MainMenuMyAccount', 'MainMenuMyEvents', 'MainMenuMyUsers', 'MainMenuMyFiles', 'MainMenuMyServer'];
             for (var i in mainBarItems) {
                 QC(mainBarItems[i]).remove('fullselect');
                 QC(mainBarItems[i]).remove('semiselect');
             }
 
             // Remove left bar selection
-            var leftBarItems = ['LeftMenuDashboard', 'LeftMenuMyDevices', 'LeftMenuMyAccount', 'LeftMenuMyEvents', 'LeftMenuMyFiles', 'LeftMenuMyUsers', 'LeftMenuMyServer'];
+            var leftBarItems = ['LeftMenuDashboard', 'LeftMenuMyDevices', 'LeftMenuMyAccount', 'LeftMenuMyEvents', 'LeftMenuMyUsers', 'LeftMenuMyFiles', 'LeftMenuMyServer'];
             for (var i in leftBarItems) {
                 QC(leftBarItems[i]).remove('lbbuttonsel');
                 QC(leftBarItems[i]).remove('lbbuttonsel2');
@@ -21780,31 +21780,31 @@
             var backView = 0;
             if (goBackStack.length > 0) { backView = goBackStack[goBackStack.length - 1]; }
 
-            // My Devices
-            if (x == 1 || (backView == 1) || ((backView == 0) && (x >= 10 && x < 20))) {
-                QC('MainMenuMyDevices').add(mainMenuActiveClass);
-                QC('LeftMenuMyDevices').add(leftMenuActiveClass);
-            } else if (x == 7) {
-                // Dashboard
+            // Dashboard
+            if (x == 1) {
                 QC('MainMenuDashboard').add(mainMenuActiveClass);
                 QC('LeftMenuDashboard').add(leftMenuActiveClass);
-            } else if (x == 2 || (backView == 2) || ((backView == 0) && (x >= 20 && x < 30))) {
+            } else if (x == 2 || (backView == 2) || ((backView == 0) && (x >= 10 && x < 20))) {
+                // My Devices
+                QC('MainMenuMyDevices').add(mainMenuActiveClass);
+                QC('LeftMenuMyDevices').add(leftMenuActiveClass);
+            } else if (x == 3 || (backView == 3) || ((backView == 0) && (x >= 20 && x < 30))) {
                 // My Account
                 QC('MainMenuMyAccount').add(mainMenuActiveClass);
                 QC('LeftMenuMyAccount').add(leftMenuActiveClass);
-            } else if ((x == 3) || (x == 60)) {
+            } else if ((x == 4) || (x == 60)) {
                 // My Events
                 QC('MainMenuMyEvents').add(mainMenuActiveClass);
                 QC('LeftMenuMyEvents').add(leftMenuActiveClass);
-            } else if (x == 4 || (x >= 30 && x < 40) || (x == 50) || (x == 51) || (x == 52)) {
+            } else if (x == 5 || (x >= 30 && x < 40) || (x == 50) || (x == 51) || (x == 52)) {
                 // My Users
                 QC('MainMenuMyUsers').add(mainMenuActiveClass);
                 QC('LeftMenuMyUsers').add(leftMenuActiveClass);
-            } else if (x == 5) {
+            } else if (x == 6) {
                 // My Files
                 QC('MainMenuMyFiles').add(mainMenuActiveClass);
                 QC('LeftMenuMyFiles').add(leftMenuActiveClass);
-            } else if ((x == 6) || (x == 115) || (x >= 40 && x < 50)) {
+            } else if (x == 7 || (x >= 40 && x < 50) || (x == 115)) {
                 // My Server
                 QC('MainMenuMyServer').add(mainMenuActiveClass);
                 QC('LeftMenuMyServer').add(leftMenuActiveClass);
@@ -21821,10 +21821,10 @@
             QV('MainSubMenuSpan', (x >= 10) && (x < 20));
             QV('MeshSubMenuSpan', (x >= 20) && (x < 30));
             QV('UserSubMenuSpan', (x >= 30) && (x < 40));
-            QV('ServerSubMenuSpan', x == 6 || x == 115 || x == 40 || x == 41 || x == 42 || x == 43);
-            QV('UsersSubMenuSpan', x == 4 || x == 50 || x == 52);
-            QV('EventsSubMenuSpan', (x == 3) || (x == 60));
-            var panels = { 3: 'EventsLive', 4: 'UsersGeneral', 10: 'MainDev', 11: 'MainDevDesktop', 12: 'MainDevTerminal', 13: 'MainDevFiles', 14: 'MainDevAmt', 15: 'MainDevConsole', 16: 'MainDevEvents', 17: 'MainDevInfo', 19: 'MainDevPlugins', 20: 'MeshGeneral', 21: 'MeshSummary', 30: 'UserGeneral', 31: 'UserEvents', 6: 'ServerGeneral', 40: 'ServerStats', 41: 'ServerTrace', 42: 'ServerPlugins', 50: 'UsersGroups', 52: 'UsersRecordings', 60: 'EventsReport', 115: 'ServerConsole' };
+            QV('ServerSubMenuSpan', x == 7 || x == 115 || x == 40 || x == 41 || x == 42 || x == 43);
+            QV('UsersSubMenuSpan', x == 5 || x == 50 || x == 52);
+            QV('EventsSubMenuSpan', (x == 4) || (x == 60));
+            var panels = { 4: 'EventsLive', 5: 'UsersGeneral', 10: 'MainDev', 11: 'MainDevDesktop', 12: 'MainDevTerminal', 13: 'MainDevFiles', 14: 'MainDevAmt', 15: 'MainDevConsole', 16: 'MainDevEvents', 17: 'MainDevInfo', 19: 'MainDevPlugins', 20: 'MeshGeneral', 21: 'MeshSummary', 30: 'UserGeneral', 31: 'UserEvents', 7: 'ServerGeneral', 40: 'ServerStats', 41: 'ServerTrace', 42: 'ServerPlugins', 50: 'UsersGroups', 52: 'UsersRecordings', 60: 'EventsReport', 115: 'ServerConsole' };
             for (var i in panels) {
                 QC(panels[i]).remove('style3x');
                 QC(panels[i]).remove('style3sel');
@@ -21840,10 +21840,10 @@
             QV('p15BackButton', (x != 115) && ((args.hide & 32) == 0) && ('{{currentNode}}'.toLowerCase() == '')); // For device console, only show the back button if not hidden and not in single device view mode.
             if ((x == 15) || (x == 115)) { setupConsole(); }
 
-            if (x == 1) mainUpdate(4);
+            if (x == 2) mainUpdate(4);
 
             // Setup web notifications
-            if ((x == 2) && Notification) { QV('accountEnableNotificationsSpan', Notification.permission != 'granted'); }
+            if ((x == 3) && Notification) { QV('accountEnableNotificationsSpan', Notification.permission != 'granted'); }
 
             // Fetch the server timeline stats if needed
             if ((x == 40) && (serverTimelineStats == null)) { refreshServerTimelineStats(); }

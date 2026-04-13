@@ -722,9 +722,9 @@
                         <div id=p0message style=text-align:center;width:100%><span id="p0span">Server disconnected</span>, <href onclick=reload() style=cursor:pointer><u>click to reconnect</u></href>.</div>
                     </div>
                 </div>
-                <div id=p1 style=display:none;width:100%;height:100%>
+                <div id=p8 style=display:none;width:100%;height:100%>
                     <div style="display:flex;align-items:center;width:100%;height:100%">
-                        <div id=p1message style=text-align:center;width:100%></div>
+                        <div id=p8message style=text-align:center;width:100%></div>
                     </div>
                 </div>
                 <div id=p2 style="display:none;position:absolute;top:0;left:0;right:0;bottom:0">
@@ -794,7 +794,7 @@
                         </div>
                     </div>
                 </div>
-                <div id=p5 style=display:none>
+                <div id=p6 style=display:none>
                     <table cellspacing=0 style="margin:0;padding:0;border-spacing:0;border:0;">
                         <tr style=padding:0>
                             <td style="padding:0;color:#c8c8c8;text-align:center;cursor:pointer" width=60px valign=top onclick=goBack()>
@@ -1395,7 +1395,7 @@
             center();
             QV('changeEmailId', (features & 0x200000) == 0);
             QH('p1message', "Connecting...");
-            go(1);
+            go(8);
 
             // Document keys
             document.onkeypress = ondeskkeypress;
@@ -2300,12 +2300,12 @@
                 go(xviewmode);
             } else {
                 setDialogMode(0);
-                go(1);
+                go(8);
             }
             delete args.gotonode;
             delete args.gotomesh;
             delete args.panel;
-            if (xxcurrentView < 2) { go(2); }
+            // if (xxcurrentView < 2) { go(2); } // Removed to allow Dashboard (1)
         }
 
         //
@@ -2321,7 +2321,7 @@
                 QV('topMenu', false);
                 xxdialogMode = 0;
                 if ((select == 1) && (xxcurrentView != 3)) { goForward('account'); } // My Account
-                if ((select == 2) && (xxcurrentView != 5)) { goForward('files'); } // My Files
+                if ((select == 2) && (xxcurrentView != 6)) { goForward('files'); } // My Files
             }
         }
 
@@ -2333,12 +2333,13 @@
             var id = backStack[backStack.length - 1], idtype = id.split('/')[0];
             if (idtype == 'node') { setupDeviceMenu(0); gotoDevice(id); }
             if (idtype == 'mesh') { gotoMesh(id); }
-            if (idtype == 'account') { go(3); }
+            if (idtype == 'dashboard') { go(1); }
             if (idtype == 'devices') { go(2); }
+            if (idtype == 'account') { go(3); }
             if (idtype == 'files') {
                 // Remind the user to add two factor authentication
-                if ((features & 0x00040000) && !((userinfo.otpsecret == 1) || (userinfo.otphkeys > 0) || (userinfo.otpkeys > 0) || (userinfo.otpduo > 0) || (userinfo.otpdev > 0) || ((features & 0x00800000) && (userinfo.otpekey == 1)))) { setDialogMode(2, "Account Security", 1, null, "Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" and look at the \"Account Security\" section."); return; }  
-                go(5);
+                if ((features & 0x00040000) && !((userinfo.otpsecret == 1) || (userinfo.otphkeys > 0) || (userinfo.otpkeys > 0) || (userinfo.otpduo > 0) || (userinfo.otpdev > 0) || ((features & 0x00800000) && (userinfo.otpekey == 1)))) { setDialogMode(2, "Account Security", 1, null, "Unable to access this feature until two-factor authentication is enabled. This is required for extra security. Go to the \"My Account\" and look at the \"Account Security\" section."); return; }
+                go(6);
             }
         }
 
