@@ -805,24 +805,61 @@
                 .sec-features {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 15px;
-                    font-size: 0.9rem;
-                    color: #64748b;
+                    gap: 12px;
                 }
 
-                body.night .sec-features {
-                    color: #94a3b8;
-                }
-
-                .sec-features span {
+                .sec-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                     background: #f1f5f9;
-                    padding: 4px 12px;
+                    color: #475569;
+                    padding: 6px 14px;
                     border-radius: 8px;
-                    white-space: nowrap;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                    border: 1px solid transparent;
+                    cursor: default;
                 }
 
-                body.night .sec-features span {
+                .sec-item:hover {
+                    transform: translateY(-2px);
+                    background: #fff;
+                    border-color: #e2e8f0;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                }
+
+                body.night .sec-item:hover {
+                    background: #1e293b;
+                    border-color: #475569;
+                }
+
+                body.night .sec-item {
                     background: #334155;
+                    color: #cbd5e1;
+                }
+
+                .sec-item i:first-child {
+                    color: #0ea5e9;
+                    font-size: 1rem;
+                }
+
+                .sec-item.active {
+                    background: #f0fdf4;
+                    color: #166534;
+                    border-color: #bbf7d0;
+                }
+
+                body.night .sec-item.active {
+                    background: #064e3b;
+                    color: #d1fae5;
+                    border-color: #065f46;
+                }
+
+                .sec-item.active i:last-child {
+                    color: #22c55e;
+                    font-size: 0.8rem;
                 }
 
                 .sec-links {
@@ -931,13 +968,14 @@
                         <div class="security-banner-new">
                             <div class="sec-tag"><i class="fa-solid fa-shield-halved"></i> Security</div>
                             <div class="sec-info">
-                                <p class="sec-intro">Even though no certifications, it has security features:</p>
+
                                 <div class="sec-features">
-                                    <span>🔐 HTTPS (SSL/TLS encryption)</span>
-                                    <span>🔑 2FA (you already enabled 👍)</span>
-                                    <span>👤 Role-based access control</span>
-                                    <span>📜 Audit logs</span>
-                                    <span>🔒 Device authentication</span>
+                                    <div class="sec-item"><i class="fa-solid fa-lock"></i> HTTPS (SSL/TLS)</div>
+                                    <div class="sec-item active"><i class="fa-solid fa-key"></i> 2FA Enabled <i
+                                            class="fa-solid fa-circle-check"></i></div>
+                                    <div class="sec-item"><i class="fa-solid fa-users-gear"></i> Role-based Access</div>
+                                    <div class="sec-item"><i class="fa-solid fa-file-contract"></i> Audit Logs</div>
+                                    <div class="sec-item"><i class="fa-solid fa-id-card-clip"></i> Device Auth</div>
                                 </div>
                             </div>
                         </div>
