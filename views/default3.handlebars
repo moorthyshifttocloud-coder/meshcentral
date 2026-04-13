@@ -6113,9 +6113,9 @@
                 deviceBoxWidth = 301 + Math.floor((totalDeviceViewWidth - (deviceBoxWidth * 301)) / deviceBoxWidth);
 
                 // Compute number of colums
-                var colcount = 4;
+                var colcount = 5; // Device name + Status + configurable columns
                 if (deviceViewSettings && deviceViewSettings.devsCols) {
-                    colcount = deviceViewSettings.devsCols.length + 1;
+                    colcount = deviceViewSettings.devsCols.length + 2; // +2 for device name and status columns
                     if (deviceViewSettings.devsCols.indexOf('desc') >= 0) { colcount--; } // Description is not an extra column.
                 }
 
@@ -6137,7 +6137,9 @@
                             if (meshes[node.meshid] && (meshes[node.meshid].mtype == 3)) { if (meshes[node.meshid].relayid) { extra = '<span class=devHeaderx>' + ", Relayed Devices" + '</span>'; } else { extra = '<span class=devHeaderx>' + ", Local Devices" + '</span>'; } }
                             if ((view == 1) && (current != null)) { if (c == 2) { r += '<td><div style=width:301px></div></td>'; } if (r != '') { r += '</tr></table>'; } }
                             if (view == 2) { r += '<div>'; }
-                            r += '<div class=DevSt style=width:100%;padding-top:4px><span style=float:right>';
+                            {{!-- r += '<div class=DevSt style=width:100%;padding-top:4px><span style=float:right>'; --}}
+                            //commented out DevSt
+                            r += '<div class=style=width:100%;padding-top:4px><span style=float:right>';
                             r += '<span id=DevxHeader' + deviceHeaderId + ' class=devHeaderx></span>' + extra;
                             r += '</span>';
                             if ((view == 1) || (view == 2) || (view == 3) || (view == 5)) {
@@ -6191,7 +6193,7 @@
                         if (sort == 1) { collapseName = ('pwr:' + (node.pwr ? node.pwr : 0)); }
                         else if ((sort == 3) || (sort == 4)) { collapseName = 'tag:**xx**xx*TaG*xx**xx**'; }
                         var collapsed = (sort != 3) & (sort != 4) & CollapsedGroups[collapseName];
-                        r += '<tr name=xxdevice2 colname=DevxCol' + collapseName + ' style=height:20px' + (collapsed ? ';display:none' : '') + ' id=xv2' + node._id + '></tr>';
+                        r += '<tr name=xxdevice2 colname=DevxCol' + collapseName + ' class="align-middle" style="height:50px; background-color: transparent;' + (collapsed ? 'display:none;' : '') + '" id=xv2' + node._id + '></tr>';
                     } else if (((view == 3) || (view == 5)) && (node.conn & 1) && (((meshrights & 8) || (meshrights & 256)) != 0) && (node.agent) && ((node.agent.caps & 1) != 0)) { // Check if we have rights and agent is capable of KVM.
                         // Draw the device (TODO: See if we can replace this with a standin in the future)
                         if ((Object.keys(checkedNodeids).length == 0) || checkedNodeids[node._id]) {
@@ -6323,27 +6325,29 @@
                         if (!Array.isArray(deviceViewSettings.devsCols)) { deviceViewSettings.devsCols = ['user', 'ip', 'conn']; }
 
                         // Display configured columns
-                        if (deviceViewSettings.devsCols.indexOf('agtype') >= 0) { colums += '<th style=width:100px>' + "Agent Type"; }
-                        if (deviceViewSettings.devsCols.indexOf('agver') >= 0) { colums += '<th style=width:100px>' + "Agent Version"; }
-                        if (deviceViewSettings.devsCols.indexOf('os') >= 0) { colums += '<th style=width:160px>' + "OS"; }
-                        if (deviceViewSettings.devsCols.indexOf('tags') >= 0) { colums += '<th style=width:120px>' + "Tags"; }
-                        if (deviceViewSettings.devsCols.indexOf('windowsav') >= 0) { colums += '<th style=width:100px>' + "Windows AV"; }
-                        if (deviceViewSettings.devsCols.indexOf('windowsupdate') >= 0) { colums += '<th style=width:120px>' + "Windows Update"; }
-                        if (deviceViewSettings.devsCols.indexOf('windowsfirewall') >= 0) { colums += '<th style=width:120px>' + "Windows Firewall"; }
-                        if (deviceViewSettings.devsCols.indexOf('lastbootuptime') >= 0) { colums += '<th style=width:120px>' + "Last Boot Up Time"; }
-                        if (deviceViewSettings.devsCols.indexOf('idletime') >= 0) { colums += '<th style=width:100px title="' + "Updated every 5 Minutes" + '">' + "Idle Time"; }
-                        if (deviceViewSettings.devsCols.indexOf('links') >= 0) { colums += '<th style=width:120px>' + "Links"; }
-                        if (deviceViewSettings.devsCols.indexOf('user') >= 0) { colums += '<th style=width:120px>' + "User"; }
-                        if (deviceViewSettings.devsCols.indexOf('ip') >= 0) { colums += '<th style=width:120px>' + "Address"; }
-                        if (deviceViewSettings.devsCols.indexOf('conn') >= 0) { colums += '<th style=width:100px>' + "Connectivity"; }
-                        if (deviceViewSettings.devsCols.indexOf('amthost') >= 0) { colums += '<th style=width:100px>' + "AMT Host"; }
-                        if (deviceViewSettings.devsCols.indexOf('amtstate') >= 0) { colums += '<th style=width:100px>' + "AMT State"; }
+                        colums += '<th class="text-nowrap">' + "Name";
+                        if (deviceViewSettings.devsCols.indexOf('user') >= 0) { colums += '<th class="text-nowrap">' + "User"; }
+                        colums += '<th class="text-nowrap text-center">Status</th>'; // Always show status column
+                        if (deviceViewSettings.devsCols.indexOf('agtype') >= 0) { colums += '<th class="text-nowrap">' + "Agent Type"; }
+                        if (deviceViewSettings.devsCols.indexOf('agver') >= 0) { colums += '<th class="text-nowrap">' + "Agent Version"; }
+                        if (deviceViewSettings.devsCols.indexOf('os') >= 0) { colums += '<th class="text-nowrap">' + "OS"; }
+                        if (deviceViewSettings.devsCols.indexOf('tags') >= 0) { colums += '<th class="text-nowrap">' + "Tags"; }
+                        if (deviceViewSettings.devsCols.indexOf('windowsav') >= 0) { colums += '<th class="text-nowrap">' + "Windows AV"; }
+                        if (deviceViewSettings.devsCols.indexOf('windowsupdate') >= 0) { colums += '<th class="text-nowrap">' + "Windows Update"; }
+                        if (deviceViewSettings.devsCols.indexOf('windowsfirewall') >= 0) { colums += '<th class="text-nowrap">' + "Windows Firewall"; }
+                        if (deviceViewSettings.devsCols.indexOf('lastbootuptime') >= 0) { colums += '<th class="text-nowrap">' + "Last Boot Up Time"; }
+                        if (deviceViewSettings.devsCols.indexOf('idletime') >= 0) { colums += '<th class="text-nowrap" title="' + "Updated every 5 Minutes" + '">' + "Idle Time"; }
+                        if (deviceViewSettings.devsCols.indexOf('links') >= 0) { colums += '<th class="text-nowrap">' + "Links"; }
+                        if (deviceViewSettings.devsCols.indexOf('ip') >= 0) { colums += '<th class="text-nowrap">' + "Address"; }
+                        if (deviceViewSettings.devsCols.indexOf('conn') >= 0) { colums += '<th class="text-nowrap">' + "Connectivity"; }
+                        if (deviceViewSettings.devsCols.indexOf('amthost') >= 0) { colums += '<th class="text-nowrap">' + "AMT Host"; }
+                        if (deviceViewSettings.devsCols.indexOf('amtstate') >= 0) { colums += '<th class="text-nowrap">' + "AMT State"; }
                         if (deviceViewSettings.devsCols.indexOf('lastseen') >= 0) {
-                            colums += '<th style=width:120px>' + "Last Seen";
+                            colums += '<th class="text-nowrap">' + "Last Seen";
                             if (requestedLastConnects == false) { requestedLastConnects = true; meshserver.send({ action: 'lastconnects' }); }
                         }
                         // This height of 1 div at the end to fix a problem in Linux firefox browsers
-                        r = '<table style=width:100%;margin-top:4px;table-layout:fixed cellpadding=0 cellspacing=0><th>' + colums + r + '</tr></table><div style=height:1px></div>';
+                        r = '<div class="table-responsive"><table class="table table-hover table-bordered" style="background-color: transparent;"><thead class="table-dark"><tr>' + colums + '</tr></thead><tbody class="table-group-divider">' + r + '</tbody></table></div><div style=height:1px></div>';
                     }
                 } else {
                     r += '</table>';
@@ -6567,7 +6571,9 @@
 
             // Node
             var icon = node.icon;
-            if (((!node.conn) || (node.conn == 0)) && (node.mtype != 3)) { icon += ' gray'; }
+            if (view != 2) {
+                if (((!node.conn) || (node.conn == 0)) && (node.mtype != 3)) { icon += ' gray'; }
+            }
 
             if (view == 1) {
                 div.innerHTML = '<table id=devs cmenu=devsContentMenu onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=width:100%;height:100%><tr><td style=width:22px><input class="' + node.meshid + ' DeviceCheckbox form-check-input me-2" onchange=p1devcheck(event) value=devid_' + node._id + ' type=checkbox ' + (checkedNodeids[node._id] ? ' checked' : '') + '></td><td><table onmouseup=gotoDevice(\'' + node._id + '\',null,null,event) border=0 cellspacing=0 style=width:100%;height:100%;cursor:pointer><tr><td style=width:50px tabindex=0 onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)"><div class="i' + icon + '" style=width:50px></div></td><td class=g1t></td><td class=e2t><div class=e1t style=width:' + ((div.clientWidth) - 120) + 'px title="' + title + '">' + name + '</div><div>' + NodeStateStr(node) + '</div></td><td class=g2t></td></tr></table></td></tr></table>' + devNotify;
@@ -6605,67 +6611,105 @@
                 if (sort == 1) { collapseName = ('pwr:' + (node.pwr ? node.pwr : 0)); }
                 else if ((sort == 3) || (sort == 4)) { collapseName = 'tag:**xx**xx*TaG*xx**xx**'; }
                 var collapsed = (sort != 3) & (sort != 4) & CollapsedGroups[collapseName];
-                var r = '<td style=position:relative><div id=devs cmenu=devsContentMenu class=bar18 tabindex=0 onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=height:18px;width:100%;font-size:medium onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">';
+                {{!-- var r = '<td class="align-middle"><div id=devs cmenu=devsContentMenu class="d-flex align-items-center bar18" tabindex=0 onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=height:18px;width:100%;font-size:medium onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">'; --}}
+                //bar 10 is removed
+                var r = '<td class="align-middle"><div id=devs cmenu=devsContentMenu class="d-flex align-items-center" tabindex=0 onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=height:18px;width:100%;font-size:medium onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">';
                 r += '<div class=deviceBarCheckbox><input class="' + node.meshid + ' DeviceCheckbox form-check-input me-2" value=devid_' + node._id + ' type=checkbox onchange=p1devcheck(event) ' + (checkedNodeids[node._id] ? ' checked' : '') + '></div>';
                 r += '<div class=deviceBarIcon onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)><div class="j' + icon + '" style=width:16px;margin-top:1px;margin-left:2px;height:16px></div></div>';
-                r += '<div class=g1 style=height:18px;float:left></div><div class=g2 style=height:18px;float:right></div>';
-                r += '<div class="style10 d-flex align-items-center" style=cursor:pointer;font-size:14px;max-height:18px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap title="' + title + '" onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)>' + name + '</div></div>' + devNotify + '</td>';
+                {{!-- r += '<div class=g1 style=height:18px;float:left></div><div class=g2 style=height:18px;float:right></div>'; --}}
+                {{!-- r += '<div class="style10 d-flex align-items-center flex-grow-1" style=cursor:pointer;font-size:14px;max-height:18px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap title="' + title + '" onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)>' + name + '</div></div>' + devNotify + '</td>'; --}}
+                // style10 is removed
+                r += '<div class="d-flex align-items-center flex-grow-1" style=cursor:pointer;font-size:14px;max-height:18px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap title="' + title + '" onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)>' + name + '</div></div>' + devNotify + '</td>';
 
                 // Use defaults if needed
                 if (deviceViewSettings == null) { deviceViewSettings = {}; }
                 if (!Array.isArray(deviceViewSettings.devsCols)) { deviceViewSettings.devsCols = ['user', 'ip', 'conn']; }
 
-                // Display configured columns
-                if (deviceViewSettings.devsCols.indexOf('agtype') >= 0) { r += '<td style=text-align:center;font-size:x-small;padding-left:4px;padding-right:4px title="' + EscapeHtml(((node.mtype != 3) && node.agent && node.agent.id && (node.agent.id <= agentsStr.length)) ? agentsStr[node.agent.id] : '') + '">' + EscapeHtml(((node.mtype != 3) && node.agent && node.agent.id && (node.agent.id <= agentsStr.length)) ? agentsStr[node.agent.id] : '').replace(',', '<br />'); } // Agent type
-                if (deviceViewSettings.devsCols.indexOf('agver') >= 0) { r += '<td style=text-align:center;font-size:x-small;padding-left:4px;padding-right:4px title="' + EscapeHtml((node.agent && node.agent.core) ? node.agent.core : '') + '">' + EscapeHtml((node.agent && node.agent.core) ? node.agent.core : '').replace(',', '<br />'); } // Agent core
+                // Status mapping for the Status column
+                var statusText = 'Unknown';
+                var statusOnline = false;
+                if (typeof node.state !== 'undefined') {
+                    if ((typeof node.state === 'string' && node.state.toLowerCase() === 'online') || (typeof node.state === 'number' && node.state > 0)) { statusText = 'Online'; statusOnline = true; }
+                    else if ((typeof node.state === 'string' && node.state.toLowerCase() === 'offline') || (typeof node.state === 'number' && node.state === 0)) { statusText = 'Offline'; statusOnline = false; }
+                    else { statusText = EscapeHtml(node.state.toString()); statusOnline = ((node.state != null) && (node.state !== 0)); }
+                } else {
+                    statusOnline = (node.conn > 0);
+                    statusText = statusOnline ? 'Online' : 'Offline';
+                }
+
+                // Connectivity mapping for the Connectivity column
+                var connectivityText = 'Unknown';
+                if (node.connectivityType && typeof node.connectivityType === 'string') {
+                    if (node.connectivityType.toLowerCase() === 'webrtc') { connectivityText = 'Direct (WebRTC)'; }
+                    else if (node.connectivityType.toLowerCase() === 'relay') { connectivityText = 'Relay'; }
+                    else { connectivityText = EscapeHtml(node.connectivityType); }
+                } else if (node.connection && node.connection.mode && typeof node.connection.mode === 'string') {
+                    if (node.connection.mode.toLowerCase() === 'webrtc') { connectivityText = 'Direct (WebRTC)'; }
+                    else if (node.connection.mode.toLowerCase() === 'relay') { connectivityText = 'Relay'; }
+                    else { connectivityText = EscapeHtml(node.connection.mode); }
+                } else if (node.conn) {
+                    if ((node.conn & 8) != 0) { connectivityText = 'Relay'; }
+                    else { connectivityText = 'Unknown'; }
+                } else {
+                    connectivityText = 'Disconnected';
+                }
+
+                // Add User column first if configured
+                if (deviceViewSettings.devsCols.indexOf('user') >= 0) { r += '<td class="text-center align-middle">' + getUserShortStr(node) + '</td>'; }
+
+                // Add Status column with colored dot and label
+                r += '<td class="text-center align-middle"><div class="d-flex justify-content-center align-items-center"><span class="badge rounded-circle ' + (statusOnline ? 'bg-success' : 'bg-secondary') + '" style="width: 12px; height: 12px;" title="' + statusText + '"></span>&nbsp;<span>' + statusText + '</span></div></td>';
+
+                // Display remaining configured columns
+                if (deviceViewSettings.devsCols.indexOf('agtype') >= 0) { r += '<td class="text-center align-middle small px-2" title="' + EscapeHtml(((node.mtype != 3) && node.agent && node.agent.id && (node.agent.id <= agentsStr.length)) ? agentsStr[node.agent.id] : '') + '">' + EscapeHtml(((node.mtype != 3) && node.agent && node.agent.id && (node.agent.id <= agentsStr.length)) ? agentsStr[node.agent.id] : '').replace(',', '<br />') + '</td>'; } // Agent type
+                if (deviceViewSettings.devsCols.indexOf('agver') >= 0) { r += '<td class="text-center align-middle small px-2" title="' + EscapeHtml((node.agent && node.agent.core) ? node.agent.core : '') + '">' + EscapeHtml((node.agent && node.agent.core) ? node.agent.core : '').replace(',', '<br />') + '</td>'; } // Agent core
                 if (deviceViewSettings.devsCols.indexOf('os') >= 0) { // Operating System
                     if (node.mtype == 3) {
                         var osstr = ''; if (node.agent.id == 4) { osstr = 'Windows'; } if (node.agent.id == 6) { osstr = 'Linux'; } if (node.agent.id == 29) { osstr = 'MacOS'; }
-                        r += '<td style=text-align:center;font-size:x-small title="' + EscapeHtml(osstr) + '">' + EscapeHtml(osstr);
+                        r += '<td class="text-center align-middle small" title="' + EscapeHtml(osstr) + '">' + EscapeHtml(osstr) + '</td>';
                     } else {
-                        r += '<td style=text-align:center;font-size:x-small title="' + EscapeHtml(node.osdesc ? node.osdesc : '') + '">' + EscapeHtml(node.osdesc ? node.osdesc : '');
+                        r += '<td class="text-center align-middle small" title="' + EscapeHtml(node.osdesc ? node.osdesc : '') + '">' + EscapeHtml(node.osdesc ? node.osdesc : '') + '</td>';
                     }
                 }
                 if (deviceViewSettings.devsCols.indexOf('tags') >= 0) { // Tags
-                    r += '<td style=text-align:center;font-size:x-small>';
+                    r += '<td class="text-center align-middle small">';
                     var groupingTags = '';
                     if (node.tags != null) {
                         for (var i in node.tags) {
-                            groupingTags += '<span class=tagSpan>' + EscapeHtml(node.tags[i]) + '</span> ';
+                            groupingTags += '<span class="badge bg-secondary me-1">' + EscapeHtml(node.tags[i]) + '</span>';
                         }
                     }
-                    r += '<span style=line-height:20px>' + groupingTags + '</span>';
+                    r += '<div class="d-flex flex-wrap justify-content-center">' + groupingTags + '</div></td>';
                 }
                 if (deviceViewSettings.devsCols.indexOf('windowsav') >= 0) { // Windows AV
-                    r += '<td style=text-align:center>' + ((node.wsc && node.wsc.antiVirus != null) ? (node.wsc.antiVirus == 'OK' ? '<span style=color:green>' + "OK" + '</span>' : '<span style=color:red>' + "BAD" + '</span>') : "");
+                    r += '<td class="text-center align-middle">' + ((node.wsc && node.wsc.antiVirus != null) ? (node.wsc.antiVirus == 'OK' ? '<span class="badge bg-success">OK</span>' : '<span class="badge bg-danger">BAD</span>') : "") + '</td>';
                 }
                 if (deviceViewSettings.devsCols.indexOf('windowsupdate') >= 0) {// Windows Update
-                    r += '<td style=text-align:center>' + ((node.wsc && node.wsc.autoUpdate != null) ? (node.wsc.autoUpdate == 'OK' ? '<span style=color:green>' + "OK" + '</span>' : '<span style=color:red>' + "BAD" + '</span>') : "");
+                    r += '<td class="text-center align-middle">' + ((node.wsc && node.wsc.autoUpdate != null) ? (node.wsc.autoUpdate == 'OK' ? '<span class="badge bg-success">OK</span>' : '<span class="badge bg-danger">BAD</span>') : "") + '</td>';
                 }
                 if (deviceViewSettings.devsCols.indexOf('windowsfirewall') >= 0) { // Windows Firewall
-                    r += '<td style=text-align:center>' + ((node.wsc && node.wsc.firewall != null) ? (node.wsc.firewall == 'OK' ? '<span style=color:green>' + "OK" + '</span>' : '<span style=color:red>' + "BAD" + '</span>') : "");
+                    r += '<td class="text-center align-middle">' + ((node.wsc && node.wsc.firewall != null) ? (node.wsc.firewall == 'OK' ? '<span class="badge bg-success">OK</span>' : '<span class="badge bg-danger">BAD</span>') : "") + '</td>';
                 }
                 if (deviceViewSettings.devsCols.indexOf('lastbootuptime') >= 0) { // Last Boot Up Time
-                    r += '<td style=text-align:center;font-size:x-small>' + ((node.lastbootuptime != null) ? printDateTime(new Date(node.lastbootuptime)) : "");
+                    r += '<td class="text-center align-middle small">' + ((node.lastbootuptime != null) ? printDateTime(new Date(node.lastbootuptime)) : "") + '</td>';
                 }
                 if (deviceViewSettings.devsCols.indexOf('idletime') >= 0) { // Idle Time
-                    r += '<td style=text-align:center;font-size:x-small>' + ((node.idletime != null && node.idletime != -1) ? printTimer(node.idletime) : "");
+                    r += '<td class="text-center align-middle small">' + ((node.idletime != null && node.idletime != -1) ? printTimer(node.idletime) : "") + '</td>';
                 }
-                if (deviceViewSettings.devsCols.indexOf('links') >= 0) { r += '<td style=text-align:center;font-size:x-small>' + getShortRouterLinks(node); } // Links
-                if (deviceViewSettings.devsCols.indexOf('user') >= 0) { r += '<td style=text-align:center>' + getUserShortStr(node); } // User
-                if (deviceViewSettings.devsCols.indexOf('ip') >= 0) { var ip = ''; if (node.mtype == 3) { ip = node.host; } else if (node.ip) { ip = node.ip; } r += '<td style=text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis title="' + EscapeHtml(ip) + '">' + EscapeHtml(ip); } // IP address
-                if (deviceViewSettings.devsCols.indexOf('conn') >= 0) { r += '<td style=text-align:center>' + states.join('&nbsp;+&nbsp;'); } // Connectivity
-                if (deviceViewSettings.devsCols.indexOf('amthost') >= 0) { r += '<td style=text-align:center>' + (((node.intelamt == null) || (node.intelamt.host == null)) ? '' : EscapeHtml(node.intelamt.host)); }
+                if (deviceViewSettings.devsCols.indexOf('links') >= 0) { r += '<td class="text-center align-middle small">' + getShortRouterLinks(node) + '</td>'; } // Links
+                if (deviceViewSettings.devsCols.indexOf('ip') >= 0) { var ip = ''; if (node.mtype == 3) { ip = node.host; } else if (node.ip) { ip = node.ip; } r += '<td class="text-center align-middle text-truncate" title="' + EscapeHtml(ip) + '">' + EscapeHtml(ip) + '</td>'; } // IP address
+                if (deviceViewSettings.devsCols.indexOf('conn') >= 0) { r += '<td class="text-center align-middle"><i class="fa-solid fa-network-wired me-1"></i>' + connectivityText + '</td>'; } // Connectivity
+                if (deviceViewSettings.devsCols.indexOf('amthost') >= 0) { r += '<td class="text-center align-middle">' + (((node.intelamt == null) || (node.intelamt.host == null)) ? '' : EscapeHtml(node.intelamt.host)) + '</td>'; }
                 if (deviceViewSettings.devsCols.indexOf('amtstate') >= 0) {
                     var amtstate = '';
                     if (node.intelamt) {
-                        if (node.intelamt.state == 0) { amtstate = ' <span title="' + "Intel&reg; AMT is not activated" + '">' + "Pre" + '</span>'; }
-                        if (node.intelamt.state == 1) { amtstate = ' <span title="' + "Intel&reg; AMT is in activation mode" + '">' + "In" + '</span>'; }
-                        if ((node.intelamt.state == 2) && node.intelamt.flags) { if (node.intelamt.flags & 2) { amtstate = ' <span title="' + "Intel&reg; AMT is activated in Client Control Mode" + '">' + "CCM" + '</span>'; } else if (node.intelamt.flags & 4) { amtstate += ' <span title="' + "Intel&reg; AMT is activated in Admin Control Mode" + '">' + "ACM" + '</span>'; } }
+                        if (node.intelamt.state == 0) { amtstate = ' <span class="badge bg-warning" title="' + "Intel&reg; AMT is not activated" + '">Pre</span>'; }
+                        if (node.intelamt.state == 1) { amtstate = ' <span class="badge bg-info" title="' + "Intel&reg; AMT is in activation mode" + '">In</span>'; }
+                        if ((node.intelamt.state == 2) && node.intelamt.flags) { if (node.intelamt.flags & 2) { amtstate = ' <span class="badge bg-success" title="' + "Intel&reg; AMT is activated in Client Control Mode" + '">CCM</span>'; } else if (node.intelamt.flags & 4) { amtstate += ' <span class="badge bg-success" title="' + "Intel&reg; AMT is activated in Admin Control Mode" + '">ACM</span>'; } }
                     }
-                    r += '<td style=text-align:center>' + amtstate;
+                    r += '<td class="text-center align-middle">' + amtstate + '</td>';
                 }
-                if (deviceViewSettings.devsCols.indexOf('lastseen') >= 0) { r += '<td style=text-align:center;font-size:x-small>'; if (node.conn > 0) { r += "Connected"; } else if (node.lastconnect != null) { r += printDateTime(new Date(node.lastconnect)); } }
+                if (deviceViewSettings.devsCols.indexOf('lastseen') >= 0) { r += '<td class="text-center align-middle small">'; if (node.conn > 0) { r += '<span class="badge bg-success">Connected</span>'; } else if (node.lastconnect != null) { r += printDateTime(new Date(node.lastconnect)); } r += '</td>'; }
 
                 div.innerHTML = r;
             } else if ((view == 3) || (view == 5)) {
