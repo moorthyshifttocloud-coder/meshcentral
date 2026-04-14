@@ -877,6 +877,386 @@
                 body.night .sec-links span {
                     border-color: #334155;
                 }
+
+                /* Modern Card-Based Device View (View 6) */
+                .device-cards-container {
+                    background: #f9fafb;
+                    padding: 20px;
+                    border-radius: 12px;
+                }
+
+                body.night .device-cards-container {
+                    background: #0f172a;
+                }
+
+                .device-group-section {
+                    margin-bottom: 24px;
+                }
+
+                .device-group-header {
+                    background: #edf2f7;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 16px;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    cursor: pointer;
+                    user-select: none;
+                    transition: all 0.2s ease;
+                }
+
+                .device-group-header:hover {
+                    background: #e0e7f1;
+                    border-color: #cbd5e1;
+                }
+
+                body.night .device-group-header {
+                    background: #1e293b;
+                    border-color: #334155;
+                }
+
+                body.night .device-group-header:hover {
+                    background: #293548;
+                    border-color: #475569;
+                }
+
+                .device-group-toggle {
+                    color: #64748b;
+                    font-size: 16px;
+                    flex-shrink: 0;
+                }
+
+                .device-group-title {
+                    font-weight: 700;
+                    color: #111827;
+                    font-size: 16px;
+                    flex: 1;
+                }
+
+                body.night .device-group-title {
+                    color: #f1f5f9;
+                }
+
+                .device-group-count {
+                    background: #cbd5e1;
+                    color: #334155;
+                    padding: 4px 12px;
+                    border-radius: 16px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-left: auto;
+                }
+
+                body.night .device-group-count {
+                    background: #334155;
+                    color: #cbd5e1;
+                }
+
+                .device-group-action {
+                    background: transparent;
+                    border: 1px solid #cbd5e1;
+                    color: #2563eb;
+                    padding: 6px 10px;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    transition: all 0.15s ease;
+                }
+
+                .device-group-action:hover {
+                    background: #eff6ff;
+                    border-color: #93c5fd;
+                }
+
+                body.night .device-group-action {
+                    background: transparent;
+                    border-color: #475569;
+                    color: #7dd3fc;
+                }
+
+                body.night .device-group-action:hover {
+                    background: #0f172a;
+                    border-color: #60a5fa;
+                }
+
+                .device-cards-grid {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 12px;
+                    margin-top: 12px;
+                }
+
+                .device-card {
+                    background: #fff;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 10px;
+                    padding: 14px;
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    transition: all 0.15s ease;
+                    cursor: pointer;
+                }
+
+                .device-card:hover {
+                    border-color: #2563eb;
+                    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+                }
+
+                body.night .device-card {
+                    background: #1e293b;
+                    border-color: #334155;
+                }
+
+                body.night .device-card:hover {
+                    border-color: #2563eb;
+                    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+                }
+
+                .device-card-checkbox {
+                    flex-shrink: 0;
+                }
+
+                .device-card-icon {
+                    width: 32px;
+                    height: 32px;
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .device-card-main {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .device-card-name {
+                    font-weight: 600;
+                    color: #111827;
+                    font-size: 15px;
+                    margin-bottom: 4px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                body.night .device-card-name {
+                    color: #f1f5f9;
+                }
+
+                .device-card-meta {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 12px;
+                    color: #6b7280;
+                    flex-wrap: wrap;
+                }
+
+                body.night .device-card-meta {
+                    color: #9ca3af;
+                }
+
+                .device-card-meta-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 3px;
+                }
+
+                .device-card-status {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    flex-shrink: 0;
+                    margin: 0 8px;
+                }
+
+                .device-status-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+
+                .device-status-online {
+                    background: #d1fae5;
+                    color: #065f46;
+                }
+
+                body.night .device-status-online {
+                    background: #064e3b;
+                    color: #d1fae5;
+                }
+
+                .device-status-offline {
+                    background: #f3f4f6;
+                    color: #6b7280;
+                }
+
+                body.night .device-status-offline {
+                    background: #374151;
+                    color: #d1d5db;
+                }
+
+                .device-status-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                }
+
+                .device-card-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    flex-shrink: 0;
+                }
+
+                .btn-connect {
+                    background: #2563eb;
+                    color: #fff;
+                    border: none;
+                    padding: 6px 14px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                }
+
+                .btn-connect:hover {
+                    background: #1d4ed8;
+                    transform: translateY(-1px);
+                }
+
+                .btn-menu {
+                    background: transparent;
+                    color: #6b7280;
+                    border: 1px solid #e5e7eb;
+                    padding: 6px 8px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: all 0.15s ease;
+                }
+
+                .btn-menu:hover {
+                    background: #f3f4f6;
+                    color: #111827;
+                    border-color: #d1d5db;
+                }
+
+                body.night .btn-menu {
+                    background: transparent;
+                    color: #9ca3af;
+                    border-color: #475569;
+                }
+
+                body.night .btn-menu:hover {
+                    background: #334155;
+                    color: #e5e7eb;
+                    border-color: #666e79;
+                }
+
+                .device-empty-state {
+                    grid-column: 1 / -1;
+                    text-align: center;
+                    padding: 20px 10px;
+                    color: #6b7280;
+                    background: #fff;
+                    border: 2px dashed #e5e7eb;
+                    border-radius: 10px;
+                }
+
+                body.night .device-empty-state {
+                    background: #1e293b;
+                    border-color: #334155;
+                    color: #9ca3af;
+                }
+
+                .empty-state-icon {
+                    font-size: 48px;
+                    margin-bottom: 12px;
+                    opacity: 0.5;
+                }
+
+                .empty-state-title {
+                    font-weight: 600;
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                    color: #374151;
+                }
+
+                body.night .empty-state-title {
+                    color: #d1d5db;
+                }
+
+                .empty-state-text {
+                    font-size: 12px;
+                    {{!-- margin-bottom: 12px; --}}
+                }
+
+                .empty-state-action {
+                    display: inline-block;
+                    background: #2563eb;
+                    color: #fff;
+                    padding: 6px 14px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    text-decoration: none;
+                    border: none;
+                    font-weight: 600;
+                }
+
+                .empty-state-action:hover {
+                    background: #1d4ed8;
+                }
+
+                .device-card-ip {
+                    font-family: 'Monaco', 'Courier New', monospace;
+                    background: #f3f4f6;
+                    color: #374151;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    flex-shrink: 0;
+                }
+
+                body.night .device-card-ip {
+                    background: #374151;
+                    color: #d1d5db;
+                }
+
+                .session-indicator {
+                    display: flex;
+                    align-items: center;
+                    gap: 3px;
+                    font-size: 11px;
+                    color: #7c3aed;
+                    font-weight: 600;
+                }
+
+                @media (max-width: 768px) {
+                    .device-card-actions {
+                        flex-direction: column;
+                    }
+
+                    .device-card-ip {
+                        display: none;
+                    }
+
+                    .device-card-meta {
+                        font-size: 11px;
+                    }
+                }
             </style>
 
             <div id="p1" class="dash-container" style="display:none">
@@ -1061,11 +1441,19 @@
                             <i class="fa-solid fa-square" data-fa-transform="shrink-10 down-4 left-5"></i>
                             <i class="fa-solid fa-square" data-fa-transform="shrink-10 down-4 right-6"></i>
                         </span>
+                        <span role=button tabindex=0 id=devViewButton6 class="fa-layers fa-fw fa-xl"
+                            onclick=onDeviceViewChange(6)
+                            onkeypress="if (event.key == 'Enter') { onDeviceViewChange(6); }" title="Cards">
+                            <i class="fa-solid fa-rectangle" data-fa-transform="shrink-15 up-3.5 left-5" style="border-radius: 3px; border: 1px solid currentColor;"></i>
+                            <i class="fa-solid fa-rectangle" data-fa-transform="shrink-15 up-3.5 right-5" style="border-radius: 3px; border: 1px solid currentColor;"></i>
+                            <i class="fa-solid fa-rectangle" data-fa-transform="shrink-15 down-3.5 left-2.5" style="border-radius: 3px; border: 1px solid currentColor;"></i>
+                            <i class="fa-solid fa-rectangle" data-fa-transform="shrink-15 down-3.5 right-2.5" style="border-radius: 3px; border: 1px solid currentColor;"></i>
+                        </span>
                         <span role=button tabindex=0 id=devViewButton4 class="fa-layers fa-fw fa-xl"
                             onclick=onDeviceViewChange(4)
                             onkeypress="if (event.key == 'Enter') { onDeviceViewChange(4); }" title="Map"
                             style="display:none">
-                            <i class="fa-solid fa-map-location-dot"></i>
+                            <i class="fa-solid fa-map-location-dot"></i>`
                         </span>
                     </div>
                 </div>
@@ -1175,6 +1563,7 @@
                                 <option value=3>Desktops Fixed Width</option>
                                 <option id=viewselectmapoption value=4 style="display:none">Map</option>
                                 <option value=5>Desktops</option>
+                                <option value=6>Cards</option>
                             </select>
                         </div>
                         <div style="display:none" id=devListToolbarSize>
@@ -3214,7 +3603,7 @@
 
             // Display the page devices
             mainUpdate(3)
-            for (var j = 1; j < 5; j++) { Q('devViewButton' + j).classList.remove('viewSelectorSel'); }
+            for (var j = 1; j <= 6; j++) { Q('devViewButton' + j).classList.remove('viewSelectorSel'); }
             Q('devViewButton' + Q('viewselect').value).classList.add('viewSelectorSel');
 
             // Setup upload drag & drop for server files
@@ -5820,7 +6209,7 @@
 
         function onDeviceViewChange(i) {
             if (i != null) { Q('viewselect').value = i; }
-            for (var j = 1; j < 6; j++) { Q('devViewButton' + j).classList.remove('viewSelectorSel'); }
+            for (var j = 1; j <= 6; j++) { Q('devViewButton' + j).classList.remove('viewSelectorSel'); }
             Q('devViewButton' + Q('viewselect').value).classList.add('viewSelectorSel');
             putstore('deviceView', Q('viewselect').value);
             putstore('viewsize', Q('sizeselect').value);
@@ -5921,7 +6310,7 @@
                 return;
             }
             if (e.ctrlKey == true || e.altKey == true || e.metaKey == true) return;
-            if (Q('viewselect').value < 4) {
+            if ((Q('viewselect').value < 4) || (Q('viewselect').value == 6)) {
                 var processed = 0;
                 if (e.key) {
                     if ((e.key.length === 1) && (searchFocus == 0)) { Q('KvmSearchInput').value = Q('SearchInput').value = ((Q('SearchInput').value + e.key)); processed = 1; }
@@ -6056,9 +6445,9 @@
         function updateDevices() {
             if ((nodes == null) || (xxcurrentView != 2)) { return; }
             var r = '', c = 0, current = null, count = 0, scount = 0, displayedMeshes = {}, view = Q('viewselect').value, groups = {}, groupCount = {};
-            QV('xdevices', view != 4);
+            QV('xdevices', (view != 4) && (view != 6 || true));
             QV('xdevicesmap', view == 4);
-            QVH('devListToolbar', view < 3);
+            QVH('devListToolbar', (view < 3) || (view == 6));
             QVH('kvmListToolbar', (view == 3) || (view == 5));
             QVH('devMapToolbar', view == 4);
             QV('devListToolbarSize', (view == 3) || (view == 5));
@@ -6071,6 +6460,142 @@
             if (view == 4) {
                 setTimeout(function () { if (xxmap.map != null) { xxmap.map.updateSize(); } }, 200);
                 // TODO
+            } else if (view == 6) {
+                // Modern card-based device view
+                var r = '<div class="device-cards-container">';
+                var displayedMeshes = {};
+                var groups = {};
+                var v6HeaderId = 0;
+
+                // Sort nodes
+                if (sort == 0) { nodes.sort(meshSort); }
+                else if (sort == 1) { nodes.sort(powerSort); }
+                else if (sort == 2) { if (showRealNames == true) { nodes.sort(deviceHostSort); } else { nodes.sort(deviceSort); } }
+                else if (sort == 5) {
+                    if (!(deviceViewSettings && deviceViewSettings.devsCols && deviceViewSettings.devsCols.indexOf('lastseen') >= 0)) {
+                        if (deviceViewSettings == null) { deviceViewSettings = {}; }
+                        if (!Array.isArray(deviceViewSettings.devsCols)) { deviceViewSettings.devsCols = ['user', 'ip', 'conn', 'lastseen']; }
+                        else { deviceViewSettings.devsCols.push('lastseen'); }
+                    }
+                    nodes.sort(lastConnectSort);
+                }
+                else if (sort == 6) {
+                    if (!(deviceViewSettings && deviceViewSettings.devsCols && deviceViewSettings.devsCols.indexOf('lastbootuptime') >= 0)) {
+                        if (deviceViewSettings == null) { deviceViewSettings = {}; }
+                        if (!Array.isArray(deviceViewSettings.devsCols)) { deviceViewSettings.devsCols = ['user', 'ip', 'conn', 'lastbootuptime']; }
+                        else { deviceViewSettings.devsCols.push('lastbootuptime'); }
+                    }
+                    nodes.sort(lastBootUpTimeSort);
+                }
+
+                var filterActive = ((Q('SearchInput').value != '') || (Q('DevFilterSelect').value != 0));
+                var visibleDeviceCount = 0;
+
+                // Group nodes by mesh, including empty meshes
+                var groupMeshIds = {};
+                var sortedMeshes = [];
+                for (var i in meshes) { sortedMeshes.push(meshes[i]); }
+                sortedMeshes.sort(nameSort);
+                for (var i in sortedMeshes) {
+                    var mesh2 = sortedMeshes[i];
+                    groups[mesh2.name] = [];
+                    groupMeshIds[mesh2.name] = mesh2._id;
+                }
+                {{!-- if (groups['Other Devices'] == null) { groups['Other Devices'] = []; } --}}
+
+                for (var i in nodes) {
+                    var node = nodes[i];
+                    if (node.v == false) continue;
+                    var mesh2 = meshes[node.meshid];
+                    var meshName = mesh2 ? mesh2.name : "Other Devices";
+                    if (groups[meshName] == null) { groups[meshName] = []; }
+                    groups[meshName].push(node);
+                }
+
+                // Render grouped sections
+                var groupNames = Object.keys(groups).sort();
+                for (var g in groupNames) {
+                    var groupName = groupNames[g];
+                    var groupNodes = groups[groupName];
+                    if ((groupNodes.length == 0) && filterActive) { v6HeaderId++; continue; }
+                    var collapsed = CollapsedGroups[groupName];
+                    var colId = 'v6col_' + v6HeaderId;
+                    var groupKey = encodeURIComponent(groupName);
+                    var meshId = groupMeshIds[groupName] || null;
+                    var mesh = meshId ? meshes[meshId] : null;
+
+                    r += '<div class="device-group-section">';
+                    r += '<div class="device-group-header" onclick="toggleV6CollapseGroup(\'' + colId + '\',\'' + groupKey + '\')" tabindex=0 onkeypress="if (event.key==\'Enter\') toggleV6CollapseGroup(\'' + colId + '\',\'' + groupKey + '\')">';
+                    r += '<i class="device-group-toggle fa-solid ' + (collapsed ? 'fa-chevron-right' : 'fa-chevron-down') + '" id="' + colId + 'Img"></i>';
+                    r += '<div class="device-group-title">' + EscapeHtml(groupName) + '</div>';
+                    r += '<div class="device-group-count">' + groupNodes.length + ' device' + (groupNodes.length != 1 ? 's' : '') + '</div>';
+
+                    if (meshId) {
+                        if (((GetMeshRights(mesh) & 4) != 0) && ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 4096) == 0))) {
+                            r += '<button type="button" class="device-group-action" onclick=\'event.stopPropagation();return addAgentToMesh("' + meshId + '")\'>+ Add Agent</button>';
+                        }
+                        if ((features & 2) == 0) {
+                            r += '<button type="button" class="device-group-action" onclick=\'event.stopPropagation();return inviteAgentToMesh("' + meshId + '")\'>Invite</button>';
+                        }
+                    }
+                    r += '</div>';
+
+                    r += '<div class="device-cards-grid" id="' + colId + '" ' + (collapsed ? 'style="display:none"' : '') + '>';
+                    
+                    if (groupNodes.length == 0) {
+                        r += '<div class="device-empty-state">';
+                        r += '<div class="empty-state-title">No devices in this group</div>';
+                        r += '<div class="empty-state-text">Devices will appear here once added to the group.</div>';
+                        r += '</div>';
+                    } else {
+                        visibleDeviceCount += groupNodes.length;
+                        for (var n in groupNodes) {
+                            var node = groupNodes[n];
+                            var cardId = 'v6' + node._id;
+                            r += '<div name="xxdevice6" id="' + cardId + '"></div>';
+                        }
+                    }
+
+                    r += '</div></div>';
+                    v6HeaderId++;
+                }
+
+                // Add action footer
+                r += '<div style="border-top: 1px solid #e5e7eb; margin-top: 24px; padding-top: 16px; font-size: 14px; color: #0ea5e9;">';
+                
+                if ((sort == 0) && (Object.keys(meshes).length > 0) && ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 64) == 0))) {
+                    r += '<a href=# onclick="return account_createMesh()" title="' + "Create a new group of devices." + '" style="cursor:pointer; text-decoration: none; color: #0ea5e9; font-weight: 600; margin-right: 16px;">+ Add Device Group</a>';
+                }
+                
+                if ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 128) == 0)) {
+                    r += '<a href=# onclick=\'return p10showMeshCmdDialog(0)\' style="cursor:pointer; text-decoration: none; color: #0ea5e9; font-weight: 600; margin-right: 16px;" title="' + "Download MeshCmd, a command line tool that performs many functions." + '">📥 MeshCmd</a>';
+                }
+                
+                if ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 128) == 0)) {
+                    if ((navigator.platform.toLowerCase() == 'win32') || (navigator.platform.toLowerCase() == 'macintel')) {
+                        r += '<a href=# onclick=\'return p10showMeshRouterDialog()\' style="cursor:pointer; text-decoration: none; color: #0ea5e9; font-weight: 600;" title="' + "Download MeshCentral Router, a TCP port mapping tool." + '">🔀 Router</a>';
+                    }
+                }
+                
+                r += '</div>';
+
+                if ((visibleDeviceCount == 0) && filterActive) {
+                    r += '<div class="device-empty-state" style="margin-top:20px;">';
+                    r += '<div class="empty-state-title">No devices match your filter</div>';
+                    r += '<div class="empty-state-text">Try a different search or filter.</div>';
+                    r += '</div>';
+                }
+
+                r += '</div>';
+                QH('xdevices', r);
+
+                // Now render individual cards
+                var devdivs = document.getElementsByName('xxdevice6');
+                for (var i = 0; i < devdivs.length; i++) {
+                    var node = getNodeFromId(devdivs[i].id.substring(2));
+                    if (node != null) { updateDeviceViewHtml(6, devdivs[i], node); }
+                }
+
             } else {
                 // 3 wide, list view or desktop view
                 deviceHeaderId = 0;
@@ -6467,8 +6992,23 @@
 
         function onDevicesScrollEx() {
             if (onDevicesScrollnagleTimer != null) { clearTimeout(onDevicesScrollnagleTimer); onDevicesScrollnagleTimer = null; }
+            var view = Q('viewselect').value;
+            
+            // For view 6, render all devices at once
+            if (view == 6) {
+                var devdivs = document.getElementsByName('xxdevice6');
+                for (var i = 0; i < devdivs.length; i++) {
+                    var node = getNodeFromId(devdivs[i].id.substring(2));
+                    if (node != null && devdivs[i].innerHTML === '') { 
+                        updateDeviceViewHtml(6, devdivs[i], node);
+                    }
+                }
+                return;
+            }
+            
+            // For other views, use viewport-based rendering
             var visibleTop = Q('xdevices').scrollTop - 200, visibleBottom = Q('xdevices').scrollTop + Q('xdevices').clientHeight + 200;
-            var view = Q('viewselect').value, devdivs = document.getElementsByName('xxdevice' + view);
+            var devdivs = document.getElementsByName('xxdevice' + view);
             for (var i = 0; i < devdivs.length; i++) {
                 if ((devdivs[i].offsetTop >= visibleTop) && (devdivs[i].offsetTop < visibleBottom)) {
                     var node = getNodeFromId(devdivs[i].id.substring(3));
@@ -6712,6 +7252,57 @@
                 if (deviceViewSettings.devsCols.indexOf('lastseen') >= 0) { r += '<td class="text-center align-middle small">'; if (node.conn > 0) { r += '<span class="badge bg-success">Connected</span>'; } else if (node.lastconnect != null) { r += printDateTime(new Date(node.lastconnect)); } r += '</td>'; }
 
                 div.innerHTML = r;
+            } else if (view == 6) {
+                // Modern card-based view
+                var isOnline = (node.conn > 0);
+                var statusText = isOnline ? 'Online' : 'Offline';
+                var statusClass = isOnline ? 'device-status-online' : 'device-status-offline';
+                
+                // Collect metadata
+                var meta = [];
+                if (node.osdesc) { meta.push(EscapeHtml(node.osdesc)); }
+                var mesh2 = meshes[node.meshid];
+                if (mesh2) { meta.push(EscapeHtml(mesh2.name)); }
+                if (node.lastconnect != null) { meta.push(printDateTime(new Date(node.lastconnect))); }
+                var metaHtml = meta.join(' • ');
+
+                var sessionHtml = '';
+                var sessionCount = 0;
+                if (node.sessions) {
+                    if (node.sessions.kvm) { sessionCount += Object.keys(node.sessions.kvm).length; }
+                    if (node.sessions.terminal) { sessionCount += Object.keys(node.sessions.terminal).length; }
+                    if (node.sessions.files) { sessionCount += Object.keys(node.sessions.files).length; }
+                }
+                if (sessionCount > 0) { sessionHtml = '<span class="session-indicator"><i class="fa-solid fa-user"></i> ' + sessionCount + '</span>'; }
+                if (sessionHtml && metaHtml) { metaHtml += ' • ' + sessionHtml; }
+                else if (sessionHtml) { metaHtml = sessionHtml; }
+
+                var actionButtons = '<button type="button" class="btn-connect" onclick="gotoDevice(\'' + node._id + '\',null,null,event)" title="Connect to device">' + "Connect" + '</button>';
+                actionButtons += '<button type="button" class="btn-menu" tabindex=0 title="More actions (right-click)">⋮</button>';
+
+                var ipAddress = '';
+                if (node.mtype == 3) { ipAddress = node.host; }
+                else if (node.ip) { ipAddress = node.ip; }
+
+                var cardHtml = '';
+                cardHtml += '<div class="device-card" cmenu=devsContentMenu tabindex=0 onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">';
+                cardHtml += '<div class="device-card-checkbox"><input class="' + node.meshid + ' DeviceCheckbox form-check-input" type="checkbox" value="devid_' + node._id + '" onchange="p1devcheck(event)" ' + (checkedNodeids[node._id] ? 'checked' : '') + '></div>';
+                cardHtml += '<div class="device-card-icon" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)"><div class="i' + icon + '" style="width:32px; height:32px; line-height: 32px;"></div></div>';
+                cardHtml += '<div class="device-card-main" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)" style="cursor: pointer;">';
+                cardHtml += '<div class="device-card-name" title="' + title + '">' + name + '</div>';
+                if (metaHtml) { cardHtml += '<div class="device-card-meta">' + metaHtml + '</div>'; }
+                cardHtml += '</div>';
+                cardHtml += '<div class="device-card-status">';
+                cardHtml += '<span class="device-status-badge ' + statusClass + '">';
+                cardHtml += '<span class="device-status-dot" style="background: ' + (isOnline ? '#10b981' : '#9ca3af') + ';"></span>';
+                cardHtml += statusText;
+                cardHtml += '</span>';
+                cardHtml += '</div>';
+                if (ipAddress) { cardHtml += '<div class="device-card-ip" title="' + EscapeHtml(ipAddress) + '">' + EscapeHtml(ipAddress) + '</div>'; }
+                cardHtml += '<div class="device-card-actions">' + actionButtons + '</div>';
+                cardHtml += '</div>';
+
+                div.innerHTML = cardHtml;
             } else if ((view == 3) || (view == 5)) {
                 // Draw the device and canvas
                 var r = '<div id=devs cmenu=devsContentMenu style=display:inline-block;position:relative;margin:1px;background-color:lightgray;border-radius:5px;position:relative><div tabindex=0 style=padding:3px;cursor:pointer onmouseup=gotoDevice(\'' + node._id + '\',11,null,event) onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',11,null,event)">' + devNotify;
@@ -6929,6 +7520,37 @@
             updateCollapseAllButton();
             onDevicesScrollEx();
             onDevicesScrollEx(); // TODO: Not sure why, but second call is needed for proper update
+        }
+
+        function toggleV6CollapseGroup(colId, groupKey) {
+            // Collapse handler for view 6 cards
+            var element = Q(colId);
+            if (element == null) return;
+            var groupName = decodeURIComponent(groupKey);
+            var isCollapsed = (element.style.display === 'none');
+            var imgElement = Q(colId + 'Img');
+            
+            if (isCollapsed) {
+                // Expand
+                element.style.display = '';
+                delete CollapsedGroups[groupName];
+                if (imgElement) {
+                    imgElement.classList.remove('fa-chevron-right');
+                    imgElement.classList.add('fa-chevron-down');
+                }
+            } else {
+                // Collapse
+                element.style.display = 'none';
+                CollapsedGroups[groupName] = true;
+                if (imgElement) {
+                    imgElement.classList.remove('fa-chevron-down');
+                    imgElement.classList.add('fa-chevron-right');
+                }
+            }
+            
+            putstore('_collapse', JSON.stringify(CollapsedGroups));
+            updateCollapseAllButton();
+            onDevicesScrollEx();
         }
 
         function toggleKvmDevice(node) {
