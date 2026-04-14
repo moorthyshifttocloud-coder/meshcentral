@@ -1135,7 +1135,30 @@
                     background: #1d4ed8;
                     transform: translateY(-1px);
                 }
-
+.btn-sessions {
+    background: #7c3aed !important;
+    color: #fff !important;
+    border-color: #7c3aed !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-sessions:hover {
+    background: #6d28d9 !important;
+    border-color: #6d28d9 !important;
+}
+.session-count-badge {
+    background: rgba(255,255,255,0.25);
+    border-radius: 999px;
+    padding: 0px 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.btn-offline {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
                 .btn-menu {
                     background: transparent;
                     color: #6b7280;
@@ -1271,6 +1294,41 @@
                 </div>
 
                 <script>
+                    function showDeviceContextMenu(nodeid, event) {
+    hideContextMenu();
+    // Set contextelement to the device-card so cmaction can resolve it if needed
+    var cardEl = document.getElementById('v6' + nodeid);
+    if (!cardEl) { cardEl = event.target.closest('[cmenu="devsContentMenu"]'); }
+    contextelement = cardEl;
+
+    // Store nodeid directly for cmaction to use
+    contextelement._directNodeId = nodeid;
+
+    var node = getNodeFromId(nodeid);
+    if (!node) return;
+    var rights = GetNodeRights(node);
+    var consoleRights = ((rights & 16) != 0);
+    var desktopAccess = ((rights == 0xFFFFFFFF) || ((rights & 65536) == 0));
+    var terminalAccess = ((rights == 0xFFFFFFFF) || ((rights & 512) == 0));
+    var fileAccess = ((rights == 0xFFFFFFFF) || ((rights & 1024) == 0));
+
+    QV('cxdesktop', ((node.conn & 1) != 0) && (node.mtype != 4) && ((node.mtype == 1) || (node.agent == null) || (node.agent.caps == null) || ((node.agent.caps & 1) != 0) || (node.intelamt && (node.intelamt.state == 2))) && ((rights & 8) || (rights & 256)) && desktopAccess);
+    QV('cxterminal', ((node.conn & 1) != 0) && (node.mtype != 4) && ((node.mtype == 1) || (node.agent == null) || (node.agent.caps == null) || ((node.agent.caps & 2) != 0) || (node.intelamt && (node.intelamt.state == 2))) && (rights & 8) && terminalAccess);
+    QV('cxfiles', (node.mtype != 4) && ((node.mtype == 2) && ((node.agent == null) || (node.agent.caps == null) || ((node.agent.caps & 4) != 0))) && (rights & 8) && fileAccess);
+    QV('cxevents', (node.intelamt != null) && ((node.intelamt.state == 2) || (node.conn & 2)) && (rights & 8));
+    QV('cxdetails', node.mtype < 3);
+    QV('cxwebvnc', ((((node.conn & 1) != 0) || (node.mtype == 3)) && (node.agent) && ((rights & 8) != 0) && ((features & 0x20000000) == 0)));
+    QV('cxwebrdp', ((((node.conn & 1) != 0) || (node.mtype == 3)) && (node.agent) && ((rights & 8) != 0) && ((features & 0x40000000) == 0)));
+    QV('cxwebssh', ((features2 & 0x200) && (((node.conn & 1) != 0) || (node.mtype == 3)) && (node.agent) && ((rights & 8) != 0)));
+    QV('cxconsole', (consoleRights && (node.mtype == 2) && ((node.agent == null) || (node.agent.caps == null) || ((node.agent.caps & 8) != 0))) && (rights & 8));
+    QV('cxrdp', false);
+    QV('cxmgroupsplit', true);
+    QV('cxstar', true);
+
+    var contextmenudiv = document.getElementById('contextMenu');
+    showContextMenuDiv(contextmenudiv, event.pageX, event.pageY);
+    haltEvent(event);
+}
                     // Populate username in dashboard
                     function populateDashboardUsername() {
                         var nameSpan = document.getElementById('dashGreetingName');
@@ -7273,13 +7331,37 @@
                     if (node.sessions.terminal) { sessionCount += Object.keys(node.sessions.terminal).length; }
                     if (node.sessions.files) { sessionCount += Object.keys(node.sessions.files).length; }
                 }
-                if (sessionCount > 0) { sessionHtml = '<span class="session-indicator"><i class="fa-solid fa-user"></i> ' + sessionCount + '</span>'; }
                 if (sessionHtml && metaHtml) { metaHtml += ' • ' + sessionHtml; }
                 else if (sessionHtml) { metaHtml = sessionHtml; }
 
-                var actionButtons = '<button type="button" class="btn-connect" onclick="gotoDevice(\'' + node._id + '\',null,null,event)" title="Connect to device">' + "Connect" + '</button>';
-                actionButtons += '<button type="button" class="btn-menu" tabindex=0 title="More actions (right-click)">⋮</button>';
-
+                {{!-- var actionButtons = '<button type="button" class="btn-connect" onclick="gotoDevice(\'' + node._id + '\',null,null,event)" title="Connect to device">' + "Connect" + '</button>'; --}}
+                // The connect button is only shown if the device is online, has an agent connection, is an actual device (not a switch or PDU), and the user has permissions to connect.
+                {{!-- var actionButtons = '<button type="button" class="btn-connect" onclick="event.stopPropagation();(function(id){gotoDevice(id,11);var n=getNodeFromId(id);var m=n?meshes[n.meshid]:null;if(n&&m&&(n.conn&1)&&(m.mtype==2)&&(desktop==null)&&(n.agent.caps&1)){connectDesktop(null,3);}})(\'' + node._id + '\')" title="Connect to device">Connect</button>';            
+                actionButtons += '<button type="button" class="btn-menu" tabindex=0 title="More actions" onclick="event.stopPropagation();showDeviceContextMenu(\'' + node._id + '\',event)">⋮</button>'; --}}
+                var actionButtons = '';
+                if (isOnline && sessionCount > 0) {
+                // Device is online AND has active sessions → show View Sessions button
+                {{!-- actionButtons += '<button type="button" class="btn-connect btn-sessions" onclick="event.stopPropagation();gotoDevice(\'' + node._id + '\',10,null,event)" title="View active sessions"><i class="fa-solid fa-users" style="margin-right:4px;"></i>Sessions <span class="session-count-badge">' + sessionCount + '</span></button>'; --}}
+                actionButtons += '<button type="button" class="btn-connect btn-sessions" onclick="event.stopPropagation();showDeviceSessions(\'' + node._id + '\',null,event)" title="View active sessions"><i class="fa-solid fa-users" style="margin-right:4px;"></i>Sessions <span class="session-count-badge">' + sessionCount + '</span></button>';
+                } else if (isOnline) {
+                // Device is online, no active sessions → show Connect button
+                {{!-- actionButtons += '<button type="button" class="btn-connect" onclick="event.stopPropagation();(function(id){gotoDevice(id,11);var n=getNodeFromId(id);var m=n?meshes[n.meshid]:null;if(n&&m&&(n.conn&1)&&(m.mtype==2)&&(desktop==null)&&(n.agent.caps&1)){connectDesktop(null,3);}})(\'' + node._id + '\')" title="Connect to device">Connect</button>'; --}}
+                  var actionButtons = '<button type="button" class="btn-connect" onclick="event.stopPropagation();(function(id){' +
+    'gotoDevice(id,11);' +
+    'var n=getNodeFromId(id);' +
+    'var m=n?meshes[n.meshid]:null;' +
+    'if(n&&m&&(n.conn&1)&&(m.mtype==2)){' +
+        'if((desktop==null)&&(n.agent&&(n.agent.caps&1))){connectDesktop(null,3);}' +   // Desktop
+        'if((terminal==null)&&(n.agent&&(n.agent.caps&2))){connectTerminal(null,1);}' + // Terminal
+        'if(files==null){connectFiles(null);}' +                                         // Files
+    '}' +
+'})(\'' + node._id + '\')" title="Connect to device">Connect</button>';
+                    } else {
+                    // Offline → greyed out button
+                    actionButtons += '<button type="button" class="btn-connect btn-offline" disabled title="Device is offline">Offline</button>';
+                }
+                actionButtons += '<button type="button" class="btn-menu" tabindex=0 title="More actions" onclick="event.stopPropagation();showDeviceContextMenu(\'' + node._id + '\',event)">⋮</button>';
+                
                 var ipAddress = '';
                 if (node.mtype == 3) { ipAddress = node.host; }
                 else if (node.ip) { ipAddress = node.ip; }
@@ -7297,6 +7379,7 @@
                 cardHtml += '<span class="device-status-dot" style="background: ' + (isOnline ? '#10b981' : '#9ca3af') + ';"></span>';
                 cardHtml += statusText;
                 cardHtml += '</span>';
+
                 cardHtml += '</div>';
                 if (ipAddress) { cardHtml += '<div class="device-card-ip" title="' + EscapeHtml(ipAddress) + '">' + EscapeHtml(ipAddress) + '</div>'; }
                 cardHtml += '<div class="device-card-actions">' + actionButtons + '</div>';
