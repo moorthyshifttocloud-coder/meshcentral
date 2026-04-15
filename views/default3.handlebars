@@ -881,7 +881,7 @@
                 /* Modern Card-Based Device View (View 6) */
                 .device-cards-container {
                     background: #f9fafb;
-                    padding: 20px;
+                    padding: 30px 20px 50px 20px;
                     border-radius: 12px;
                 }
 
@@ -893,7 +893,7 @@
                     margin-bottom: 24px;
                 }
 
-                .device-group-header {
+                {{!-- .device-group-header {
                     background: #edf2f7;
                     border: 1px solid #e2e8f0;
                     border-radius: 8px;
@@ -905,8 +905,20 @@
                     cursor: pointer;
                     user-select: none;
                     transition: all 0.2s ease;
-                }
-
+                } --}}
+.device-group-header {
+    background: #edf2f7;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px 8px 0 0;
+    padding: 16px;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
                 .device-group-header:hover {
                     background: #e0e7f1;
                     border-color: #cbd5e1;
@@ -983,13 +995,23 @@
                     border-color: #60a5fa;
                 }
 
-                .device-cards-grid {
+                {{!-- .device-cards-grid {
                     display: grid;
                     grid-template-columns: 1fr;
                     gap: 12px;
                     margin-top: 12px;
-                }
-
+                } --}}
+.device-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    background: #edf2f7;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 12px 16px 16px 16px;
+    margin-top: 0;
+}
                 .device-card {
                     background: #fff;
                     border: 1px solid #e5e7eb;
@@ -1021,15 +1043,22 @@
                     flex-shrink: 0;
                 }
 
-                .device-card-icon {
+                {{!-- .device-card-icon {
                     width: 32px;
                     height: 32px;
                     flex-shrink: 0;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                }
-
+                } --}}
+                .device-card-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
                 .device-card-main {
                     flex: 1;
                     min-width: 0;
@@ -1105,7 +1134,10 @@
                     background: #374151;
                     color: #d1d5db;
                 }
-
+                 .device-star-badge {
+    display: inline-flex;
+    align-items: center;
+}
                 .device-status-dot {
                     width: 8px;
                     height: 8px;
@@ -1516,7 +1548,7 @@
                     </div>
                 </div>
                 <div id="devListToolbarSpan" class="noselect d-flex align-items-center p-1">
-                    <div id=devListToolbar class="d-flex align-items-center visually-hidden">
+                    {{!-- <div id=devListToolbar class="d-flex align-items-center visually-hidden">
                         </td>
                         <span class="fa-layers fa-fw me-1" role="button" style="display:none" title="Collapse All"
                             id="CollapseAllButton" onclick="cmexpandaction(2)">
@@ -1565,7 +1597,64 @@
                                 onclick=onOnlineCheckBox(event) /><span
                                 title="Only show devices that are online">Online</span></label>
                         <span id="devsCustomUIBar"></span>
-                    </div>
+                    </div> --}}
+                    <div id=devListToolbar class="d-flex align-items-center visually-hidden" style="flex-wrap:wrap; gap:6px; padding:8px 12px; background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:8px;">
+    <span class="fa-layers fa-fw" role="button" style="display:none; width:30px; height:30px; border:1px solid var(--bs-border-color); border-radius:6px; background:var(--bs-secondary-bg); align-items:center; justify-content:center; cursor:pointer;" title="Collapse All"
+        id="CollapseAllButton" onclick="cmexpandaction(2)">
+        <i class="fa-solid fa-chevron-up" data-fa-transform="down-6"></i>
+        <i class="fa-solid fa-chevron-down" data-fa-transform="up-6"></i>
+    </span>
+    <span class="fa-layers fa-fw" role="button" style="display:none; width:30px; height:30px; border:1px solid var(--bs-border-color); border-radius:6px; background:var(--bs-secondary-bg); align-items:center; justify-content:center; cursor:pointer;" title="Expand All"
+        id="ExpandAllButton" onclick="cmexpandaction(1)">
+        <i class="fa-solid fa-chevron-up" data-fa-transform="up-6"></i>
+        <i class="fa-solid fa-chevron-down" data-fa-transform="down-6"></i>
+    </span>
+    <span style="display:inline-block; width:1px; height:22px; background:var(--bs-border-color); margin:0 4px;"></span>
+    <input type=button class="btn btn-sm btn-outline-secondary" id=SelectAllButton
+        onclick="selectallButtonFunction();" value="Select All"
+        style="height:30px; padding:0 10px; font-size:13px; border-radius:6px;" />
+    <input type=button class="btn btn-sm btn-primary" id=GroupActionButton disabled="disabled"
+        value="Group Action" onclick=groupActionFunction()
+        style="height:30px; padding:0 10px; font-size:13px; border-radius:6px;" />
+    <input type=button class="btn btn-sm btn-outline-secondary" id=ScrollToTopButton
+        onclick="onDevicesScroll(true);" value="Scroll To Top"
+        style="height:30px; padding:0 10px; font-size:13px; border-radius:6px;" />
+    <span style="display:inline-block; width:1px; height:22px; background:var(--bs-border-color); margin:0 4px;"></span>
+    <span style="position:relative; display:inline-flex; align-items:center;">
+        <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:9px; font-size:12px; color:var(--bs-secondary-color); pointer-events:none;"></i>
+        <input type="text" id=SearchInput placeholder="Filter devices…"
+            onchange=onDeviceSearchChanged(event) onclick=onDeviceSearchChanged(event)
+            onkeyup=onDeviceSearchChanged(event) onfocus=onSearchFocus(1) onblur=onSearchFocus(0)
+            title="Filter devices by name or prefix: user: (u:) ip: group: (g:) tag: (t:) atag: (a:) os: amt: desc: wsc:ok/noav/noupdate/nofirewall/any connectivity: (c:) - Prefix with ! to negate, e.g. !tag:abc"
+            style="height:30px; padding:0 26px; font-size:13px; border:1px solid var(--bs-border-color); border-radius:6px; background:var(--bs-secondary-bg); color:var(--bs-body-color); width:200px; outline:none;" />
+        <span id=SearchInputClearButton style="display:none; position:absolute; right:7px; cursor:pointer;">
+            <i class="fa-solid fa-xmark" style="font-size:12px; color:var(--bs-secondary-color);" onclick="clearDeviceSearch()"></i>
+        </span>
+    </span>
+    <span style="display:inline-block; width:1px; height:22px; background:var(--bs-border-color); margin:0 4px;"></span>
+    <select class="form-select-sm" id=DevFilterSelect onchange=onOnlineCheckBox(event)
+        title="Device Filter"
+        style="height:30px; font-size:13px; border-radius:6px; padding:0 8px; border:1px solid var(--bs-border-color); background:var(--bs-secondary-bg); color:var(--bs-body-color);">
+        <option value=0 selected>All</option>
+        <option value=1>Online</option>
+        <option value=5>Offline</option>
+        <option value=2>Sessions</option>
+        <option value=3>Starred</option>
+        <option value=4>Intel&reg; AMT</option>
+        <option value=6>Help</option>
+        <option value=7>Tagged</option>
+        <option value=8>Untagged</option>
+    </select>
+    <div class="form-check" title="Show devices operating system name" style="display:flex; align-items:center; gap:5px; margin:0; font-size:13px;">
+        <input class="form-check-input me-1" type=checkbox id=RealNameCheckBox
+            onclick=onRealNameCheckBox() />
+        <label class="form-check-label" for="RealNameCheckBox">OS Name</label>
+    </div>
+    <label style="display:none"><input type=checkbox id=OnlineCheckBox class="form-check-input me-2"
+            onclick=onOnlineCheckBox(event) /><span
+            title="Only show devices that are online">Online</span></label>
+    <span id="devsCustomUIBar"></span>
+</div>
                     <div id=kvmListToolbar class="d-flex align-items-center style14 visually-hidden">
                         <span class="fa-layers fa-fw me-1" role="button" style="display:none" title="Collapse All"
                             id="CollapseAllButton2" onclick="cmexpandaction(2)">
@@ -1635,7 +1724,7 @@
                         </div>
                         <div style="display:none" id=devListToolbarSort>
                             Sort
-                            <select id=sortselect class="form-select-sm me-2" onchange=mainUpdate(6)>
+                            <select id=sortselect class="form-select-sm me-2" onchange="onSortSelectChange(false); mainUpdate(6);">
                                 <option>Group</option>
                                 <option>Power</option>
                                 <option>Device</option>
@@ -1646,6 +1735,8 @@
                             </select>
                             &nbsp;
                         </div>
+
+                            <button type="button" class="device-group-action" onclick="return account_createMesh()">+  Add Device Group</button>
                         <i class="fa-solid fa-gear" role="button" id=devListToolbarSettings
                             onclick="onDeviceViewSettings()"></i>
                     </div>
@@ -2235,6 +2326,8 @@
                         </div>
                         <div class="d-flex ms-auto align-items-center">
                             <span id=DeskMonitorSelectionSpan></span>
+                            <span id="DeskTransport" style="display:none;margin-right:6px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;"></span>
+                            <span id="DeskTransportLog" style="display:none;margin-right:6px;font-size:11px;color:#6b7280;"></span>
                             <span id="DeskLatency" style="width:70px" class="text-center"
                                 title="Desktop Session Latency"></span>
                             <span id="DeskTimer" style="width:70px" class="text-center" title="Session time"></span>
@@ -3121,6 +3214,10 @@
             <div class="footer2">
                 <div class="row">
                     <div class="col-md-6 d-flex gap-2">
+                        <span id="stunStatusIndicator" style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                            <i class="fa-solid fa-circle" id="stunStatusIcon" style="color:#ccc;font-size:8px;"></i>
+                            <span id="stunStatusText" style="color:#666;">STUN: Checking...</span>
+                        </span>
                     </div>
                     <div class="col-md-6">
                         <a id="verifyEmailId2" style="display:none" href=# onclick="account_showVerifyEmail()">Verify
@@ -3647,6 +3744,9 @@
             meshserver.onMessage = onMessage;
             meshserver.trace = args.trace;
             meshserver.Start();
+
+            // Monitor STUN server status
+            monitorStunStatus();
 
             // Setup page controls
             Q('sortselect').selectedIndex = sort = getstore('sort', 0);
@@ -4536,6 +4636,73 @@
                     }
                 }
                 QH('idleTimeoutNotify', show && theText ? '<br />' + format(theText, ds) : '');
+            }
+        }
+
+        // Monitor STUN server connectivity
+        var stunCheckTimer = null;
+        function monitorStunStatus() {
+            if (stunCheckTimer) clearInterval(stunCheckTimer);
+            checkStunServer();
+            stunCheckTimer = setInterval(checkStunServer, 3000); // Check every 3 seconds
+        }
+
+        function checkStunServer() {
+            if (!webrtcconfiguration || !webrtcconfiguration.iceServers) {
+                updateStunStatus(false, 'No STUN config');
+                return;
+            }
+
+            try {
+                var pc = new RTCPeerConnection({ iceServers: webrtcconfiguration.iceServers });
+                var candidateCount = 0;
+                var found_srflx = false;
+
+                pc.onicecandidate = function (event) {
+                    if (event.candidate) {
+                        if (event.candidate.type === 'srflx') {
+                            found_srflx = true;
+                            updateStunStatus(true, 'STUN: Connected ✓');
+                            pc.close();
+                        }
+                    } else {
+                        if (!found_srflx) {
+                            updateStunStatus(false, 'STUN: Failed');
+                        }
+                        pc.close();
+                    }
+                };
+
+                pc.onerror = function (error) {
+                    updateStunStatus(false, 'STUN: Error');
+                    pc.close();
+                };
+
+                var dchannel = pc.createDataChannel('test');
+                pc.createOffer().then(function (offer) { return pc.setLocalDescription(offer); }).catch(function (error) {
+                    updateStunStatus(false, 'STUN: Failed');
+                    pc.close();
+                });
+
+                setTimeout(function () { if (pc.connectionState !== 'closed') { pc.close(); if (!found_srflx) { updateStunStatus(false, 'STUN: Timeout'); } } }, 5000);
+            } catch (error) {
+                updateStunStatus(false, 'STUN: Error');
+            }
+        }
+
+        function updateStunStatus(isConnected, statusText) {
+            var icon = Q('stunStatusIcon');
+            var text = Q('stunStatusText');
+            if (!icon || !text) return;
+
+            if (isConnected) {
+                icon.style.color = '#4CAF50'; // Green
+                text.style.color = '#4CAF50';
+                text.textContent = statusText;
+            } else {
+                icon.style.color = '#f44336'; // Red
+                text.style.color = '#f44336';
+                text.textContent = statusText;
             }
         }
 
@@ -5920,7 +6087,9 @@
                             if ((currentNode != null) && (currentNode._id == message.event.nodeid)) { gotoDevice(currentNode._id, xxcurrentView, true); }
 
                             // If we are looking at the sessions dialog box for this device now, update it
-                            if (xxdialogTag == ('SESSIONS-' + message.event.nodeid)) { showDeviceSessions(message.event.nodeid, true); }
+                            {{!-- if (xxdialogTag == ('SESSIONS-' + message.event.nodeid)) { showDeviceSessions(message.event.nodeid, true); } --}}
+                            // it should be noted that we need to pass "true" to showDeviceSessions here, otherwise if we have the sessions dialog open and a session ends, the session list will disappear until we click on the device again. This is because the session end event will cause this code to run, which will update the device sessions and then call showDeviceSessions. If we don't pass "true", showDeviceSessions will think it's being called from a device change event and will not update the session list correctly. By passing "true", we tell showDeviceSessions that it's being called from a session change event and it should update the session list accordingly.
+                            if (xxdialogTag == ('SESSIONS-' + message.event.nodeid)) { showDeviceSessions(message.event.nodeid, true, null, true); }
                             if (xxdialogTag == ('MESSAGES-' + message.event.nodeid)) { showDeviceMessages(message.event.nodeid, true); }
                             if (xxdialogTag == ('HELPREQ-' + message.event.nodeid)) { showDeviceHelpRequests(message.event.nodeid, true); }
 
@@ -6529,6 +6698,7 @@
                 if (sort == 0) { nodes.sort(meshSort); }
                 else if (sort == 1) { nodes.sort(powerSort); }
                 else if (sort == 2) { if (showRealNames == true) { nodes.sort(deviceHostSort); } else { nodes.sort(deviceSort); } }
+                else if ((sort == 3) || (sort == 4)) { if (showRealNames == true) { nodes.sort(deviceHostSort); } else { nodes.sort(deviceSort); } }
                 else if (sort == 5) {
                     if (!(deviceViewSettings && deviceViewSettings.devsCols && deviceViewSettings.devsCols.indexOf('lastseen') >= 0)) {
                         if (deviceViewSettings == null) { deviceViewSettings = {}; }
@@ -6549,25 +6719,54 @@
                 var filterActive = ((Q('SearchInput').value != '') || (Q('DevFilterSelect').value != 0));
                 var visibleDeviceCount = 0;
 
-                // Group nodes by mesh, including empty meshes
+                // Group nodes for the current card sort mode
                 var groupMeshIds = {};
                 var sortedMeshes = [];
-                for (var i in meshes) { sortedMeshes.push(meshes[i]); }
-                sortedMeshes.sort(nameSort);
-                for (var i in sortedMeshes) {
-                    var mesh2 = sortedMeshes[i];
-                    groups[mesh2.name] = [];
-                    groupMeshIds[mesh2.name] = mesh2._id;
+
+                if (sort == 0) {
+                    for (var i in meshes) { sortedMeshes.push(meshes[i]); }
+                    sortedMeshes.sort(nameSort);
+                    for (var i in sortedMeshes) {
+                        var mesh2 = sortedMeshes[i];
+                        groups[mesh2.name] = [];
+                        groupMeshIds[mesh2.name] = mesh2._id;
+                    }
                 }
-                {{!-- if (groups['Other Devices'] == null) { groups['Other Devices'] = []; } --}}
 
                 for (var i in nodes) {
                     var node = nodes[i];
                     if (node.v == false) continue;
                     var mesh2 = meshes[node.meshid];
-                    var meshName = mesh2 ? mesh2.name : "Other Devices";
-                    if (groups[meshName] == null) { groups[meshName] = []; }
-                    groups[meshName].push(node);
+
+                    if (sort == 0) {
+                        var groupName = mesh2 ? mesh2.name : "Other Devices";
+                        if (groups[groupName] == null) { groups[groupName] = []; groupMeshIds[groupName] = node.meshid; }
+                        groups[groupName].push(node);
+                    } else if (sort == 1) {
+                        var groupName = PowerStateStr2(node.pwr);
+                        if (groups[groupName] == null) { groups[groupName] = []; }
+                        groups[groupName].push(node);
+                    } else if ((sort == 2) || (sort == 5) || (sort == 6)) {
+                        var groupName = "All Devices";
+                        if (groups[groupName] == null) { groups[groupName] = []; }
+                        groups[groupName].push(node);
+                    } else if ((sort == 3) || (sort == 4)) {
+                        if (node.tags) {
+                            for (var j in node.tags) {
+                                var tag = node.tags[j];
+                                if (sort == 4) {
+                                    if (mesh2) { tag = mesh2.name + ' - ' + node.tags[j]; }
+                                    else { tag = '**INDV*~*DEVS** - ' + node.tags[j]; }
+                                }
+                                if (groups[tag] == null) { groups[tag] = []; }
+                                groups[tag].push(node);
+                            }
+                        } else if (sort == 4) {
+                            var tag = mesh2 ? mesh2.name : '**INDV*~*DEVS**';
+                            if (groups[tag] == null) { groups[tag] = []; }
+                            groups[tag].push(node);
+                        }
+                    }
                 }
 
                 // Render grouped sections
@@ -6581,11 +6780,13 @@
                     var groupKey = encodeURIComponent(groupName);
                     var meshId = groupMeshIds[groupName] || null;
                     var mesh = meshId ? meshes[meshId] : null;
+                    var groupTitle = groupName;
+                    if (groupTitle.indexOf('**INDV*~*DEVS**') == 0) { groupTitle = groupTitle.replace('**INDV*~*DEVS**', 'Individual Devices'); }
 
                     r += '<div class="device-group-section">';
                     r += '<div class="device-group-header" onclick="toggleV6CollapseGroup(\'' + colId + '\',\'' + groupKey + '\')" tabindex=0 onkeypress="if (event.key==\'Enter\') toggleV6CollapseGroup(\'' + colId + '\',\'' + groupKey + '\')">';
                     r += '<i class="device-group-toggle fa-solid ' + (collapsed ? 'fa-chevron-right' : 'fa-chevron-down') + '" id="' + colId + 'Img"></i>';
-                    r += '<div class="device-group-title">' + EscapeHtml(groupName) + '</div>';
+                    r += '<div class="device-group-title">' + EscapeHtml(groupTitle) + '</div>';
                     r += '<div class="device-group-count">' + groupNodes.length + ' device' + (groupNodes.length != 1 ? 's' : '') + '</div>';
 
                     if (meshId) {
@@ -6667,6 +6868,7 @@
                 if (sort == 0) { nodes.sort(meshSort); }
                 else if (sort == 1) { nodes.sort(powerSort); }
                 else if (sort == 2) { if (showRealNames == true) { nodes.sort(deviceHostSort); } else { nodes.sort(deviceSort); } }
+                else if ((sort == 3) || (sort == 4)) { if (showRealNames == true) { nodes.sort(deviceHostSort); } else { nodes.sort(deviceSort); } }
                 else if (sort == 5) {
                     // If the last seen column is not turned on, turn it on first (we require this to sort the data)
                     if (!(deviceViewSettings && deviceViewSettings.devsCols && deviceViewSettings.devsCols.indexOf('lastseen') >= 0)) {
@@ -7369,8 +7571,10 @@
                 var cardHtml = '';
                 cardHtml += '<div class="device-card" cmenu=devsContentMenu tabindex=0 onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">';
                 cardHtml += '<div class="device-card-checkbox"><input class="' + node.meshid + ' DeviceCheckbox form-check-input" type="checkbox" value="devid_' + node._id + '" onchange="p1devcheck(event)" ' + (checkedNodeids[node._id] ? 'checked' : '') + '></div>';
-                cardHtml += '<div class="device-card-icon" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)"><div class="i' + icon + '" style="width:32px; height:32px; line-height: 32px;"></div></div>';
-                cardHtml += '<div class="device-card-main" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)" style="cursor: pointer;">';
+                {{!-- cardHtml += '<div class="device-card-icon" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)"><div class="i' + icon + '" style="width:32px; height:32px; line-height: 32px;"></div></div>'; --}}
+                // Map node.icon to Font Awesome icons, with a default if not set
+                var faIcon = (node.icon == 1) ? 'fa-desktop' : (node.icon == 2) ? 'fa-server' : (node.icon == 3) ? 'fa-network-wired' : (node.icon == 4) ? 'fa-laptop' : (node.icon == 5) ? 'fa-mobile-alt' : (node.icon == 6) ? 'fa-printer' : 'fa-computer';
+                cardHtml += '<div class="device-card-icon" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)"><i class="fa-solid ' + faIcon + '" style="font-size:22px;color:#4b5563;"></i></div>';                cardHtml += '<div class="device-card-main" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)" style="cursor: pointer;">';
                 cardHtml += '<div class="device-card-name" title="' + title + '">' + name + '</div>';
                 if (metaHtml) { cardHtml += '<div class="device-card-meta">' + metaHtml + '</div>'; }
                 cardHtml += '</div>';
@@ -7379,7 +7583,9 @@
                 cardHtml += '<span class="device-status-dot" style="background: ' + (isOnline ? '#10b981' : '#9ca3af') + ';"></span>';
                 cardHtml += statusText;
                 cardHtml += '</span>';
-
+if (stars[node._id] == 1) {
+    cardHtml += '<span class="device-star-badge" title="Starred"><i class="fa-solid fa-star" style="color:#f59e0b;font-size:12px;"></i></span>';
+}
                 cardHtml += '</div>';
                 if (ipAddress) { cardHtml += '<div class="device-card-ip" title="' + EscapeHtml(ipAddress) + '">' + EscapeHtml(ipAddress) + '</div>'; }
                 cardHtml += '<div class="device-card-actions">' + actionButtons + '</div>';
@@ -7475,7 +7681,7 @@
         }
 
         // Show currently active sessions on this device
-        function showDeviceSessions(nodeid, force, e) {
+        {{!-- function showDeviceSessions(nodeid, force, e) {
             if (e) haltEvent(e);
             if (xxdialogMode && !force) return false;
             var node = null, x = '';
@@ -7538,8 +7744,94 @@
                 setDialogMode(0);
             }
             return false;
-        }
+        } --}}
+function showDeviceSessions(nodeid, force, e, noReopenOnEmpty) {
+    if (e) haltEvent(e);
+    if (xxdialogMode && !force) return false;
+    var node = null, x = '';
+    if (nodeid == null) { node = currentNode; } else { node = getNodeFromId(nodeid); }
 
+    // Check if any real sessions exist
+    var hasAnySessions = false;
+    if (node && node.sessions) {
+        var sessionTypes = ['kvm', 'multidesk', 'terminal', 'files', 'tcp', 'udp'];
+        for (var s = 0; s < sessionTypes.length; s++) {
+            if (node.sessions[sessionTypes[s]] && Object.keys(node.sessions[sessionTypes[s]]).length > 0) {
+                hasAnySessions = true; break;
+            }
+        }
+    }
+
+    // If called from session-change event and no sessions left → just close, never reopen
+    if (noReopenOnEmpty) {
+        if (xxdialogTag == ('SESSIONS-' + (node ? node._id : ''))) { setDialogMode(0); }
+        return false;
+    }
+
+    if (!node || !hasAnySessions) {
+        if (xxdialogTag == ('SESSIONS-' + (node ? node._id : ''))) { setDialogMode(0); }
+        return false;
+    }
+
+    for (var i in node.sessions) {
+        if ((i == 'kvm') && (node.sessions.multidesk == null)) {
+            x += '<u>' + "Remote Desktop" + '</u>';
+            for (var j in node.sessions.kvm) {
+                if (j.startsWith('user/')) {
+                    var trash = '';
+                    if (((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF))) { trash = ' <i role=button onclick=\'return endDeviceSession("kvm", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger" ></i>'; }
+                    x += addHtmlValue2(getUserName(j), ((node.sessions.kvm[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.kvm[j]))) + trash);
+                } else if (j == 'busy') {
+                    x += addHtmlValue2("Device is busy", ((node.sessions.kvm[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.kvm[j]))));
+                }
+            }
+        } else if (i == 'multidesk') {
+            x += '<u>' + "Remote Desktop" + '</u>';
+            for (var j in node.sessions.multidesk) {
+                var trash = '';
+                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("multidesk", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
+                x += addHtmlValue2(getUserName(j), ((node.sessions.multidesk[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.multidesk[j]))) + trash);
+            }
+        } else if (i == 'terminal') {
+            x += '<u>' + "Terminal" + '</u>';
+            for (var j in node.sessions.terminal) {
+                var trash = '';
+                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("terminal", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
+                x += addHtmlValue2(getUserName(j), ((node.sessions.terminal[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.terminal[j]))) + trash);
+            }
+        } else if (i == 'files') {
+            x += '<u>' + "Files" + '</u>';
+            for (var j in node.sessions.files) {
+                var trash = '';
+                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("files", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
+                x += addHtmlValue2(getUserName(j), ((node.sessions.files[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.files[j]))) + trash);
+            }
+        } else if (i == 'tcp') {
+            x += '<u>' + "TCP Routing" + '</u>';
+            for (var j in node.sessions.tcp) {
+                var trash = '';
+                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("tcp", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
+                x += addHtmlValue2(getUserName(j), ((node.sessions.tcp[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.tcp[j]))) + trash);
+            }
+        } else if (i == 'udp') {
+            x += '<u>' + "UDP Routing" + '</u>';
+            for (var j in node.sessions.udp) {
+                var trash = '';
+                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("udp", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
+                x += addHtmlValue2(getUserName(j), ((node.sessions.udp[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.udp[j]))) + trash);
+            }
+        }
+    }
+
+    if (x != '') {
+        xxdialogTag = 'SESSIONS-' + node._id;
+        setModalContent('xxAddAgent', "Sessions" + ' - ' + EscapeHtml(node.name), x);
+        showModal('xxAddAgentModal', 'idx_dlgOkButton');
+    } else {
+        if (xxdialogTag == ('SESSIONS-' + node._id)) { setDialogMode(0); }
+    }
+    return false;
+}
         function endDeviceSession(protocol, nodeid, userid) {
             var userIdSplit = decodeURIComponent(userid).split('/'), uid = userIdSplit[0] + '/' + userIdSplit[1] + '/' + userIdSplit[2], guestname = null;
             if ((userIdSplit.length == 4) && (userIdSplit[3].startsWith('guest:'))) { guestname = atob(userIdSplit[3].substring(6)); }
@@ -7605,33 +7897,36 @@
             onDevicesScrollEx(); // TODO: Not sure why, but second call is needed for proper update
         }
 
-        function toggleV6CollapseGroup(colId, groupKey) {
-            // Collapse handler for view 6 cards
-            var element = Q(colId);
-            if (element == null) return;
-            var groupName = decodeURIComponent(groupKey);
-            var isCollapsed = (element.style.display === 'none');
-            var imgElement = Q(colId + 'Img');
-            
-            if (isCollapsed) {
-                // Expand
-                element.style.display = '';
-                delete CollapsedGroups[groupName];
-                if (imgElement) {
-                    imgElement.classList.remove('fa-chevron-right');
-                    imgElement.classList.add('fa-chevron-down');
-                }
-            } else {
-                // Collapse
-                element.style.display = 'none';
-                CollapsedGroups[groupName] = true;
-                if (imgElement) {
-                    imgElement.classList.remove('fa-chevron-down');
-                    imgElement.classList.add('fa-chevron-right');
-                }
-            }
-            
-            putstore('_collapse', JSON.stringify(CollapsedGroups));
+function toggleV6CollapseGroup(colId, groupKey) {
+    // Collapse handler for view 6 cards
+    var element = Q(colId);
+    if (element == null) return;
+    var groupName = decodeURIComponent(groupKey);
+    var isCollapsed = (element.style.display === 'none');
+    var imgElement = Q(colId + 'Img');
+    var headerElement = element.previousElementSibling;
+
+    if (isCollapsed) {
+        // Expand
+        element.style.display = '';
+        delete CollapsedGroups[groupName];
+        if (imgElement) {
+            imgElement.classList.remove('fa-chevron-right');
+            imgElement.classList.add('fa-chevron-down');
+        }
+        if (headerElement) { headerElement.style.borderRadius = '8px 8px 0 0'; headerElement.style.marginBottom = '0'; }
+    } else {
+        // Collapse
+        element.style.display = 'none';
+        CollapsedGroups[groupName] = true;
+        if (imgElement) {
+            imgElement.classList.remove('fa-chevron-down');
+            imgElement.classList.add('fa-chevron-right');
+        }
+        if (headerElement) { headerElement.style.borderRadius = '8px'; headerElement.style.marginBottom = ''; }
+    }
+
+    putstore('_collapse', JSON.stringify(CollapsedGroups));
             updateCollapseAllButton();
             onDevicesScrollEx();
         }
@@ -8520,7 +8815,15 @@
                 checkedNodeids = {};
                 var devdivs = document.getElementsByName('xxdevice' + Q('viewselect').value);
                 // Checking that the parent style is null will insure that "select all" does not select any devices in collapsed groups
-                for (var i = 0; i < devdivs.length; i++) { if ((devdivs[i].parentElement.attributes.style == null) || (devdivs[i].parentElement.attributes.style.value.indexOf('display') < 0)) { checkedNodeids[devdivs[i].id.substring(3)] = 1; } }
+                {{!-- for (var i = 0; i < devdivs.length; i++) { if ((devdivs[i].parentElement.attributes.style == null) || (devdivs[i].parentElement.attributes.style.value.indexOf('display') < 0)) { checkedNodeids[devdivs[i].id.substring(3)] = 1; } } --}}
+                // Updated to also check for "display: block" since some browsers report the style differently
+                for (var i = 0; i < devdivs.length; i++) {
+    if ((devdivs[i].parentElement.attributes.style == null) || (devdivs[i].parentElement.attributes.style.value.indexOf('display') < 0)) {
+        var rawId = devdivs[i].id;
+        var nodeId = rawId.startsWith('v6') ? rawId.substring(2) : rawId.substring(3);
+        checkedNodeids[nodeId] = 1;
+    }
+}
             }
             p1updateInfo();
         }
@@ -8564,14 +8867,17 @@
             }
 
             // Check if any of the selected devices have a MQTT connection active
-            if (features & 0x00400000) {
+            {{!-- if (features & 0x00400000) {
                 for (var i in nodeids) { if ((getNodeFromId(nodeids[i]).conn & 16) != 0) { addedOptions.push({ v: 103, name: "Send MQTT Message" });; break; } }
+            } --}}
+            if (features & 0x00400000) {
+            for (var i in nodeids) { var _n = getNodeFromId(nodeids[i]); if (_n && (_n.conn & 16) != 0) { addedOptions.push({ v: 103, name: "Send MQTT Message" });; break; } }
             }
-
             // Display the options that are allowed depending on what devices are selected.
             addedOptions.push({ v: 105, name: "Export device information", s: true });
             for (var i in nodeids) {
                 var node = getNodeFromId(nodeids[i]), rights = GetNodeRights(node);
+                 if (!node) continue;
                 if ((rights & 1) && ((added & 2) == 0)) { added |= 2; addedOptions.push({ v: 102, name: "Move to device group" }); }
                 if (((node.conn & 1) != 0) && ((rights & 0x8000) != 0) && ((added & 1) == 0)) { added |= 1; addedOptions.push({ v: 104, name: "Uninstall Agent" }); }
                 if ((rights & 64) && ((added & 8) == 0)) { added |= 8; addedOptions.push({ v: 100, name: "Wake-up devices" }); }
@@ -9289,13 +9595,25 @@
         }
 
         function cmaction(action, event) {
-            var nodeid;
-            if (Q('viewselect').value == 1) {
-                nodeid = contextelement.children[0].children[0].children[1].children[0].attributes.onmouseup.value;
+            
+            var nodeid = null;
+            if ((contextelement != null) && (contextelement._directNodeId != null)) {
+                nodeid = contextelement._directNodeId;
+            } else if (Q('viewselect').value == 1) {
+                if ((contextelement != null) && (contextelement.children[0]) && (contextelement.children[0].children[0]) && (contextelement.children[0].children[0].children[1]) && (contextelement.children[0].children[0].children[1].children[0]) && (contextelement.children[0].children[0].children[1].children[0].attributes) && (contextelement.children[0].children[0].children[1].children[0].attributes.onmouseup)) {
+                    nodeid = contextelement.children[0].children[0].children[1].children[0].attributes.onmouseup.value;
+                }
             } else {
-                nodeid = contextelement.children[1].attributes.onmouseup.value;
+                if ((contextelement != null) && (contextelement.children[1]) && (contextelement.children[1].attributes) && (contextelement.children[1].attributes.onmouseup)) {
+                    nodeid = contextelement.children[1].attributes.onmouseup.value;
+                }
             }
-            nodeid = nodeid.substring(12, nodeid.length - 18);
+            if (!nodeid && event && event.target) {
+                var cardEl = event.target.closest('[cmenu="devsContentMenu"]');
+                if (cardEl && cardEl._directNodeId) { nodeid = cardEl._directNodeId; }
+            }
+            if (!nodeid) { return; }
+            if (nodeid.indexOf('gotoDevice(') == 0) { nodeid = nodeid.substring(12, nodeid.length - 18); }
             if (action == 9) { Q('viewselect').value = 3; Q('viewselect').onchange(); Q('autoConnectDesktopCheckbox').checked = true; Q('autoConnectDesktopCheckbox').onclick(); } // Multi-Desktop
             if ((action > 0) && (action < 9)) {
                 var panel = [0, 10, 12, 11, 13, 16, 17, 15, 19][action]; // (invalid), General, Desktop, Terminal, Files, Events, Console, Plugin
@@ -9485,6 +9803,27 @@
                         }
                     }
                 }
+                
+                    if (Q('viewselect').value == 6) {
+        CollapsedGroups = {};
+        var idx = 0;
+        while (true) {
+            var colEl = document.getElementById('v6col_' + idx);
+            if (!colEl) { console.log('[CollapseAll] Done at index', idx); break; }
+            var titleEl = colEl.previousElementSibling ? colEl.previousElementSibling.querySelector('.device-group-title') : null;
+            var groupName = titleEl ? titleEl.innerText : String(idx);
+            CollapsedGroups[groupName] = true;
+            colEl.style.display = 'none';
+            var imgEl = document.getElementById('v6col_' + idx + 'Img');
+            if (imgEl) { imgEl.classList.remove('fa-chevron-down'); imgEl.classList.add('fa-chevron-right'); }
+            var headerEl = colEl.previousElementSibling;
+            if (headerEl) { headerEl.style.borderRadius = '8px'; headerEl.style.marginBottom = ''; }
+            idx++;
+        }
+        putstore('_collapse', JSON.stringify(CollapsedGroups));
+        updateCollapseAllButton();
+        return; // ✅ EARLY RETURN — skip mainUpdate and other sort blocks
+    }
             }
             putstore('_collapse', JSON.stringify(CollapsedGroups));
             updateCollapseAllButton();
@@ -12039,7 +12378,40 @@
             deskAdjust();
             updateMetadata(desktop, 'deskmetadata');
         }
+// Change the function:
+function updateDeskTransportLog(message) {
+    var logEl = Q('DeskTransportLog');
+    if (!logEl) return;
+    logEl.textContent = message;
+    logEl.style.display = 'inline-block';
+    if (console && console.log) { console.log('DeskTransportLog: ' + message); }
+}
 
+function updateDeskTransportBadge(deskState) {
+    var transportEl = Q('DeskTransport');
+    if (!transportEl) return;
+    if (deskState == 3) {
+        if (webRtcDesktop && webRtcDesktop.webRtcActive) {
+            transportEl.innerHTML = '<i class="fa-solid fa-network-wired" style="margin-right:4px"></i>Peer-to-peer';
+            transportEl.title = 'Direct peer-to-peer connection using WebRTC.';
+            transportEl.style.background = '#d1fae5';
+            transportEl.style.color = '#065f46';
+            transportEl.style.border = '1px solid #a7f3d0';
+            updateDeskTransportLog('Running via WebRTC peer-to-peer');
+        } else {
+            transportEl.innerHTML = '<i class="fa-solid fa-cloud" style="margin-right:4px"></i>Relay';
+            transportEl.title = 'Connection is using the relay server for transport.';
+            transportEl.style.background = '#dbeafe';
+            transportEl.style.color = '#1e40af';
+            transportEl.style.border = '1px solid #bfdbfe';
+            updateDeskTransportLog('Running via relay server');
+        }
+        transportEl.style.display = 'inline-block';
+    } else {
+        transportEl.style.display = 'none';
+        var logEl = Q('DeskTransportLog'); if (logEl) { logEl.style.display = 'none'; }
+    }
+}
         // Show and enable the right buttons
         function updateDesktopButtons() {
             var deskState = 0;
@@ -12104,6 +12476,7 @@
             QE('deskkeys', desktop != null);
             QV('DeskTimer', deskState == 3);
             QV('DeskLatency', deskState == 3);
+            updateDeskTransportBadge(deskState);
             QS('DeskLatency').display = (deskState == 3 ? 'inline-block' : 'none');
 
             // Enable browser clipboard read if supported
@@ -12230,7 +12603,12 @@
                                     }
                                 }
                                 webRtcDesktop.webrtc.oniceconnectionstatechange = function () {
-                                    if ((webRtcDesktop != null) && (webRtcDesktop.webrtc != null) && ((webRtcDesktop.webrtc.iceConnectionState == 'disconnected') || (webRtcDesktop.webrtc.iceConnectionState == 'failed'))) { /*console.log('WebRTC ICE Failed');*/ webRtcDesktopReset(); }
+                                    var state = webRtcDesktop && webRtcDesktop.webrtc ? webRtcDesktop.webrtc.iceConnectionState : null;
+                                    if (state) {
+                                        console.log('WebRTC ICE state: ' + state);
+                                        updateDeskTransportLog('WebRTC ICE state: ' + state);
+                                    }
+                                    if ((webRtcDesktop != null) && (webRtcDesktop.webrtc != null) && ((state == 'disconnected') || (state == 'failed'))) { webRtcDesktopReset(); }
                                 }
                                 webRtcDesktop.webrtc.createOffer(function (offer) {
                                     // Got the offer
@@ -12392,6 +12770,26 @@
             if (conn && (conn.State == 3)) {
                 if (conn.metadata && conn.metadata.users) { for (var i in conn.metadata.users) { viewerCount += conn.metadata.users[i]; } }
                 if (viewerCount > 1) { str = '<span onclick=showSessionMetadata(1) style=cursor:pointer>' + format(", {0} watching", viewerCount) + '</span>'; }
+                
+                // Add connection mode info to metadata
+                if (currentNode && elementid == 'deskmetadata') {
+                    var connMode = '';
+                    if (conn.webRtcActive == true) {
+                        connMode = '<span style="color:#065f46;">🔵 WebRTC Direct</span>';
+                    } else if ((currentNode.conn & 8) != 0) {
+                        connMode = '<span style="color:#1e40af;">🔴 Relay</span>';
+                    } else {
+                        connMode = '<span style="color:#064e3b;">🟢 Direct</span>';
+                    }
+                    
+                    var stunStatus = Q('stunStatusIcon');
+                    if (stunStatus && stunStatus.style.color) {
+                        var stunColor = stunStatus.style.color === 'rgb(76, 175, 80)' ? '✓' : '✗';
+                        str += '<span style="margin-left:10px;font-size:11px;">(STUN: ' + stunColor + ' ' + connMode + ')</span>';
+                    } else {
+                        str += '<span style="margin-left:10px;font-size:11px;">(' + connMode + ')</span>';
+                    }
+                }
             }
             QH('deskmetadata', str);
             if ((conn == desktop) && (xxdialogTag == ('sessionMetadata1'))) { showSessionMetadata(1); }
@@ -12470,9 +12868,22 @@
             var xstate = state;
             if ((xstate == 3) && (xdesktop.contype == 2)) { xstate++; }
             var str = StatusStrs[xstate];
-            if ((desktop != null) && (desktop.webRtcActive == true)) { str += ", WebRTC"; }
-            if ((desktop != null) && (xstate == 3) && (desktop.contype == 4)) { str += ", RDP"; }
-            //if (desktop.m.stopInput == true) { str += ', Loopback'; }
+            
+            // Add connection type information
+            if ((desktop != null) && (xstate == 3)) {
+                if (desktop.webRtcActive == true) { 
+                    str += ", Direct (WebRTC)"; 
+                } else if (currentNode != null) {
+                    // Check if using relay based on node connectivity
+                    if ((currentNode.conn & 8) != 0) { 
+                        str += ", Relay"; 
+                    } else if (desktop.contype == 4) { 
+                        str += ", RDP"; 
+                    } else {
+                        str += ", Direct";
+                    }
+                }
+            }
             QH('deskstatus', str);
             switch (state) {
                 case 0:
