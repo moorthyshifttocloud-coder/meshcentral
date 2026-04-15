@@ -326,3 +326,4 @@ meshcentral-backups-*/
 *.key
 config.json.bak
 meshcentral-log/
+config.backup.json
