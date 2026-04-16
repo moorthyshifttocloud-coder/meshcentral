@@ -168,7 +168,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                         obj.webchannel.onmessage = obj.xxOnMessage;
                         //obj.webchannel.onmessage = function (e) { logData(e, 'WebRTC'); obj.xxOnMessage(e); }
                         obj.webchannel.onopen = function () { obj.webRtcActive = true; performWebRtcSwitch(); };
-                        obj.webchannel.onclose = function (event) { if (obj.webRtcActive) { obj.Stop(); } }
+                        obj.webchannel.onclose = function (event) { if (obj.webRtcActive) { console.log('Session Disconnected: WebRTC DataChannel closed (Tab inactive or network dropped)'); obj.Stop(); } }
                         obj.webrtc.onicecandidate = function (e) {
                             if (e.candidate == null) {
                                 try { obj.sendCtrlMsg(JSON.stringify(obj.webrtcoffer)); } catch (ex) { } // End of candidates, send the offer
@@ -178,8 +178,14 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                         }
                         obj.webrtc.oniceconnectionstatechange = function () {
                             if (obj.webrtc != null) {
-                                if (obj.webrtc.iceConnectionState == 'disconnected') { if (obj.webRtcActive == true) { obj.Stop(); } else { obj.xxCloseWebRTC(); } }
-                                else if (obj.webrtc.iceConnectionState == 'failed') { obj.xxCloseWebRTC(); }
+                                if (obj.webrtc.iceConnectionState == 'disconnected') { 
+                                    console.log('Session Disconnected: WebRTC ICE Connection State is "disconnected" (often caused by tab sleeping)');
+                                    if (obj.webRtcActive == true) { obj.Stop(); } else { obj.xxCloseWebRTC(); } 
+                                }
+                                else if (obj.webrtc.iceConnectionState == 'failed') { 
+                                    console.log('Session Disconnected: WebRTC ICE Connection State is "failed"');
+                                    obj.xxCloseWebRTC(); 
+                                }
                             }
                         }
                         obj.webrtc.createOffer(function (offer) {
@@ -282,6 +288,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
     obj.xxOnSocketClosed = function () {
         //obj.debug('Agent Redir Socket Closed');
         //if (obj.debugmode == 1) { console.log('onSocketClosed'); }
+        console.log('Session Disconnected: WebSocket connection closed by server/network (Active Tab: ' + !document.hidden + ')');
         obj.Stop(1);
     }
 
@@ -301,6 +308,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
 
     obj.Stop = function (x) {
         if (obj.debugmode == 1) { console.log('stop', x); }
+        if (obj.State != 0) { console.log('Executing obj.Stop(), tearing down session.'); }
 
         // Clean up WebRTC
         obj.xxCloseWebRTC();
