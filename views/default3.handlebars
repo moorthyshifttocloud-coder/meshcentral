@@ -12573,9 +12573,9 @@ function updateDeskTransportBadge(deskState) {
                                 else if (typeof webkitRTCPeerConnection !== 'undefined') { webRtcDesktop.webrtc = new webkitRTCPeerConnection(configuration); }
 
                                 webRtcDesktop.webchannel = webRtcDesktop.webrtc.createDataChannel("DataChannel", {}); // { ordered: false, maxRetransmits: 2 }
-                                webRtcDesktop.webchannel.onopen = function () {
+                                 webRtcDesktop.webchannel.onopen = function () {
                                     // Switch to software KVM
-                                    updateDeskTransportLog('WebRTC Data Channel Open');
+                                    updateDeskTransportLog('[6] MeshCentral WebRTC  -- Connected (Relay -> Peer switch complete)');
                                     Q('deskstatus').textContent = StatusStrs[desktop.State] + ", Soft-KVM";
                                     desktop.m.hold(true);
                                     webRtcDesktop.webRtcActive = true;
@@ -12601,18 +12601,22 @@ function updateDeskTransportBadge(deskState) {
                                     // ###END###{DesktopInbandFiles}
                                 }
                                 webRtcDesktop.webchannel.onclose = function (event) {
-                                    updateDeskTransportLog('WebRTC Data Channel Closed');
+                                    updateDeskTransportLog('[-] MeshCentral WebRTC  -- Disconnected, back to relay');
                                     webRtcDesktopReset();
                                 }
                                 webRtcDesktop.webrtc.onicecandidate = function (e) {
                                     if (e.candidate == null) {
-                                        updateDeskTransportLog('WebRTC ICE gathering complete');
+                                        updateDeskTransportLog('[3] MeshCentral WebRTC  -- Connecting (ICE gathering complete)...');
                                         desktop.m.sendKvmData(JSON.stringify({ action: 'offer', ver: 1, sdp: webRtcDesktop.webrtcoffer.sdp }));
                                     } else {
                                         var cand = e.candidate.candidate || '';
                                         var typeMatch = cand.match(/typ (\w+)/);
                                         var candType = typeMatch ? typeMatch[1] : 'unknown';
-                                        updateDeskTransportLog('ICE candidate: ' + candType);
+                                        if (candType === 'srflx' || candType === 'prflx') {
+                                            updateDeskTransportLog('[4] STUN WebRTC         -- Candidate found (checking NAT traversal)...');
+                                        } else if (candType === 'relay') {
+                                            updateDeskTransportLog('[5] TURN WebRTC         -- Candidate found (relay server available)...');
+                                        }
                                         webRtcDesktop.webrtcoffer.sdp += ('a=' + cand + '\r\n'); // New candidate, add it to the SDP
                                     }
                                 }
@@ -12625,8 +12629,14 @@ function updateDeskTransportBadge(deskState) {
                                 }
                                 webRtcDesktop.webrtc.oniceconnectionstatechange = function () {
                                     var state = webRtcDesktop && webRtcDesktop.webrtc ? webRtcDesktop.webrtc.iceConnectionState : null;
-                                    if (state) {
-                                        updateDeskTransportLog('WebRTC ICE state: ' + state);
+                                    if (state === 'checking') {
+                                        updateDeskTransportLog('    STUN/TURN WebRTC   -- Checking candidates...');
+                                    } else if (state === 'connected' || state === 'completed') {
+                                        // Final type logged by webchannel.onopen via getStats
+                                    } else if (state === 'failed') {
+                                        updateDeskTransportLog('[-] MeshCentral Relay   -- WebRTC failed, staying on relay');
+                                    } else if (state === 'disconnected') {
+                                        updateDeskTransportLog('[-] MeshCentral WebRTC  -- Disconnected');
                                     }
                                     if ((webRtcDesktop != null) && (webRtcDesktop.webrtc != null) && ((state == 'disconnected') || (state == 'failed'))) { webRtcDesktopReset(); }
                                 }
@@ -12657,7 +12667,7 @@ function updateDeskTransportBadge(deskState) {
                     desktop.m.debugmode = debugmode;
                     desktop.attemptWebRTC = attemptWebRTC;
                     desktop.webrtcconfig = webrtcconfiguration;
-                    updateDeskTransportLog('Initializing Desktop (WebRTC: ' + (attemptWebRTC ? 'Enabled' : 'Disabled') + ', Config: ' + (webrtcconfiguration ? 'Yes' : 'No') + ')');
+                    updateDeskTransportLog('[1] MeshCentral Relay  -- Connecting...');
                     desktop.options = {};
                     if (tsid != null) { desktop.options.tsid = tsid; }
                     if (consent != null) { desktop.options.consent = consent; }

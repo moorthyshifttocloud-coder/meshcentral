@@ -63,6 +63,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
         if ((urlargs != null) && (urlargs.slowrelay != null)) { url += '&slowrelay=' + urlargs.slowrelay; }
         obj.nodeid = nodeid;
         obj.connectstate = 0;
+        console.log('[MeshCentral] [1] MeshCentral Relay  -- Connecting...');
         obj.socket = new WebSocket(url);
         obj.socket.binaryType = 'arraybuffer';
         obj.socket.onopen = obj.xxOnSocketConnected;
@@ -82,6 +83,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
     obj.xxOnSocketConnected = function () {
         if (obj.debugmode == 1) { console.log('onSocketConnected'); }
         //obj.debug('Agent Redir Socket Connected');
+        console.log('[MeshCentral] [2] MeshCentral Relay  -- Connected');
         if (!obj.latency.lastSend){ 
             obj.latency.lastSend = setInterval(function(){
                 if (obj.latency.current == -1) {
@@ -157,9 +159,13 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                 try { obj.socket.send(obj.protocol); } catch (ex) { }
                 obj.xxStateChange(3);
 
+                // Track seen candidate types to avoid duplicate logs
+                var _seenStun = false, _seenTurn = false;
+
                 if (obj.attemptWebRTC == true) {
                     // Try to get WebRTC setup
                     var configuration = obj.webrtcconfig; //{ "iceServers": [ { 'urls': 'stun:stun.cloudflare.com:3478' }, { 'urls': 'stun:stun.l.google.com:19302' } ] };
+                    console.log('[MeshCentral] [3] MeshCentral WebRTC -- Connecting (Relay active, attempting peer upgrade)...');
                     if (typeof RTCPeerConnection !== 'undefined') { obj.webrtc = new RTCPeerConnection(configuration); }
                     else if (typeof webkitRTCPeerConnection !== 'undefined') { obj.webrtc = new webkitRTCPeerConnection(configuration); }
                     if ((obj.webrtc != null) && (obj.webrtc.createDataChannel)) {
@@ -167,24 +173,70 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                         obj.webchannel.binaryType = 'arraybuffer';
                         obj.webchannel.onmessage = obj.xxOnMessage;
                         //obj.webchannel.onmessage = function (e) { logData(e, 'WebRTC'); obj.xxOnMessage(e); }
-                        obj.webchannel.onopen = function () { obj.webRtcActive = true; performWebRtcSwitch(); };
-                        obj.webchannel.onclose = function (event) { if (obj.webRtcActive) { console.log('Session Disconnected: WebRTC DataChannel closed (Tab inactive or network dropped)'); obj.Stop(); } }
+                        obj.webchannel.onopen = function () {
+                            obj.webRtcActive = true;
+                            // Detect actual connection type using ICE stats
+                            if (obj.webrtc && obj.webrtc.getStats) {
+                                obj.webrtc.getStats(null).then(function(stats) {
+                                    var logged = false;
+                                    stats.forEach(function(report) {
+                                        if (!logged && report.type === 'candidate-pair' && report.state === 'succeeded') {
+                                            var local  = stats.get(report.localCandidateId);
+                                            var remote = stats.get(report.remoteCandidateId);
+                                            var localType  = local  ? (local.candidateType  || local.type  || '') : '';
+                                            var remoteType = remote ? (remote.candidateType || remote.type || '') : '';
+                                            if (localType === 'relay' || remoteType === 'relay') {
+                                                console.log('[MeshCentral] [6] TURN WebRTC          -- Connected (traffic via TURN relay server)');
+                                            } else if (localType === 'srflx' || remoteType === 'srflx') {
+                                                console.log('[MeshCentral] [6] STUN WebRTC          -- Connected (NAT traversal, direct peer)');
+                                            } else {
+                                                console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected (Direct Peer-to-Peer)');
+                                            }
+                                            logged = true;
+                                        }
+                                    });
+                                    if (!logged) { console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected (Direct Peer-to-Peer)'); }
+                                }).catch(function() {
+                                    console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected');
+                                });
+                            } else {
+                                console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected');
+                            }
+                            performWebRtcSwitch();
+                        };
+                        obj.webchannel.onclose = function (event) { if (obj.webRtcActive) { console.log('[MeshCentral] Session Disconnected -- WebRTC DataChannel closed (tab inactive or network dropped)'); obj.Stop(); } }
                         obj.webrtc.onicecandidate = function (e) {
                             if (e.candidate == null) {
                                 try { obj.sendCtrlMsg(JSON.stringify(obj.webrtcoffer)); } catch (ex) { } // End of candidates, send the offer
                             } else {
+                                var c = e.candidate.candidate || '';
+                                if (!_seenStun && (c.indexOf(' srflx ') !== -1 || c.indexOf(' prflx ') !== -1)) {
+                                    _seenStun = true;
+                                    console.log('[MeshCentral] [4] STUN WebRTC          -- Candidate found (checking NAT traversal)...');
+                                }
+                                if (!_seenTurn && c.indexOf(' relay ') !== -1) {
+                                    _seenTurn = true;
+                                    console.log('[MeshCentral] [5] TURN WebRTC          -- Candidate found (relay server available)...');
+                                }
                                 obj.webrtcoffer.sdp += ('a=' + e.candidate.candidate + '\r\n'); // New candidate, add it to the SDP
                             }
                         }
                         obj.webrtc.oniceconnectionstatechange = function () {
                             if (obj.webrtc != null) {
-                                if (obj.webrtc.iceConnectionState == 'disconnected') { 
-                                    console.log('Session Disconnected: WebRTC ICE Connection State is "disconnected" (often caused by tab sleeping)');
-                                    if (obj.webRtcActive == true) { obj.Stop(); } else { obj.xxCloseWebRTC(); } 
-                                }
-                                else if (obj.webrtc.iceConnectionState == 'failed') { 
-                                    console.log('Session Disconnected: WebRTC ICE Connection State is "failed"');
-                                    obj.xxCloseWebRTC(); 
+                                var s = obj.webrtc.iceConnectionState;
+                                if (s === 'checking') {
+                                    console.log('[MeshCentral]     STUN/TURN WebRTC    -- Checking candidates...');
+                                } else if (s === 'disconnected') {
+                                    console.log('[MeshCentral] Session Disconnected -- WebRTC ICE disconnected (tab sleeping or network dropped)');
+                                    if (obj.webRtcActive == true) { obj.Stop(); } else { obj.xxCloseWebRTC(); }
+                                } else if (s === 'failed') {
+                                    if (_seenTurn) {
+                                        console.log('[MeshCentral]     TURN WebRTC          -- Failed');
+                                    } else if (_seenStun) {
+                                        console.log('[MeshCentral]     STUN WebRTC          -- Failed');
+                                    }
+                                    console.log('[MeshCentral] [-] MeshCentral Relay    -- WebRTC failed, staying on relay');
+                                    obj.xxCloseWebRTC();
                                 }
                             }
                         }
@@ -194,6 +246,9 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                             obj.webrtc.setLocalDescription(offer, function () { /*console.log('WebRTC local ok');*/ }, obj.xxCloseWebRTC);
                         }, obj.xxCloseWebRTC, { mandatory: { OfferToReceiveAudio: false, OfferToReceiveVideo: false } });
                     }
+                } else {
+                    // No WebRTC — pure relay
+                    console.log('[MeshCentral] [3] MeshCentral Relay    -- Active (WebRTC not enabled)');
                 }
 
                 return;
@@ -288,7 +343,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
     obj.xxOnSocketClosed = function () {
         //obj.debug('Agent Redir Socket Closed');
         //if (obj.debugmode == 1) { console.log('onSocketClosed'); }
-        console.log('Session Disconnected: WebSocket connection closed by server/network (Active Tab: ' + !document.hidden + ')');
+        console.log('[MeshCentral] [-] MeshCentral Relay    -- Disconnected (tab active: ' + !document.hidden + ')');
         obj.Stop(1);
     }
 
