@@ -186,16 +186,16 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                                             var localType  = local  ? (local.candidateType  || local.type  || '') : '';
                                             var remoteType = remote ? (remote.candidateType || remote.type || '') : '';
                                             if (localType === 'relay' || remoteType === 'relay') {
-                                                console.log('[MeshCentral] [6] TURN WebRTC          -- Connected (traffic via TURN relay server)');
+                                                console.log('[MeshCentral] [6] TURN Peer-to-Peer      -- Connected (traffic via TURN relay server)');
                                             } else if (localType === 'srflx' || remoteType === 'srflx') {
-                                                console.log('[MeshCentral] [6] STUN WebRTC          -- Connected (NAT traversal, direct peer)');
+                                                console.log('[MeshCentral] [6] STUN Peer-to-Peer      -- Connected (NAT traversal, direct peer)');
                                             } else {
-                                                console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected (Direct Peer-to-Peer)');
+                                                console.log('[MeshCentral] [6] Direct Peer-to-Peer    -- Connected (LAN)');
                                             }
                                             logged = true;
                                         }
                                     });
-                                    if (!logged) { console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected (Direct Peer-to-Peer)'); }
+                                    if (!logged) { console.log('[MeshCentral] [6] Direct Peer-to-Peer    -- Connected (LAN)'); }
                                 }).catch(function() {
                                     console.log('[MeshCentral] [6] MeshCentral WebRTC   -- Connected');
                                 });
@@ -248,7 +248,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
                     }
                 } else {
                     // No WebRTC — pure relay
-                    console.log('[MeshCentral] [3] MeshCentral Relay    -- Active (WebRTC not enabled)');
+                    console.log('[MeshCentral] [3] Relay MeshCentral      -- Active (WebRTC disabled/failed)');
                 }
 
                 return;
