@@ -24,9 +24,9 @@ var data = require('./data');
 var cliprdr = require('./cliprdr');
 
 module.exports = {
-	lic: lic,
-	sec: sec,
-	global: global,
-    data: data,
-    cliprdr: cliprdr
+  lic: lic,
+  sec: sec,
+  global: global,
+  data: data,
+  cliprdr: cliprdr
 };

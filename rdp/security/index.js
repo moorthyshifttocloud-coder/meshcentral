@@ -21,6 +21,6 @@ var x509 = require('./x509');
 var rsa = require('./rsa');
 
 module.exports = {
-	x509 : x509,
-	rsa : rsa
+  x509: x509,
+  rsa: rsa
 };

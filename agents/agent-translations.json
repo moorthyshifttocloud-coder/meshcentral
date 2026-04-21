@@ -22,11 +22,7 @@
     "commands": "You can run the text version from the command line with the following command(s)",
     "graphicalerror": "The graphical version of this installer cannot run on this system",
     "zenity": "Try installing/updating Zenity, and run again",
-    "status": [
-      "NOT INSTALLED",
-      "RUNNING",
-      "NOT RUNNING"
-    ],
+    "status": ["NOT INSTALLED", "RUNNING", "NOT RUNNING"],
     "statusDescription": "Current Agent Status",
     "description": "Click the buttons below to install or uninstall this remote management software. When installed, this software runs in the background allowing this computer to be managed and controlled by a remote administrator.",
     "connectionDetailsButton": "Connection Details..."
@@ -51,11 +47,7 @@
     "ctrlc": "Ukončete stisknutím Ctrl-C.",
     "commands": "Textovou verzi můžete spustit z příkazového řádku pomocí následujících příkazů",
     "zenity": "Zkuste nainstalovat / aktualizovat Zenity a spustit znovu",
-    "status": [
-      "NENÍ INSTALOVÁN",
-      "SPUŠTĚNO",
-      "NEFUNGUJE"
-    ],
+    "status": ["NENÍ INSTALOVÁN", "SPUŠTĚNO", "NEFUNGUJE"],
     "statusDescription": "Aktuální stav agenta",
     "agentVersion": "Nová verze",
     "elevation": "K instalaci/odinstalaci tohoto softwaru jsou vyžadována zvýšená oprávnění.",
@@ -83,11 +75,7 @@
     "ctrlc": "Drücken Sie Strg-C, um den Vorgang zu beenden.",
     "commands": "Sie können die Textversion über die Befehlszeile mit den folgenden Befehlen ausführen.",
     "zenity": "Versuchen Sie, Zenity zu installieren / zu aktualisieren, und führen Sie es erneut aus",
-    "status": [
-      "NICHT INSTALLIERT",
-      "GESTARTET",
-      "NICHT GESTARTET"
-    ],
+    "status": ["NICHT INSTALLIERT", "GESTARTET", "NICHT GESTARTET"],
     "statusDescription": "Aktueller Agentstatus",
     "agentVersion": "Neue Version",
     "elevation": "Zum Installieren/Deinstallieren dieser Software sind erhöhte Berechtigungen erforderlich.",
@@ -116,11 +104,7 @@
     "ctrlc": "Presione Ctrl-C para salir.",
     "commands": "Puedes ejecutar la versión de texto desde la línea de comandos con los siguientes comandos",
     "zenity": "Intenta instalar / actualizar Zenity y vuelve a ejecutar",
-    "status": [
-      "NO INSTALADO",
-      "EJECUTANDO",
-      "NO EJECUTANDOSE"
-    ],
+    "status": ["NO INSTALADO", "EJECUTANDO", "NO EJECUTANDOSE"],
     "statusDescription": "Estado Actual del Agente",
     "agentVersion": "Nueva versión",
     "elevation": "Se requieren permisos elevados para instalar/desinstalar este software.",
@@ -148,11 +132,7 @@
     "ctrlc": "Poistu painamalla Ctrl-C.",
     "commands": "Voit suorittaa tekstiversio komentoriviltä seuraavilla komennoilla",
     "zenity": "Yritä asentaa / päivittää Zenity ja suorita uudelleen",
-    "status": [
-      "EI ASENNETTU",
-      "Juoksu",
-      "EI RUNNING"
-    ],
+    "status": ["EI ASENNETTU", "Juoksu", "EI RUNNING"],
     "statusDescription": "Agentin nykyinen tila",
     "agentVersion": "Uusi versio",
     "elevation": "Tämän ohjelmiston asentaminen/asennuksen poistaminen edellyttää korotettuja käyttöoikeuksia.",
@@ -180,11 +160,7 @@
     "ctrlc": "Appuyez sur Ctrl-C pour quitter.",
     "commands": "Vous pouvez exécuter la version texte à partir de la ligne de commande avec la ou les commandes suivantes",
     "zenity": "Essayez d'installer / mettre à jour Zenity et réexécutez",
-    "status": [
-      "PAS INSTALLÉ",
-      "FONCTIONNEMENT",
-      "PAS EN FONCTIONNEMENT"
-    ],
+    "status": ["PAS INSTALLÉ", "FONCTIONNEMENT", "PAS EN FONCTIONNEMENT"],
     "statusDescription": "Statut actuel de l'agent",
     "agentVersion": "Nouvelle version",
     "elevation": "Des autorisations élevées sont requises pour installer/désinstaller ce logiciel.",
@@ -212,11 +188,7 @@
     "ctrlc": "बाहर निकलने के लिए Ctrl-C दबाएं।",
     "commands": "आप निम्न कमांड के साथ कमांड लाइन से टेक्स्ट संस्करण चला सकते हैं",
     "zenity": "ज़ेनिटी को स्थापित / अपडेट करने का प्रयास करें, और फिर से चलाएं",
-    "status": [
-      "स्थापित नहीं है",
-      "चल रहा है",
-      "चल नहीं रहा"
-    ],
+    "status": ["स्थापित नहीं है", "चल रहा है", "चल नहीं रहा"],
     "statusDescription": "वर्तमान एजेंट की स्थिति",
     "agentVersion": "नया संस्करण",
     "elevation": "इस सॉफ़्टवेयर को स्थापित/अनइंस्टॉल करने के लिए उन्नत अनुमतियों की आवश्यकता होती है।",
@@ -244,11 +216,7 @@
     "ctrlc": "Premi Ctrl-C per uscire.",
     "commands": "Puoi eseguire la versione testuale dalla riga di comando con i seguenti comandi ",
     "zenity": "Prova a installare/aggiornare Zenity ed esegui di nuovo",
-    "status": [
-      "NON INSTALLATO",
-      "IN ESECUZIONE",
-      "NON IN ESECUZIONE"
-    ],
+    "status": ["NON INSTALLATO", "IN ESECUZIONE", "NON IN ESECUZIONE"],
     "statusDescription": "Stato attuale dell'agente",
     "agentVersion": "Nuova versione",
     "elevation": "Per installare/disinstallare questo software sono necessarie autorizzazioni elevate.",
@@ -276,11 +244,7 @@
     "ctrlc": "Ctrl-Cを押して終了します。",
     "commands": "次のコマンドを使用して、コマンドラインからテキストバージョンを実行できます。",
     "zenity": "Zenityをインストール/更新して、もう一度実行してください",
-    "status": [
-      "インストールされていない",
-      "ランニング",
-      "走っていない"
-    ],
+    "status": ["インストールされていない", "ランニング", "走っていない"],
     "statusDescription": "現在のエージェントステータス",
     "agentVersion": "新しいバージョン",
     "elevation": "このソフトウェアをインストール/アンインストールするには、昇格された権限が必要です。",
@@ -308,11 +272,7 @@
     "ctrlc": "종료하려면 \"Ctrl-C\"를 누르십시오.",
     "commands": "다음 명령을 사용하여 콘솔에서 텍스트 버전을 실행할 수 있습니다",
     "zenity": "\"Zenity\"를 설치 또는 업데이트하고 다시 시도하십시오",
-    "status": [
-      "없다",
-      "운영",
-      "중지됨"
-    ],
+    "status": ["없다", "운영", "중지됨"],
     "statusDescription": "에이전트 상태",
     "agentVersion": "새로운 버전",
     "elevation": "이 소프트웨어를 설치/제거하려면 높은 권한이 필요합니다.",
@@ -340,11 +300,7 @@
     "ctrlc": "Druk op Ctrl-C om af te sluiten.",
     "commands": "U kunt de tekstversie vanaf de opdrachtregel uitvoeren met de volgende opdracht(en)",
     "zenity": "Probeer Zenity te installeren / bij te werken en voer het opnieuw uit",
-    "status": [
-      "NIET GEÏNSTALLEERD",
-      "ACTIEF",
-      "NIET ACTIEF"
-    ],
+    "status": ["NIET GEÏNSTALLEERD", "ACTIEF", "NIET ACTIEF"],
     "statusDescription": "Huidige agent status",
     "agentVersion": "Nieuwe versie",
     "elevation": "Verhoogde machtigingen zijn vereist om deze software te installeren/verwijderen.",
@@ -372,11 +328,7 @@
     "ctrlc": "Pressione Ctrl-C para sair.",
     "commands": "Você pode executar a versão em texto a partir da linha de comando com o (s) seguinte (s) comando (s)",
     "zenity": "Tente instalar / atualizar o Zenity e execute novamente",
-    "status": [
-      "NÃO INSTALADO",
-      "CORRIDA",
-      "NÃO CORRENDO"
-    ],
+    "status": ["NÃO INSTALADO", "CORRIDA", "NÃO CORRENDO"],
     "statusDescription": "Status atual do agente",
     "agentVersion": "Nova versão",
     "elevation": "Permissões elevadas são necessárias para instalar/desinstalar este software.",
@@ -404,11 +356,7 @@
     "ctrlc": "Нажмите Ctrl-C для выхода.",
     "commands": "Вы можете запустить текстовую версию из командной строки с помощью следующих команд",
     "zenity": "Попробуйте установить / обновить Zenity и снова запустить",
-    "status": [
-      "НЕ УСТАНОВЛЕНО",
-      "ЗАПУЩЕН",
-      "НЕ ЗАПУЩЕН"
-    ],
+    "status": ["НЕ УСТАНОВЛЕНО", "ЗАПУЩЕН", "НЕ ЗАПУЩЕН"],
     "statusDescription": "Текущий статус агента",
     "agentVersion": "Новая версия",
     "elevation": "Для установки/удаления этого программного обеспечения требуются повышенные права.",
@@ -436,11 +384,7 @@
     "ctrlc": "Tryck på Ctrl-C för att avsluta.",
     "commands": "Du kan köra textversionen från kommandoraden med följande kommando (er)",
     "zenity": "Försök att installera / uppdatera Zenity och kör igen",
-    "status": [
-      "INTE INSTALLERAD",
-      "LÖPNING",
-      "SPRINGER INTE"
-    ],
+    "status": ["INTE INSTALLERAD", "LÖPNING", "SPRINGER INTE"],
     "statusDescription": "Aktuell agentstatus",
     "agentVersion": "Ny version",
     "elevation": "Förhöjda behörigheter krävs för att installera/avinstallera denna programvara.",
@@ -468,11 +412,7 @@
     "ctrlc": "Çıkmak için Ctrl-C tuşlarına basın.",
     "commands": "Metin sürümünü aşağıdaki komutlarla komut satırından çalıştırabilirsiniz.",
     "zenity": "Zenity'yi kurmayı / güncellemeyi deneyin ve tekrar çalıştırın",
-    "status": [
-      "YÜKLÜ DEĞİL",
-      "KOŞU",
-      "KOŞMAK YOK"
-    ],
+    "status": ["YÜKLÜ DEĞİL", "KOŞU", "KOŞMAK YOK"],
     "statusDescription": "Mevcut Agent Durumu",
     "agentVersion": "Yeni sürüm",
     "elevation": "Bu yazılımı yüklemek/kaldırmak için yüksek izinler gerekir.",
@@ -500,11 +440,7 @@
     "ctrlc": "按Ctrl-C退出。",
     "commands": "您可以使用以下命令从命令行运行文本版本",
     "zenity": "尝试安装/更新Zenity，然后再次运行",
-    "status": [
-      "未安装",
-      "正在运行",
-      "不在运行"
-    ],
+    "status": ["未安装", "正在运行", "不在运行"],
     "statusDescription": "当前代理状态",
     "agentVersion": "新版本",
     "elevation": "安装/卸载此软件需要提升权限。",
@@ -532,11 +468,7 @@
     "ctrlc": "按Ctrl-C退出。",
     "commands": "您可以使用以下命令從命令行運行文本版本",
     "zenity": "嘗試安裝/更新Zenity，然後再次運行",
-    "status": [
-      "未安裝",
-      "正在運行",
-      "不在運行"
-    ],
+    "status": ["未安裝", "正在運行", "不在運行"],
     "statusDescription": "當前代理狀態",
     "agentVersion": "新版本",
     "elevation": "安裝/卸載此軟件需要提升權限。",
@@ -564,11 +496,7 @@
     "ctrlc": "Tryk på Ctrl-C for at afslutte.",
     "commands": "Du kan køre tekstversionen fra kommandolinjen med følgende kommando(er)",
     "zenity": "Prøv at installere/opdatere Zenity, og kør igen",
-    "status": [
-      "IKKE INSTALLERET",
-      "KØRER",
-      "KØRER IKKE"
-    ],
+    "status": ["IKKE INSTALLERET", "KØRER", "KØRER IKKE"],
     "statusDescription": "Aktuel agentstatus",
     "agentVersion": "Ny version",
     "elevation": "Forhøjede tilladelser er nødvendige for at installere/afinstallere denne software.",
@@ -596,11 +524,7 @@
     "ctrlc": "Naciśnij Ctrl-C by wyjść.",
     "commands": "Możesz uruchomić wersję tekstową z linii poleceń za pomocą następujących komend",
     "zenity": "Spróbuj zainstalować/zaktualizować Zenity i uruchom ponownie",
-    "status": [
-      "NIE ZAINSTALOWANY",
-      "DZIAŁA",
-      "NIE DZIAŁA"
-    ],
+    "status": ["NIE ZAINSTALOWANY", "DZIAŁA", "NIE DZIAŁA"],
     "statusDescription": "Obecny Status Agenta",
     "agentVersion": "Nowa Wersja",
     "elevation": "Do zainstalowania/odinstalowania tego oprogramowania wymagane są podwyższone uprawnienia.",
@@ -628,11 +552,7 @@
     "ctrlc": "Pressione Ctrl-C para sair.",
     "commands": "Você pode executar a versão em texto a partir da linha de comando com o (s) seguinte (s) comando (s)",
     "zenity": "Tente instalar / atualizar o Zenity e execute novamente",
-    "status": [
-      "NÃO INSTALADO",
-      "Executando",
-      "NÃO EXECUTANDO"
-    ],
+    "status": ["NÃO INSTALADO", "Executando", "NÃO EXECUTANDO"],
     "statusDescription": "Status atual do agente",
     "agentVersion": "Nova Versão",
     "elevation": "Permissões Elevadas são necessárias para instalar/desinstalar este software",
@@ -663,11 +583,7 @@
     "commands": "Možete pokrenuti tekstualnu verziju iz komandne linije sa sljedećim naredbama",
     "graphicalerror": "Grafička verzija ovog instalatera ne može da radi na ovom sistemu",
     "zenity": "Pokušajte instalirati/ažurirati Zenity i pokrenite ponovo",
-    "status": [
-      "NIJE INSTALIRANO",
-      "RUNNING",
-      "NOT RUNNING"
-    ],
+    "status": ["NIJE INSTALIRANO", "RUNNING", "NOT RUNNING"],
     "statusDescription": "Trenutni status agenta",
     "description": "Kliknite na dugmad ispod da instalirate ili deinstalirate ovaj softver za daljinsko upravljanje. Kada je instaliran, ovaj softver radi u pozadini, što omogućava da ovim računarom upravlja i kontroliše udaljeni administrator.",
     "connectionDetailsButton": "Detalji veze..."
@@ -695,11 +611,7 @@
     "commands": "A szöveges változatot a parancssorból futtathatja a következő parancs(okk)al",
     "graphicalerror": "A telepítő grafikus verziója nem futtatható ezen a rendszeren.",
     "zenity": "Próbálja meg telepíteni/frissíteni a Zenity-t, és indítsa újra",
-    "status": [
-      "NINCS TELEPÍTVE",
-      "FUT",
-      "NEM FUT"
-    ],
+    "status": ["NINCS TELEPÍTVE", "FUT", "NEM FUT"],
     "statusDescription": "Jelenlegi agent állapota",
     "description": "Kattintson a Telepítés vagy Eltávolítás gombokra a Távfelügyeleti alkalmazás telepítéséhez vagy eltávolításához. Telepítés után ez az alkalmazás a háttérben fut, lehetővé téve, hogy a számítógépet egy távoli rendszergazda kezelje.",
     "connectionDetailsButton": "Kapcsolat részletei..."
@@ -727,11 +639,7 @@
     "commands": "Podeu executar la versió de text des de la línia d'ordres amb les següents ordres",
     "graphicalerror": "La versió gràfica d'aquest instal·lador no pot executar-se en aquest sistema",
     "zenity": "Proveu d'instal·lar/actualitzar Zenity i torneu a executar-lo",
-    "status": [
-      "NO ESTÀ INSTAL · LAT",
-      "CÓRRER",
-      "NO CORRE"
-    ],
+    "status": ["NO ESTÀ INSTAL · LAT", "CÓRRER", "NO CORRE"],
     "statusDescription": "Estat actual de l'agent",
     "description": "Feu clic als botons següents per instal·lar o desinstal·lar aquest programari de gestió remota. Quan s'instal·la, aquest programari s'executa en segon pla i permet que aquest ordinador sigui gestionat i controlat per un administrador remot.",
     "connectionDetailsButton": "Detalls de la connexió..."
@@ -759,11 +667,7 @@
     "commands": "Ви можете запустити текстову версію з командного рядка за допомогою таких команд",
     "graphicalerror": "Графічна версія цього інсталятора не може запуститись в цій системі",
     "zenity": "Спробуйте встановити або оновити Zenity, а тоді запустіть програму знову",
-    "status": [
-      "НЕ ВСТАНОВЛЕНО",
-      "ПРАЦЮЄ",
-      "НЕ ПРАЦЮЄ"
-    ],
+    "status": ["НЕ ВСТАНОВЛЕНО", "ПРАЦЮЄ", "НЕ ПРАЦЮЄ"],
     "statusDescription": "Поточний статус Агента",
     "description": "Щоб встановити або видалити це програмне забезпечення для віддаленого керування, скористайтеся кнопками нижче. Після інсталяції програма працютиме у фоновому режимі, що дозволить віддаленому адміністратору керувати цим комп'ютером. Підключення ж надасть тимчасовий доступ поки це вікно відкрите",
     "connectionDetailsButton": "Деталі з'єднання..."

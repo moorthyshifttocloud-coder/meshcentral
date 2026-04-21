@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# MeshCentral Data & Runtime folders
+meshcentral-data
+meshcentral-files
+meshcentral-backups
+meshcentral-recordings
+
+# Static Assets (Third party & Minified)
+public/scripts/*.min.js
+public/styles/*.min.css
+public/novnc
+public/styles/themes
+public/scripts/fontawesome
+
+# Generated/Binary folders
+agents
+bin
+rdp/security/jsbn.js
+
+# Build folders
+dist
+build
+
+# Handlebars (complex templates)
+*.handlebars

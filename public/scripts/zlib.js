@@ -32,80 +32,80 @@
   (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
 */
 
-var ZLIB = ( ZLIB || {} ); // ZLIB namespace initialization
+var ZLIB = ZLIB || {}; // ZLIB namespace initialization
 
 // common definitions
-if(typeof ZLIB.common_initialized === 'undefined') {
-    ZLIB.Z_NO_FLUSH      = 0;
-    ZLIB.Z_PARTIAL_FLUSH = 1;
-    ZLIB.Z_SYNC_FLUSH    = 2;
-    ZLIB.Z_FULL_FLUSH    = 3;
-    ZLIB.Z_FINISH        = 4;
-    ZLIB.Z_BLOCK         = 5;
-    ZLIB.Z_TREES         = 6;
-    /* Allowed flush values; see deflate() and inflate() below for details */
+if (typeof ZLIB.common_initialized === 'undefined') {
+  ZLIB.Z_NO_FLUSH = 0;
+  ZLIB.Z_PARTIAL_FLUSH = 1;
+  ZLIB.Z_SYNC_FLUSH = 2;
+  ZLIB.Z_FULL_FLUSH = 3;
+  ZLIB.Z_FINISH = 4;
+  ZLIB.Z_BLOCK = 5;
+  ZLIB.Z_TREES = 6;
+  /* Allowed flush values; see deflate() and inflate() below for details */
 
-    ZLIB.Z_OK           =  0;
-    ZLIB.Z_STREAM_END   =  1;
-    ZLIB.Z_NEED_DICT    =  2;
-    ZLIB.Z_ERRNO        = (-1);
-    ZLIB.Z_STREAM_ERROR = (-2);
-    ZLIB.Z_DATA_ERROR   = (-3);
-    ZLIB.Z_MEM_ERROR    = (-4);
-    ZLIB.Z_BUF_ERROR    = (-5);
-    ZLIB.Z_VERSION_ERROR = (-6);
-    /* Return codes for the compression/decompression functions. Negative values
-     * are errors, positive values are used for special but normal events.
-     */
+  ZLIB.Z_OK = 0;
+  ZLIB.Z_STREAM_END = 1;
+  ZLIB.Z_NEED_DICT = 2;
+  ZLIB.Z_ERRNO = -1;
+  ZLIB.Z_STREAM_ERROR = -2;
+  ZLIB.Z_DATA_ERROR = -3;
+  ZLIB.Z_MEM_ERROR = -4;
+  ZLIB.Z_BUF_ERROR = -5;
+  ZLIB.Z_VERSION_ERROR = -6;
+  /* Return codes for the compression/decompression functions. Negative values
+   * are errors, positive values are used for special but normal events.
+   */
 
-    ZLIB.Z_DEFLATED = 8; /* The deflate compression method (the only one supported in this version) */
+  ZLIB.Z_DEFLATED = 8; /* The deflate compression method (the only one supported in this version) */
 
-    /**
-	 * z_stream constructor
-	 * @constructor
-	 */
-	ZLIB.z_stream = function() {
-			this.next_in = 0;        /* next input byte */
-			this.avail_in = 0;       /* number of bytes available in input_data */
-			this.total_in = 0;       /* total number of input bytes read so far */
+  /**
+   * z_stream constructor
+   * @constructor
+   */
+  ZLIB.z_stream = function () {
+    this.next_in = 0; /* next input byte */
+    this.avail_in = 0; /* number of bytes available in input_data */
+    this.total_in = 0; /* total number of input bytes read so far */
 
-			this.next_out = 0;       /* next output byte */
-			this.avail_out = 0;      /* remaining free space at next_out */
-			this.total_out = 0;      /* total number of bytes output so far */
+    this.next_out = 0; /* next output byte */
+    this.avail_out = 0; /* remaining free space at next_out */
+    this.total_out = 0; /* total number of bytes output so far */
 
-			this.msg = null;         /* last error message, null if no error */
-			this.state = null;       /* not visible by applications */
+    this.msg = null; /* last error message, null if no error */
+    this.state = null; /* not visible by applications */
 
-			this.data_type = 0;      /* best guess about the data type: binary or text */
-			this.adler = 0;          /* TODO: adler32 value of the uncompressed data */
+    this.data_type = 0; /* best guess about the data type: binary or text */
+    this.adler = 0; /* TODO: adler32 value of the uncompressed data */
 
-			// zlib.js
-			this.input_data = '';    /* input data */
-			this.output_data = '';   /* output data */
-			this.error = 0;          /* error code */
-			this.checksum_function = null; /* crc32(for gzip) or adler32(for zlib) */
-	};
+    // zlib.js
+    this.input_data = ''; /* input data */
+    this.output_data = ''; /* output data */
+    this.error = 0; /* error code */
+    this.checksum_function = null; /* crc32(for gzip) or adler32(for zlib) */
+  };
 
-    /**
-	 * TODO
-	 * @constructor
-	 */
-	ZLIB.gz_header = function() {
-		this.text = 0;      /* true if compressed data believed to be text */
-	    this.time = 0;      /* modification time */
-		this.xflags = 0;    /* extra flags (not used when writing a gzip file) */
-		this.os = 0xff;     /* operating system */
-		this.extra = null;  /* extra field string or null if none */
-		this.extra_len = 0; /* this.extra.length (only when reading header) */
-		this.extra_max = 0; /* space at extra (only when reading header) */
-		this.name = null;   /* file name string or null if none */
-		this.name_max = 0;  /* space at name (only when reading header) */
-		this.comment = null; /* comment string or null if none */
-		this.comm_max = 0;  /* space at comment (only when reading header) */
-		this.hcrc = 0;      /* true if there was or will be a header crc */
-		this.done = 0;      /* true when done reading gzip header (not used
+  /**
+   * TODO
+   * @constructor
+   */
+  ZLIB.gz_header = function () {
+    this.text = 0; /* true if compressed data believed to be text */
+    this.time = 0; /* modification time */
+    this.xflags = 0; /* extra flags (not used when writing a gzip file) */
+    this.os = 0xff; /* operating system */
+    this.extra = null; /* extra field string or null if none */
+    this.extra_len = 0; /* this.extra.length (only when reading header) */
+    this.extra_max = 0; /* space at extra (only when reading header) */
+    this.name = null; /* file name string or null if none */
+    this.name_max = 0; /* space at name (only when reading header) */
+    this.comment = null; /* comment string or null if none */
+    this.comm_max = 0; /* space at comment (only when reading header) */
+    this.hcrc = 0; /* true if there was or will be a header crc */
+    this.done = 0; /* true when done reading gzip header (not used
 							   when writing a gzip file) */
-	};
+  };
 
-	ZLIB.common_initialized = true;
+  ZLIB.common_initialized = true;
 } // common definitions

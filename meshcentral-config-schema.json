@@ -3,10 +3,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "MeshCentral configuration file schema",
   "type": "object",
-  "required": [
-    "settings",
-    "domains"
-  ],
+  "required": ["settings", "domains"],
   "properties": {
     "settings": {
       "type": "object",
@@ -96,11 +93,7 @@
           }
         },
         "sqlite3": {
-          "type": [
-            "boolean",
-            "string",
-            "object"
-          ],
+          "type": ["boolean", "string", "object"],
           "default": false,
           "description": "Set boolean true to use SQLite3 as a local MeshCentral database with default db filename 'meshcentral' or enter a string for a different db filename. Extension .sqlite is appended",
           "properties": {
@@ -266,11 +259,7 @@
         "sessionSameSite": {
           "type": "string",
           "default": "lax",
-          "enum": [
-            "strict",
-            "lax",
-            "none"
-          ]
+          "enum": ["strict", "lax", "none"]
         },
         "dbEncryptKey": {
           "type": "string",
@@ -408,18 +397,12 @@
           "description": "When code signing an agent using authenticode, lock the agent to only allow connection to this server. (This is in testing, the default value will change to true in the future)."
         },
         "agentTimeStampServer": {
-          "type": [
-            "boolean",
-            "string"
-          ],
+          "type": ["boolean", "string"],
           "default": "http://timestamp.comodoca.com/authenticode",
           "description": "The time stamping server to use when code signing Windows executables. When set to false, the executables are not time stamped."
         },
         "agentTimeStampProxy": {
-          "type": [
-            "boolean",
-            "string"
-          ],
+          "type": ["boolean", "string"],
           "description": "The HTTP proxy to use when contacting the time stamping server, if false, no proxy is used. By default, the npmproxy value is used."
         },
         "lockAgentDownload": {
@@ -428,10 +411,7 @@
           "description": "When enabled, MeshCentral will block all downloads of MeshAgent including install scripts, if the user is not logged in"
         },
         "ignoreAgentHashCheck": {
-          "type": [
-            "boolean",
-            "string"
-          ],
+          "type": ["boolean", "string"],
           "default": false,
           "description": "When true, the agent no longer checked the TLS certificate of the server. This should be used for debugging only. You can also set this to a comma separated list of IP addresses to ignore, for example: \"192.168.2.100,192.168.1.0/24\"."
         },
@@ -446,10 +426,7 @@
           "description": "When set to true, MeshCentral will allow login tokens to be used in the URL as a replacement for user login. This is useful along with \"allowFraming\" option to embed MeshCentral features into another website"
         },
         "StrictTransportSecurity": {
-          "type": [
-            "boolean",
-            "string"
-          ],
+          "type": ["boolean", "string"],
           "default": null,
           "description": "Controls the Strict-Transport-Security header, default is 1 year. Set to false to remove, true to force enable, or string to set a custom value. If set to null, MeshCentral will enable if a trusted certificate is set."
         },
@@ -459,10 +436,7 @@
           "description": "When enabled, the MeshCentral web site can be embedded within another website's iframe."
         },
         "allowedFramingOrigins": {
-          "type": [
-            "array",
-            "string"
-          ],
+          "type": ["array", "string"],
           "items": {
             "type": "string"
           },
@@ -470,23 +444,13 @@
           "description": "List of origins allowed to embed MeshCentral in an iframe. Uses Content-Security-Policy frame-ancestors. 'self' is always included. Example: [\"https://rmm.example.com\"]. Comma-separated string also supported."
         },
         "cookieIpCheck": {
-          "type": [
-            "string",
-            "boolean"
-          ],
+          "type": ["string", "boolean"],
           "default": "lax",
-          "enum": [
-            "strict",
-            "lax",
-            "none"
-          ]
+          "enum": ["strict", "lax", "none"]
         },
         "cookieEncoding": {
           "type": "string",
-          "enum": [
-            "hex",
-            "base64"
-          ],
+          "enum": ["hex", "base64"],
           "default": "base64",
           "description": "Encoding format of cookies in the HTTP headers, this is typically Base64 but some reverse proxies will require HEX."
         },
@@ -501,10 +465,7 @@
           "description": "By default, a nice looking 404 error page is displayed when needed. Set this to false to disable it."
         },
         "selfUpdate": {
-          "type": [
-            "string",
-            "boolean"
-          ],
+          "type": ["string", "boolean"],
           "default": false,
           "description": "When set to true, the server will check for a new version and attempt to self-update automatically a bit after midnight local time every day. If set to a specific version such as \"1.1.21\" the server will immediately update to the specified version on startup if it's not already at this version."
         },
@@ -621,9 +582,7 @@
               "description": "Server administrator email given to the FireFox and Chrome push notification services."
             }
           },
-          "required": [
-            "email"
-          ]
+          "required": ["email"]
         },
         "RunOnServerStarted": {
           "type": "boolean",
@@ -656,34 +615,22 @@
           "description": "If set, a user from a banned IP address will be redirected to this URL."
         },
         "userAllowedIP": {
-          "type": [
-            "string",
-            "array"
-          ],
+          "type": ["string", "array"],
           "default": null,
           "description": "When set, only users from allowed IP address ranges can connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:userAllowedIP.txt\""
         },
         "userBlockedIP": {
-          "type": [
-            "string",
-            "array"
-          ],
+          "type": ["string", "array"],
           "default": null,
           "description": "When set, users from these denied IP address ranges will not be able to connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:userBlockedIP.txt\""
         },
         "agentAllowedIP": {
-          "type": [
-            "string",
-            "array"
-          ],
+          "type": ["string", "array"],
           "default": null,
           "description": "When set, only agents from allowed IP address ranges can connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:agentAllowedIP.txt\""
         },
         "agentBlockedIP": {
-          "type": [
-            "string",
-            "array"
-          ],
+          "type": ["string", "array"],
           "default": null,
           "description": "When set, agents from these denied IP address ranges will not be able to connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:agentBlockedIP.txt\""
         },
@@ -733,16 +680,10 @@
               "description": "When set, encrypts all LAN discovery traffic to agents and tools using this key. This is only useful in LAN/Hybrid mode when agents and tools user multicast to find the server."
             }
           },
-          "required": [
-            "name",
-            "info"
-          ]
+          "required": ["name", "info"]
         },
         "tlsOffload": {
-          "type": [
-            "boolean",
-            "string"
-          ],
+          "type": ["boolean", "string"],
           "default": false,
           "description": "When true, indicates that a TLS offloader is in front of the MeshCentral server. More typically, set this to the IP address of the reverse proxy or TLS offloader so that IP forwarding headers will be trusted. For example: \"127.0.0.1,192.168.1.100\"."
         },
@@ -752,10 +693,7 @@
           "description": "When true, get the default TLS ciphers from the node process, rather than using the recommended suites set up by meshcentral"
         },
         "tlsCiphers": {
-          "type": [
-            "string",
-            "array"
-          ],
+          "type": ["string", "array"],
           "default": null,
           "description": "Allows user to override the TLS ciphers used by meshcentral by default. If a string, should be a ':' separated list of ciphers to accept. If an array, should be an array of strings representing the ciphers to accept."
         },
@@ -799,10 +737,7 @@
           "description": "When set to true, the MPS server will only accept TLS 1.2 and 1.3 connections. Older Intel AMT devices will not be able to connect."
         },
         "prometheus": {
-          "type": [
-            "boolean",
-            "number"
-          ],
+          "type": ["boolean", "number"],
           "default": false,
           "description": "When set to true, a prometheus metrics endpoint will be available \"0.0.0.0:9464/metrics\". If you specify a number instead, the prometheus metrics will listen on this port instead of the default 9464."
         },
@@ -856,15 +791,11 @@
                     "description": "STUN/TURN URLs, examples are stun:stun3.l.google.com:19302 or turn:openrelay.metered.ca:443"
                   }
                 },
-                "required": [
-                  "urls"
-                ]
+                "required": ["urls"]
               }
             }
           },
-          "required": [
-            "iceServers"
-          ]
+          "required": ["iceServers"]
         },
         "crowdsec": {
           "type": "object",
@@ -881,24 +812,14 @@
             "fallbackRemediation": {
               "type": "string",
               "default": "ban",
-              "enum": [
-                "bypass",
-                "captcha",
-                "ban"
-              ],
+              "enum": ["bypass", "captcha", "ban"],
               "description": "Action to perform if the CrowdSec agent can't be contacted."
             }
           },
-          "required": [
-            "url",
-            "apiKey"
-          ]
+          "required": ["url", "apiKey"]
         },
         "autoBackup": {
-          "type": [
-            "boolean",
-            "object"
-          ],
+          "type": ["boolean", "object"],
           "description": "Enabled by default or if set to true. Disabled if set to false. An object can be provided with additional properties to set autobackup options.",
           "properties": {
             "mongoDumpPath": {
@@ -1023,11 +944,7 @@
             "s3": {
               "type": "object",
               "description": "Enabled automated upload of the server backups to an S3 server.",
-              "required": [
-                "accessKey",
-                "secretKey",
-                "bucketName"
-              ],
+              "required": ["accessKey", "secretKey", "bucketName"],
               "properties": {
                 "endpoint": {
                   "type": "string",
@@ -1132,12 +1049,7 @@
         },
         "amtProvisioningServer": {
           "type": "object",
-          "required": [
-            "deviceGroup",
-            "newMebxPassword",
-            "trustedFqdn",
-            "ip"
-          ],
+          "required": ["deviceGroup", "newMebxPassword", "trustedFqdn", "ip"],
           "description": "When present, this section will enable the Intel AMT provisioning server on the local network. This is used for Intel AMT bare-metal ACM activation.",
           "properties": {
             "port": {
@@ -1170,16 +1082,11 @@
               "type": "boolean"
             }
           },
-          "required": [
-            "enabled"
-          ]
+          "required": ["enabled"]
         },
         "watchdog": {
           "type": "object",
-          "required": [
-            "interval",
-            "timeout"
-          ],
+          "required": ["interval", "timeout"],
           "description": "This is used to monitor if NodeJS is servicing IO correctly or getting held up a lot. You MUST specify \"interval\" and \"timeout\".",
           "properties": {
             "interval": {
@@ -1302,10 +1209,7 @@
             "description": "This is the maximum amount of data in kilobytes that can be placed in the “My Files” tab for a given mesh"
           },
           "loginKey": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "items": {
               "type": "string"
             },
@@ -1313,10 +1217,7 @@
             "description": "Requires that users add the value ?key=xxx in the URL in order to see the web site."
           },
           "agentKey": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "items": {
               "type": "string"
             },
@@ -1370,10 +1271,7 @@
             "description": "When set, new accounts will only be created for email addresses that match these domains."
           },
           "newAccountsRights": {
-            "type": [
-              "array",
-              "string"
-            ],
+            "type": ["array", "string"],
             "uniqueItems": true,
             "items": {
               "type": "string"
@@ -1381,10 +1279,7 @@
             "description": "Default server rights assigned to newly created accounts. Accepted values: fulladmin, manageusers, serverbackup, serverrestore, serverupdate, fileaccess, locked, nonewgroups, nonewdevices, notools, usergroups, recordings, locksettings, allevents"
           },
           "allowedOrigin": {
-            "type": [
-              "array",
-              "boolean"
-            ],
+            "type": ["array", "boolean"],
             "default": false,
             "uniqueItems": true,
             "description": "A list of allowed hostnames for HTTP request origin header. If false, a default list is created, if true, all hostnames are allowed.",
@@ -1440,10 +1335,7 @@
             "default": "This value is normally auto-detected, when set to true, MeshCentral assumes that the TLS certificate comes from a trusted CA and will ensure download tools perform certificate checking."
           },
           "guestDeviceSharing": {
-            "type": [
-              "boolean",
-              "object"
-            ],
+            "type": ["boolean", "object"],
             "default": true,
             "description": "When set to false, the desktop/terminal sharing link feature is not available.",
             "properties": {
@@ -1471,10 +1363,7 @@
             "description": "When set to true, the devices search box will match on group name too."
           },
           "agentSelfGuestSharing": {
-            "type": [
-              "boolean",
-              "object"
-            ],
+            "type": ["boolean", "object"],
             "default": false,
             "description": "When set to true, MeshCentral Assistant can create it's own guest sharing links.",
             "properties": {
@@ -1490,10 +1379,7 @@
             "description": "When set, your can try click the run button to run on of these scripts on the remote device.",
             "items": {
               "type": "object",
-              "required": [
-                "name",
-                "type"
-              ],
+              "required": ["name", "type"],
               "properties": {
                 "name": {
                   "description": "Name of the script.",
@@ -1502,21 +1388,12 @@
                 "type": {
                   "description": "The type of script.",
                   "type": "string",
-                  "enum": [
-                    "bat",
-                    "ps1",
-                    "sh",
-                    "agent"
-                  ]
+                  "enum": ["bat", "ps1", "sh", "agent"]
                 },
                 "runas": {
                   "description": "How to run this script, does not apply to agent scripts.",
                   "type": "string",
-                  "enum": [
-                    "agent",
-                    "userfirst",
-                    "user"
-                  ]
+                  "enum": ["agent", "userfirst", "user"]
                 },
                 "cmd": {
                   "description": "The command or \\r\\n separated commands to run, if set do not use the file key.",
@@ -1535,10 +1412,7 @@
             "description": "When set, you can right click on the input button in the desktop tab and instantly remotely type one of these pre-configured strings.",
             "items": {
               "type": "object",
-              "required": [
-                "name",
-                "value"
-              ],
+              "required": ["name", "value"],
               "properties": {
                 "name": {
                   "description": "Name of the text string.",
@@ -1570,19 +1444,12 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": [
-                    null,
-                    "user",
-                    "device"
-                  ],
+                  "enum": [null, "user", "device"],
                   "default": null,
                   "description": "Indicate if this button should be shown in the user or device type. If omitted, it will be displayed in both."
                 }
               },
-              "required": [
-                "name",
-                "url"
-              ]
+              "required": ["name", "url"]
             }
           },
           "deviceMeshRouterLinks": {
@@ -1607,11 +1474,7 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": [
-                    "name",
-                    "protocol",
-                    "port"
-                  ],
+                  "required": ["name", "protocol", "port"],
                   "properties": {
                     "name": {
                       "description": "Name of the link to be displayed on the web site.",
@@ -1662,10 +1525,7 @@
             "description": "https url when to get the TLS certificate that MeshAgent's will see when connecting to this server. This setting is used when a reverse proxy like NGINX is used in front of MeshCentral. You can set this to file:// but it must be followed by the full path to the certificate file."
           },
           "myServer": {
-            "type": [
-              "object",
-              "boolean"
-            ],
+            "type": ["object", "boolean"],
             "properties": {
               "Backup": {
                 "type": "boolean",
@@ -1799,10 +1659,7 @@
                 "description": "Uses WildLeek to block use of the 10000 most commonly used passwords."
               },
               "loginTokens": {
-                "type": [
-                  "boolean",
-                  "array"
-                ],
+                "type": ["boolean", "array"],
                 "default": true,
                 "description": "Allows users to create alternative username/passwords for their account. Set to false to disallow all users, or set to a userid array or to a groupid array to only allow some users."
               },
@@ -1824,11 +1681,7 @@
               "fidopininput": {
                 "type": "string",
                 "default": "preferred",
-                "enum": [
-                  "preferred",
-                  "required",
-                  "discouraged"
-                ],
+                "enum": ["preferred", "required", "discouraged"],
                 "description": "Controls FIDO PIN prompt behavior: 'preferred' (asks only if key requires PIN), 'required' (always asks for PIN), or 'discouraged' (never asks for PIN). Default: 'preferred'."
               },
               "allowaccountreset": {
@@ -1846,11 +1699,7 @@
           "auth": {
             "type": "string",
             "default": null,
-            "enum": [
-              null,
-              "sspi",
-              "ldap"
-            ],
+            "enum": [null, "sspi", "ldap"],
             "description": "Type of user authentication to use, this can be SSPI on Windows or LDAP. If not set, username/password is used."
           },
           "ldapUserKey": {
@@ -1899,36 +1748,24 @@
             "description": "The LDAP value to use for the user's group memberships."
           },
           "ldapSyncWithUserGroups": {
-            "type": [
-              "boolean",
-              "object"
-            ],
+            "type": ["boolean", "object"],
             "default": false,
             "description": "When set to true or set to an object, MeshCentral will synchronize LDAP user memberships to MeshCentral user groups.",
             "properties": {
               "filter": {
-                "type": [
-                  "string",
-                  "array"
-                ],
+                "type": ["string", "array"],
                 "default": null,
                 "description": "When set to a string or array of strings, only LDAP membership groups that includes one of the strings will be synchronized with MeshCentral user groups."
               }
             }
           },
           "ldapSiteAdminGroups": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "default": null,
             "description": "When set to a list of LDAP groups, users that are part of one of these groups will be set a site administrator, otherwise site administrator rights will be removed."
           },
           "ldapUserRequiredGroupMembership": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "default": null,
             "description": "A list of LDAP groups. Users must be part of at least one of these groups to allow login. If null, all users are allowed to login."
           },
@@ -2329,34 +2166,22 @@
             "description": "When set, requires that a browser request have set HTTP header to allow user login. Example: \"{ \"Sec-Fetch-Dest\": \"iframe\" }\""
           },
           "userAllowedIP": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "default": null,
             "description": "When set, only users from allowed IP address ranges can connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:userAllowedIP.txt\""
           },
           "userBlockedIP": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "default": null,
             "description": "When set, users from these denied IP address ranges will not be able to connect to the server. Example: \"192.168.2.100,192.168.1.0/24\"  \"file:userBlockedIP.txt\""
           },
           "agentAllowedIP": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "default": null,
             "description": "When set, only agents from allowed IP address ranges can connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:agentAllowedIP.txt\""
           },
           "agentBlockedIP": {
-            "type": [
-              "string",
-              "array"
-            ],
+            "type": ["string", "array"],
             "default": null,
             "description": "When set, agents from these denied IP address ranges will not be able to connect to the server. Example: \"192.168.2.100,192.168.1.0/24\" \"file:agentBlockedIP.txt\""
           },
@@ -2472,12 +2297,7 @@
               },
               "linuxShell": {
                 "type": "string",
-                "enum": [
-                  "any",
-                  "root",
-                  "user",
-                  "login"
-                ],
+                "enum": ["any", "root", "user", "login"],
                 "default": "any",
                 "description": "Indicates the default linux terminal thats used when the user clicks the terminal connect button and disables the right mouse button on the terminal connect button when this is set."
               },
@@ -2550,9 +2370,7 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": [
-                    "pass"
-                  ],
+                  "required": ["pass"],
                   "properties": {
                     "user": {
                       "description": "Intel AMT administrator username.",
@@ -2603,9 +2421,7 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": [
-                    "ssid"
-                  ],
+                  "required": ["ssid"],
                   "properties": {
                     "name": {
                       "description": "WIFI profile name, if not specified the SSID is used.",
@@ -2618,23 +2434,13 @@
                     "authentication": {
                       "description": "WIFI authentication.",
                       "type": "string",
-                      "enum": [
-                        "wpa-psk",
-                        "wpa2-psk",
-                        "wpa-8021x",
-                        "wpa2-802.1x",
-                        "wpa3-sae-802.1x",
-                        "wpa3-owe-802.1x"
-                      ],
+                      "enum": ["wpa-psk", "wpa2-psk", "wpa-8021x", "wpa2-802.1x", "wpa3-sae-802.1x", "wpa3-owe-802.1x"],
                       "default": "wpa2-psk"
                     },
                     "encryption": {
                       "description": "WIFI encryption.",
                       "type": "string",
-                      "enum": [
-                        "ccmp-aes",
-                        "tkip-rc4"
-                      ],
+                      "enum": ["ccmp-aes", "tkip-rc4"],
                       "default": "ccmp-aes"
                     },
                     "password": {
@@ -2647,16 +2453,11 @@
                       "description": "802.1x settings for this WIFI profile. Only required if the WIFI authentication type has 802.1x",
                       "default": null,
                       "type": "object",
-                      "required": [
-                        "authenticationProtocol"
-                      ],
+                      "required": ["authenticationProtocol"],
                       "properties": {
                         "authenticationProtocol": {
                           "description": "Identifies the authentication protocol used to authenticate the access requestor to the AAA server.",
-                          "type": [
-                            "integer",
-                            "string"
-                          ],
+                          "type": ["integer", "string"],
                           "enum": [
                             "EAP-TLS",
                             "EAP-TTLS/MSCHAPv2",
@@ -2683,18 +2484,10 @@
                           ]
                         },
                         "serverCertificateNameComparison": {
-                          "type": [
-                            "integer",
-                            "string"
-                          ],
+                          "type": ["integer", "string"],
                           "default": "FullName",
                           "description": "Determines the comparison algorithm used between the ServerCertificateName value and the subject name field of the certificate presented by the AAA server.",
-                          "enum": [
-                            "FullName",
-                            "DomainSuffix",
-                            2,
-                            3
-                          ]
+                          "enum": ["FullName", "DomainSuffix", 2, 3]
                         },
                         "serverCertificateName": {
                           "type": "string",
@@ -2756,20 +2549,12 @@
               "802.1x": {
                 "description": "802.1x settings for the Intel AMT Wired interface. If set to false, any existing 802.1x wired profile will be removed from Intel AMT.",
                 "default": null,
-                "type": [
-                  "object",
-                  "boolean"
-                ],
-                "required": [
-                  "authenticationProtocol"
-                ],
+                "type": ["object", "boolean"],
+                "required": ["authenticationProtocol"],
                 "properties": {
                   "authenticationProtocol": {
                     "description": "Identifies the authentication protocol used to authenticate the access requestor to the AAA server.",
-                    "type": [
-                      "integer",
-                      "string"
-                    ],
+                    "type": ["integer", "string"],
                     "enum": [
                       "EAP-TLS",
                       "EAP-TTLS/MSCHAPv2",
@@ -2796,17 +2581,9 @@
                     ]
                   },
                   "serverCertificateNameComparison": {
-                    "type": [
-                      "integer",
-                      "string"
-                    ],
+                    "type": ["integer", "string"],
                     "description": "Determines the comparison algorithm used between the ServerCertificateName value and the subject name field of the certificate presented by the AAA server.",
-                    "enum": [
-                      "FullName",
-                      "DomainSuffix",
-                      2,
-                      3
-                    ]
+                    "enum": ["FullName", "DomainSuffix", 2, 3]
                   },
                   "serverCertificateName": {
                     "type": "string",
@@ -2891,16 +2668,11 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "certfiles",
-                    "keyfile"
-                  ]
+                  "required": ["certfiles", "keyfile"]
                 }
               }
             },
-            "required": [
-              "certs"
-            ]
+            "required": ["certs"]
           },
           "redirects": {
             "type": "object",
@@ -2942,16 +2714,10 @@
                 "description": "Yubikey secret key"
               }
             },
-            "required": [
-              "id",
-              "secret"
-            ]
+            "required": ["id", "secret"]
           },
           "allowedFramingOrigins": {
-            "type": [
-              "array",
-              "string"
-            ],
+            "type": ["array", "string"],
             "items": {
               "type": "string"
             },
@@ -3051,9 +2817,7 @@
                 "description": "This is an array: 1 = Terminal, 2 = Desktop, 5 = Files, 6 = Admin Powershell, 8 = User Shell, 9 = User Powershell, 100 = Intel AMT WSMAN, 101 = Intel AMT Redirection, 200 = Messenger"
               }
             },
-            "required": [
-              "protocols"
-            ]
+            "required": ["protocols"]
           },
           "showPasswordLogin": {
             "type": "boolean",
@@ -3085,10 +2849,7 @@
                 "description": "Time to wait before sending a device connection/disconnection notification email. If many events occur, they will be merged into a single email."
               }
             },
-            "required": [
-              "from",
-              "apikey"
-            ]
+            "required": ["from", "apikey"]
           },
           "smtp": {
             "title": "SMTP email server",
@@ -3152,11 +2913,7 @@
                     "description": "Setting this indicates the authetication type, 'login' as default or 'oauth2'"
                   }
                 },
-                "required": [
-                  "clientId",
-                  "clientSecret",
-                  "refreshToken"
-                ]
+                "required": ["clientId", "clientSecret", "refreshToken"]
               },
               "tlscertcheck": {
                 "type": "boolean",
@@ -3177,12 +2934,7 @@
                 "description": "Time to wait before sending a device connection/disconnection notification email. If many events occur, they will be merged into a single email."
               }
             },
-            "required": [
-              "host",
-              "port",
-              "from",
-              "tls"
-            ]
+            "required": ["host", "port", "from", "tls"]
           },
           "sendmail": {
             "title": "Send email using the sendmail command",
@@ -3241,10 +2993,7 @@
                     "description": "When set, new accounts will be created for users that authenticate with Twitter and added to the specified groups."
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3265,10 +3014,7 @@
                     "description": "Then set, the user will be redirected to this URL when hitting the logout link."
                   }
                 },
-                "required": [
-                  "clientid",
-                  "clientsecret"
-                ]
+                "required": ["clientid", "clientsecret"]
               },
               "google": {
                 "type": "object",
@@ -3293,10 +3039,7 @@
                     "description": "When set, new accounts will be created for users that authenticate with Google and added to the specified groups."
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3317,10 +3060,7 @@
                     "description": "Then set, the user will be redirected to this URL when hitting the logout link."
                   }
                 },
-                "required": [
-                  "clientid",
-                  "clientsecret"
-                ]
+                "required": ["clientid", "clientsecret"]
               },
               "github": {
                 "type": "object",
@@ -3345,10 +3085,7 @@
                     }
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3389,10 +3126,7 @@
                     "description": "Then set, the user will be redirected to this URL when hitting the logout link."
                   }
                 },
-                "required": [
-                  "clientid",
-                  "clientsecret"
-                ]
+                "required": ["clientid", "clientsecret"]
               },
               "azure": {
                 "type": "object",
@@ -3417,10 +3151,7 @@
                     }
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3445,11 +3176,7 @@
                     "description": "Then set, the user will be redirected to this URL when hitting the logout link."
                   }
                 },
-                "required": [
-                  "clientid",
-                  "clientsecret",
-                  "tenantid"
-                ]
+                "required": ["clientid", "clientsecret", "tenantid"]
               },
               "jumpcloud": {
                 "type": "object",
@@ -3474,10 +3201,7 @@
                     }
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3503,11 +3227,7 @@
                     "description": "Then set, the user will be redirected to this URL when hitting the logout link."
                   }
                 },
-                "required": [
-                  "entityid",
-                  "idpurl",
-                  "cert"
-                ]
+                "required": ["entityid", "idpurl", "cert"]
               },
               "saml": {
                 "type": "object",
@@ -3537,10 +3257,7 @@
                     }
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3566,39 +3283,23 @@
                     "description": "Then set, the user will be redirected to this URL when hitting the logout link."
                   }
                 },
-                "required": [
-                  "entityid",
-                  "idpurl",
-                  "cert"
-                ]
+                "required": ["entityid", "idpurl", "cert"]
               },
               "oidc": {
                 "type": "object",
                 "description": "Enables the use of OpenID Connect SSO",
                 "anyOf": [
                   {
-                    "required": [
-                      "client"
-                    ]
+                    "required": ["client"]
                   },
                   {
-                    "required": [
-                      "client",
-                      "custom"
-                    ]
+                    "required": ["client", "custom"]
                   },
                   {
-                    "required": [
-                      "client",
-                      "issuer"
-                    ]
+                    "required": ["client", "issuer"]
                   },
                   {
-                    "required": [
-                      "clientid",
-                      "clientsecret",
-                      "issuer"
-                    ]
+                    "required": ["clientid", "clientsecret", "issuer"]
                   }
                 ],
                 "properties": {
@@ -3608,10 +3309,7 @@
                     "default": true
                   },
                   "newAccountsUserGroups": {
-                    "type": [
-                      "string",
-                      "array"
-                    ],
+                    "type": ["string", "array"],
                     "description": "Add all new users to these static MeshCentral user groups. Use this if the new groups section does not work with your preset.",
                     "uniqueItems": true,
                     "items": {
@@ -3619,10 +3317,7 @@
                     }
                   },
                   "newAccountsRights": {
-                    "type": [
-                      "array",
-                      "string"
-                    ],
+                    "type": ["array", "string"],
                     "uniqueItems": true,
                     "items": {
                       "type": "string"
@@ -3657,10 +3352,7 @@
                     "description": "REPLACED WITH 'issuer.userinfo_endpoint': If set, this will be used as the user info URL."
                   },
                   "scope": {
-                    "type": [
-                      "string",
-                      "array"
-                    ],
+                    "type": ["string", "array"],
                     "depreciated": true,
                     "description": "REPLACED WITH 'custom.scope': A list of scopes to request from the issuer."
                   },
@@ -3718,20 +3410,12 @@
                         "description": "URI your IdP sends you after successful authorization. This must match what is listed with your IdP. (Default is https://[currentHost][currentPath]/auth-oidc-callback)"
                       },
                       "response_types": {
-                        "type": [
-                          "string",
-                          "array"
-                        ],
+                        "type": ["string", "array"],
                         "description": "ADVANCED CONFIG: Check node-openid-client on GitHub for details",
-                        "default": [
-                          "code"
-                        ]
+                        "default": ["code"]
                       },
                       "post_logout_redirect_uri": {
-                        "type": [
-                          "string",
-                          "boolean"
-                        ],
+                        "type": ["string", "boolean"],
                         "format": "uri",
                         "description": "URI for your IdP to send you after logging out of IdP via MeshCentral. (Default is https:[currentHost][currentPath]/login) OR set to false to not send a post logout redirect_uri"
                       },
@@ -3809,16 +3493,10 @@
                         "description": "ADVANCED CONFIG: Check node-openid-client on GitHub for details"
                       }
                     },
-                    "required": [
-                      "client_id",
-                      "client_secret"
-                    ]
+                    "required": ["client_id", "client_secret"]
                   },
                   "issuer": {
-                    "type": [
-                      "string",
-                      "object"
-                    ],
+                    "type": ["string", "object"],
                     "format": "uri",
                     "description": "Issuer options. Requires issuer URI (issuer.issuer) to discover missing information unless using preset",
                     "properties": {
@@ -3927,18 +3605,12 @@
                     "type": "object",
                     "properties": {
                       "scope": {
-                        "type": [
-                          "string",
-                          "array"
-                        ],
+                        "type": ["string", "array"],
                         "description": "A list of scopes to request from the issuer.",
                         "default": "openid profile email",
                         "examples": [
                           "openid",
-                          [
-                            "openid",
-                            "profile"
-                          ],
+                          ["openid", "profile"],
                           "openid profile email",
                           "openid profile email groups"
                         ]
@@ -3964,10 +3636,7 @@
                       "preset": {
                         "type": "string",
                         "description": "Preset to use for OIDC configuration",
-                        "enum": [
-                          "azure",
-                          "google"
-                        ]
+                        "enum": ["azure", "google"]
                       },
                       "buttonText": {
                         "type": "string",
@@ -4015,15 +3684,11 @@
                         "description": "When true, the group memberships will be scanned recursively."
                       },
                       "required": {
-                        "type": [
-                          "array"
-                        ],
+                        "type": ["array"],
                         "description": "Access is only granted to users who are a member of at least one of the listed required groups."
                       },
                       "siteadmin": {
-                        "type": [
-                          "array"
-                        ],
+                        "type": ["array"],
                         "description": "Full site admin priviledges will be granted to users who are a member of at least one of the listed admin groups."
                       },
                       "revokeAdmin": {
@@ -4031,17 +3696,12 @@
                         "description": "If true, admin privileges will be revoked from users who are NOT a member of at least one of the listed admin groups."
                       },
                       "sync": {
-                        "type": [
-                          "boolean",
-                          "object"
-                        ],
+                        "type": ["boolean", "object"],
                         "default": false,
                         "description": "If true, all groups found during user login are mirrored into MeshCentral user groups.",
                         "properties": {
                           "filter": {
-                            "type": [
-                              "array"
-                            ],
+                            "type": ["array"],
                             "description": "Only groups listed here are mirrored into MeshCentral user groups."
                           }
                         }
@@ -4070,11 +3730,7 @@
             "type": "string",
             "default": null,
             "description": "Show Language Selector on Login Page, \"top\" inside Login Box or \"bottom\" at Bottom of Page",
-            "enum": [
-              null,
-              "top",
-              "bottom"
-            ]
+            "enum": [null, "top", "bottom"]
           }
         },
         "patternProperties": {
@@ -4124,11 +3780,7 @@
         "custom": {
           "type": "object",
           "description": "If this object is set, we will use a custom acme server with custom kid and hmackey for SSL creation instead of Let's Encrypt",
-          "required": [
-            "server",
-            "kid",
-            "hmackey"
-          ],
+          "required": ["server", "kid", "hmackey"],
           "properties": {
             "server": {
               "type": "string",
@@ -4150,10 +3802,7 @@
         "zerossl": {
           "type": "object",
           "description": "If this object is set, we will use ZeroSSL for SSL creation instead of Let's Encrypt",
-          "required": [
-            "kid",
-            "hmacKey"
-          ],
+          "required": ["kid", "hmacKey"],
           "properties": {
             "kid": {
               "type": "string",
@@ -4168,10 +3817,7 @@
           }
         }
       },
-      "required": [
-        "email",
-        "names"
-      ]
+      "required": ["email", "names"]
     },
     "peers": {
       "title": "Server peering",
@@ -4198,16 +3844,11 @@
                 "description": "URL of the peer server."
               }
             },
-            "required": [
-              "url"
-            ]
+            "required": ["url"]
           }
         }
       },
-      "required": [
-        "serverId",
-        "servers"
-      ]
+      "required": ["serverId", "servers"]
     },
     "sendgrid": {
       "title": "SendGrid.com Email server",
@@ -4229,10 +3870,7 @@
           "description": "When set to false, the email format and DNS MX record are not checked."
         }
       },
-      "required": [
-        "from",
-        "apikey"
-      ]
+      "required": ["from", "apikey"]
     },
     "smtp": {
       "title": "SMTP email server",
@@ -4296,11 +3934,7 @@
               "description": "Setting this indicates the authetication type, 'login' as default or 'oauth2'"
             }
           },
-          "required": [
-            "clientId",
-            "clientSecret",
-            "refreshToken"
-          ]
+          "required": ["clientId", "clientSecret", "refreshToken"]
         },
         "tlscertcheck": {
           "type": "boolean",
@@ -4323,12 +3957,7 @@
           "description": "Time to wait before sending a device connection/disconnection notification email. If many events occur, they will be merged into a single email."
         }
       },
-      "required": [
-        "host",
-        "port",
-        "from",
-        "tls"
-      ]
+      "required": ["host", "port", "from", "tls"]
     },
     "sendmail": {
       "title": "Send email using the sendmail command",
@@ -4370,9 +3999,7 @@
             "provider": {
               "type": "string",
               "description": "The SMS provider to use",
-              "enum": [
-                "twilio"
-              ]
+              "enum": ["twilio"]
             },
             "sid": {
               "type": "string",
@@ -4387,12 +4014,7 @@
               "description": "Twilio phone number to send from"
             }
           },
-          "required": [
-            "provider",
-            "sid",
-            "auth",
-            "from"
-          ]
+          "required": ["provider", "sid", "auth", "from"]
         },
         {
           "type": "object",
@@ -4400,9 +4022,7 @@
             "provider": {
               "description": "The SMS provider to use",
               "type": "string",
-              "enum": [
-                "plivo"
-              ]
+              "enum": ["plivo"]
             },
             "id": {
               "type": "string",
@@ -4417,12 +4037,7 @@
               "description": "Plivo phone number to send from"
             }
           },
-          "required": [
-            "provider",
-            "id",
-            "token",
-            "from"
-          ]
+          "required": ["provider", "id", "token", "from"]
         },
         {
           "type": "object",
@@ -4430,9 +4045,7 @@
             "provider": {
               "type": "string",
               "description": "The SMS provider to use",
-              "enum": [
-                "telnyx"
-              ]
+              "enum": ["telnyx"]
             },
             "apikey": {
               "type": "string",
@@ -4443,11 +4056,7 @@
               "description": "Telnyx phone number to send from"
             }
           },
-          "required": [
-            "provider",
-            "apikey",
-            "from"
-          ]
+          "required": ["provider", "apikey", "from"]
         },
         {
           "type": "object",
@@ -4455,18 +4064,14 @@
             "provider": {
               "type": "string",
               "description": "The SMS provider to use",
-              "enum": [
-                "url"
-              ]
+              "enum": ["url"]
             },
             "url": {
               "type": "string",
               "description": "A http or https URL with {{phone}} and {{message}} in the string. These will be replaced with the URL encoded target phone number and message."
             }
           },
-          "required": [
-            "url"
-          ]
+          "required": ["url"]
         }
       ]
     },
@@ -4515,9 +4120,7 @@
               "description": "A Discord bot token that MeshCentral will use to login to Discord."
             }
           },
-          "required": [
-            "token"
-          ]
+          "required": ["token"]
         },
         "xmpp": {
           "type": "object",
@@ -4542,9 +4145,7 @@
               }
             }
           },
-          "required": [
-            "credentials"
-          ]
+          "required": ["credentials"]
         },
         "callmebot": {
           "type": "boolean",
@@ -4565,15 +4166,10 @@
               "description": "A Pushover application token that MeshCentral will use to login."
             }
           },
-          "required": [
-            "token"
-          ]
+          "required": ["token"]
         },
         "ntfy": {
-          "type": [
-            "boolean",
-            "object"
-          ],
+          "type": ["boolean", "object"],
           "default": false,
           "properties": {
             "host": {

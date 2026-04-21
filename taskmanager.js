@@ -1,10 +1,10 @@
 /**
-* @description MeshCentral task manager
-* @author Ylian Saint-Hilaire
-* @copyright Intel Corporation 2018-2022
-* @license Apache-2.0
-* @version v0.0.1
-*/
+ * @description MeshCentral task manager
+ * @author Ylian Saint-Hilaire
+ * @copyright Intel Corporation 2018-2022
+ * @license Apache-2.0
+ * @version v0.0.1
+ */
 
 /*jslint node: true */
 /*jshint node: true */
@@ -14,7 +14,7 @@
 'use strict';
 
 module.exports.createTaskManager = function (parent) {
-    var obj = {};
-    
-    return obj;
-}
+  var obj = {};
+
+  return obj;
+};

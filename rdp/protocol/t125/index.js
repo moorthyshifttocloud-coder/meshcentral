@@ -21,6 +21,6 @@ var mcs = require('./mcs');
 var gcc = require('./gcc');
 
 module.exports = {
-	mcs : mcs,
-	gcc : gcc
+  mcs: mcs,
+  gcc: gcc
 };

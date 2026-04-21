@@ -1,7 +1,6 @@
-
 function RC4(key) {
-    this.privateKey = keySetup(key);
-    this.byteStream = byteStreamGenerator(this.privateKey.slice(0));
+  this.privateKey = keySetup(key);
+  this.byteStream = byteStreamGenerator(this.privateKey.slice(0));
 }
 
 /**
@@ -10,9 +9,11 @@ function RC4(key) {
  * @return {Array} the array of Unicode values
  */
 function convert(text) {
-    var codes = [];
-    for (var i = 0, ii = text.length; i < ii; i++) { codes.push(text.charCodeAt(i)); }
-    return codes;
+  var codes = [];
+  for (var i = 0, ii = text.length; i < ii; i++) {
+    codes.push(text.charCodeAt(i));
+  }
+  return codes;
 }
 
 /**
@@ -21,12 +22,14 @@ function convert(text) {
  * @return {Array}, the key stream which with be used in the byteStreamGenerator
  */
 function keySetup(key) {
-    var K = [...Array(256).keys()], j = 0, key = convert(key);
-    for (var i = 0, ii = K.length; i < ii; i++) {
-        j = (j + K[i] + key[i % key.length]) % 256;
-        [K[i], K[j]] = [K[j], K[i]];
-    }
-    return K;
+  var K = [...Array(256).keys()],
+    j = 0,
+    key = convert(key);
+  for (var i = 0, ii = K.length; i < ii; i++) {
+    j = (j + K[i] + key[i % key.length]) % 256;
+    [K[i], K[j]] = [K[j], K[i]];
+  }
+  return K;
 }
 
 /**
@@ -35,14 +38,15 @@ function keySetup(key) {
  * @yield {Integer}, the current value which will be 'XOR-ed' to encrypt or decrypt
  */
 var byteStreamGenerator = function* (K) {
-    var i = 0, j = 0;
-    while (true) {
-        i = (i + 1) % 256;
-        j = (j + K[i]) % 256;
-        [K[i], K[j]] = [K[j], K[i]];
-        yield (K[(K[i] + K[j]) % 256]);
-    }
-}
+  var i = 0,
+    j = 0;
+  while (true) {
+    i = (i + 1) % 256;
+    j = (j + K[i]) % 256;
+    [K[i], K[j]] = [K[j], K[i]];
+    yield K[(K[i] + K[j]) % 256];
+  }
+};
 
 /**
  * Encrypts the input text
@@ -50,10 +54,12 @@ var byteStreamGenerator = function* (K) {
  * @return {String}, the encrypted text
  */
 RC4.prototype.encrypt = function (input) {
-    var outputText = '';
-    for (var i = 0, ii = input.length; i < ii; i++) { outputText += ('00' + (input.charCodeAt(i) ^ this.byteStream.next().value).toString(16)).substr(-2); }
-    return outputText;
-}
+  var outputText = '';
+  for (var i = 0, ii = input.length; i < ii; i++) {
+    outputText += ('00' + (input.charCodeAt(i) ^ this.byteStream.next().value).toString(16)).substr(-2);
+  }
+  return outputText;
+};
 
 /**
  * Decrypts the input text
@@ -61,10 +67,12 @@ RC4.prototype.encrypt = function (input) {
  * @return {String}, the decrypted text (if the same key was used)
  */
 RC4.prototype.decrypt = function (input) {
-    var outputText = '';
-    input = input.match(/[a-z0-9]{2}/gi);
-    for (var i = 0, ii = input.length; i < ii; i++) { outputText += String.fromCharCode((parseInt(input[i], 16) ^ byteStream.next().value)); }
-    return outputText;
-}
+  var outputText = '';
+  input = input.match(/[a-z0-9]{2}/gi);
+  for (var i = 0, ii = input.length; i < ii; i++) {
+    outputText += String.fromCharCode(parseInt(input[i], 16) ^ byteStream.next().value);
+  }
+  return outputText;
+};
 
 module.exports = RC4;

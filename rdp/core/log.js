@@ -18,12 +18,12 @@
  */
 
 var Levels = {
-    'DEBUG': 1,
-    'INFO': 2,
-    'WARN': 3,
-    'ERROR': 4,
-    'NONE': 5
-}
+  DEBUG: 1,
+  INFO: 2,
+  WARN: 3,
+  ERROR: 4,
+  NONE: 5
+};
 
 /*
 var Logger = require('bunyan');
@@ -56,30 +56,30 @@ var logger = Logger.createLogger({
 */
 
 function log(level, message) {
-	if (Levels[level] < module.exports.level) return;
-	console.log("[node-rdpjs] " + level + ":\t" + message);
+  if (Levels[level] < module.exports.level) return;
+  console.log('[node-rdpjs] ' + level + ':\t' + message);
 }
 
 /**
  * Module exports
  */
 module.exports = {
-    level: Levels.INFO, // Levels.INFO,
-	Levels: Levels,
-    debug: function (message) {
-        //console.log(message);
-	    //logger.debug(message);
-	},
-    info: function (message) {
-        //console.log(message);
-	    //logger.info(message);
-	},
-    warn: function (message) {
-        //console.log(message);
-	    //logger.warn(message);
-	},
-    error: function (message) {
-        //console.log(message);
-	    //logger.error(message);
-	}
+  level: Levels.INFO, // Levels.INFO,
+  Levels: Levels,
+  debug: function (message) {
+    //console.log(message);
+    //logger.debug(message);
+  },
+  info: function (message) {
+    //console.log(message);
+    //logger.info(message);
+  },
+  warn: function (message) {
+    //console.log(message);
+    //logger.warn(message);
+  },
+  error: function (message) {
+    //console.log(message);
+    //logger.error(message);
+  }
 };

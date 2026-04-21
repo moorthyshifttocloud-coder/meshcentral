@@ -12,11 +12,9 @@ const server = http.createServer((req, res) => {
 server.on('connect', (req, clientSocket, head) => {
   const { port, hostname } = new URL(`http://${req.url}`);
   console.log(`[PROXY] Successfully intercepted connection routing to: ${hostname}:${port}`);
-  
+
   const serverSocket = net.connect(port || 443, hostname, () => {
-    clientSocket.write('HTTP/1.1 200 Connection Established\r\n' +
-                    'Proxy-agent: Node.js-Test-Proxy\r\n' +
-                    '\r\n');
+    clientSocket.write('HTTP/1.1 200 Connection Established\r\n' + 'Proxy-agent: Node.js-Test-Proxy\r\n' + '\r\n');
     serverSocket.write(head);
     serverSocket.pipe(clientSocket);
     clientSocket.pipe(serverSocket);
@@ -26,7 +24,7 @@ server.on('connect', (req, clientSocket, head) => {
     console.log(`[PROXY ERROR] ${err.message}`);
     clientSocket.end();
   });
-  
+
   clientSocket.on('error', (err) => {
     serverSocket.end();
   });

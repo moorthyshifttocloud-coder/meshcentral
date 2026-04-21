@@ -14,6 +14,7 @@ Any version of MeshCentral 1.x.x is supported.
 Please report any concerns or security issue to Ylian Saint-Hilaire (ylianst@gmail.com) and Simon Smith (simonsmith5521@gmail.com).
 
 Ylian Saint-Hilaire (ylianst@gmail.com) PGP key below.
+
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: BCPG v1.56
@@ -48,7 +49,9 @@ oZ2hPP2gU9w=
 =roW4
 -----END PGP PUBLIC KEY BLOCK-----
 ```
+
 Simon Smith (simonsmith5521@gmail.com) PGP key below.
+
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 

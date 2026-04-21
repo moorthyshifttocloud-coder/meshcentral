@@ -12,4 +12,4 @@ This repository contains all the latest guides, tutorials, and reference materia
 
 ---
 
-*For the main MeshCentral project, visit [Ylianst/MeshCentral](https://github.com/Ylianst/MeshCentral).*
+_For the main MeshCentral project, visit [Ylianst/MeshCentral](https://github.com/Ylianst/MeshCentral)._

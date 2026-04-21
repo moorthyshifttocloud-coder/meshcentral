@@ -25,18 +25,18 @@ var error = require('../core').error;
  * Tag Class
  */
 var TagClass = {
-	Universal : 0x00,
-	Application : 0x40,
-	Context : 0x80,
-	Private : 0xC0
+  Universal: 0x00,
+  Application: 0x40,
+  Context: 0x80,
+  Private: 0xc0
 };
 
 /**
  * Tag Format
  */
 var TagFormat = {
-	Primitive : 0x00,
-	Constructed : 0x20
+  Primitive: 0x00,
+  Constructed: 0x20
 };
 
 /**
@@ -46,9 +46,9 @@ var TagFormat = {
  * @param tagNumber {integer}
  */
 function Asn1Tag(tagClass, tagFormat, tagNumber) {
-	this.tagClass = tagClass;
-	this.tagFormat = tagFormat;
-	this.tagNumber = tagNumber;
+  this.tagClass = tagClass;
+  this.tagFormat = tagFormat;
+  this.tagNumber = tagNumber;
 }
 
 /**
@@ -56,8 +56,8 @@ function Asn1Tag(tagClass, tagFormat, tagNumber) {
  * @param tag {Asn1Tag}
  */
 function Asn1Spec(tag) {
-	this.tag = tag;
-	this.opt = false;
+  this.tag = tag;
+  this.opt = false;
 }
 
 /**
@@ -66,18 +66,18 @@ function Asn1Spec(tag) {
  * @param tag {Asn1Tag}
  * @returns {Asn1Spec}
  */
-Asn1Spec.prototype.implicitTag = function(tag) {
-	this.tag = tag;
-	return this;
+Asn1Spec.prototype.implicitTag = function (tag) {
+  this.tag = tag;
+  return this;
 };
 
 /**
  * Set optional to true
  * @returns {Asn1Spec}
  */
-Asn1Spec.prototype.optional = function() {
-	this.opt = true;
-	return this;
+Asn1Spec.prototype.optional = function () {
+  this.opt = true;
+  return this;
 };
 
 /**
@@ -86,8 +86,8 @@ Asn1Spec.prototype.optional = function() {
  * @param tag {Asn1Tag}
  * @returns {Asn1SpecExplicitTag}
  */
-Asn1Spec.prototype.explicitTag = function(tag) {
-	return new Asn1SpecExplicitTag(tag, this);
+Asn1Spec.prototype.explicitTag = function (tag) {
+  return new Asn1SpecExplicitTag(tag, this);
 };
 
 /**
@@ -95,24 +95,24 @@ Asn1Spec.prototype.explicitTag = function(tag) {
  * @param s {type.Stream}
  * @param decoder
  */
-Asn1Spec.prototype.decode = function(s, decoder) {
-	throw new error.FatalError('NODE_RDP_AS1_SPEC_DECODE_NOT_IMPLEMENTED');
+Asn1Spec.prototype.decode = function (s, decoder) {
+  throw new error.FatalError('NODE_RDP_AS1_SPEC_DECODE_NOT_IMPLEMENTED');
 };
 
 /**
  * Encode must be implemented by all sub type
  * @param decoder
  */
-Asn1Spec.prototype.encode = function(encoder) {
-	throw new error.FatalError('NODE_RDP_AS1_SPEC_ENCODE_NOT_IMPLEMENTED');
+Asn1Spec.prototype.encode = function (encoder) {
+  throw new error.FatalError('NODE_RDP_AS1_SPEC_ENCODE_NOT_IMPLEMENTED');
 };
 
 /**
  * Component Asn1Spec object
  */
 function Asn1SpecExplicitTag(tag, spec) {
-	Asn1Spec.call(this, tag);
-	this.spec = spec;
+  Asn1Spec.call(this, tag);
+  this.spec = spec;
 }
 
 inherits(Asn1SpecExplicitTag, Asn1Spec);
@@ -122,18 +122,18 @@ inherits(Asn1SpecExplicitTag, Asn1Spec);
  * @param s {type.Stream}
  * @param decoder
  */
-Asn1Spec.prototype.decode = function(s, decoder) {
-	var specStream = new type.Stream(decoder.decode(s, this.tag).value);
-	this.spec.decode(specStream, decoder);
+Asn1Spec.prototype.decode = function (s, decoder) {
+  var specStream = new type.Stream(decoder.decode(s, this.tag).value);
+  this.spec.decode(specStream, decoder);
 };
 
 /**
  * Module exports
  */
 module.exports = {
-	TagClass : TagClass,
-	TagFormat : TagFormat,
-	Asn1Tag : Asn1Tag,
-	Asn1Spec : Asn1Spec,
-	Asn1SpecExplicitTag : Asn1SpecExplicitTag
+  TagClass: TagClass,
+  TagFormat: TagFormat,
+  Asn1Tag: Asn1Tag,
+  Asn1Spec: Asn1Spec,
+  Asn1SpecExplicitTag: Asn1SpecExplicitTag
 };

@@ -1,5 +1,4 @@
-node-rdpjs
-==========
+# node-rdpjs
 
 This folder contains a fork of the node-rdpjs2 package which is identical to [node-rdpjs](github.com/citronneur/node-rdpjs) v0.2.1 but just updated for
 latest versions of Node along with more modifications to remove dependencies and more importantly, added support for Network Layer Authentication (NLA).

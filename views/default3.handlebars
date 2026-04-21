@@ -893,25 +893,7 @@
                     margin-bottom: 24px;
                 }
 
-                    {
-                        {
-                        !-- .device-group-header {
-                            background: #edf2f7;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 8px;
-                            padding: 16px;
-                            margin-bottom: 12px;
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            cursor: pointer;
-                            user-select: none;
-                            transition: all 0.2s ease;
-                        }
-
-                        --
-                    }
-                }
+           
 
                 .device-group-header {
                     background: #edf2f7;
@@ -1003,18 +985,7 @@
                     border-color: #60a5fa;
                 }
 
-                    {
-                        {
-                        !-- .device-cards-grid {
-                            display: grid;
-                            grid-template-columns: 1fr;
-                            gap: 12px;
-                            margin-top: 12px;
-                        }
-
-                        --
-                    }
-                }
+                  
 
                 .device-cards-grid {
                     display: grid;
@@ -1059,20 +1030,7 @@
                     flex-shrink: 0;
                 }
 
-                    {
-                        {
-                        !-- .device-card-icon {
-                            width: 32px;
-                            height: 32px;
-                            flex-shrink: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-
-                        --
-                    }
-                }
+                    
 
                 .device-card-icon {
                     width: 40px;
@@ -1287,12 +1245,7 @@
                 .empty-state-text {
                     font-size: 12px;
 
-                        {
-                            {
-                            !-- margin-bottom: 12px;
-                            --
-                        }
-                    }
+                       
                 }
 
                 .empty-state-action {
@@ -6145,7 +6098,6 @@
                             if ((currentNode != null) && (currentNode._id == message.event.nodeid)) { gotoDevice(currentNode._id, xxcurrentView, true); }
 
                             // If we are looking at the sessions dialog box for this device now, update it
-                            { { !-- if (xxdialogTag == ('SESSIONS-' + message.event.nodeid)) { showDeviceSessions(message.event.nodeid, true); } --} }
                             // it should be noted that we need to pass "true" to showDeviceSessions here, otherwise if we have the sessions dialog open and a session ends, the session list will disappear until we click on the device again. This is because the session end event will cause this code to run, which will update the device sessions and then call showDeviceSessions. If we don't pass "true", showDeviceSessions will think it's being called from a device change event and will not update the session list correctly. By passing "true", we tell showDeviceSessions that it's being called from a session change event and it should update the session list accordingly.
                             if (xxdialogTag == ('SESSIONS-' + message.event.nodeid)) { showDeviceSessions(message.event.nodeid, true, null, true); }
                             if (xxdialogTag == ('MESSAGES-' + message.event.nodeid)) { showDeviceMessages(message.event.nodeid, true); }
@@ -6980,7 +6932,6 @@
                             if (meshes[node.meshid] && (meshes[node.meshid].mtype == 3)) { if (meshes[node.meshid].relayid) { extra = '<span class=devHeaderx>' + ", Relayed Devices" + '</span>'; } else { extra = '<span class=devHeaderx>' + ", Local Devices" + '</span>'; } }
                             if ((view == 1) && (current != null)) { if (c == 2) { r += '<td><div style=width:301px></div></td>'; } if (r != '') { r += '</tr></table>'; } }
                             if (view == 2) { r += '<div>'; }
-                            { { !--r += '<div class=DevSt style=width:100%;padding-top:4px><span style=float:right>'; --} }
                             //commented out DevSt
                             r += '<div class=style=width:100%;padding-top:4px><span style=float:right>';
                             r += '<span id=DevxHeader' + deviceHeaderId + ' class=devHeaderx></span>' + extra;
@@ -7469,13 +7420,10 @@
                 if (sort == 1) { collapseName = ('pwr:' + (node.pwr ? node.pwr : 0)); }
                 else if ((sort == 3) || (sort == 4)) { collapseName = 'tag:**xx**xx*TaG*xx**xx**'; }
                 var collapsed = (sort != 3) & (sort != 4) & CollapsedGroups[collapseName];
-                { { !-- var r = '<td class="align-middle"><div id=devs cmenu=devsContentMenu class="d-flex align-items-center bar18" tabindex=0 onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=height:18px;width:100%;font-size:medium onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">'; --} }
                 //bar 10 is removed
                 var r = '<td class="align-middle"><div id=devs cmenu=devsContentMenu class="d-flex align-items-center" tabindex=0 onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=height:18px;width:100%;font-size:medium onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">';
                 r += '<div class=deviceBarCheckbox><input class="' + node.meshid + ' DeviceCheckbox form-check-input me-2" value=devid_' + node._id + ' type=checkbox onchange=p1devcheck(event) ' + (checkedNodeids[node._id] ? ' checked' : '') + '></div>';
                 r += '<div class=deviceBarIcon onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)><div class="j' + icon + '" style=width:16px;margin-top:1px;margin-left:2px;height:16px></div></div>';
-                { { !--r += '<div class=g1 style=height:18px;float:left></div><div class=g2 style=height:18px;float:right></div>'; --} }
-                { { !--r += '<div class="style10 d-flex align-items-center flex-grow-1" style=cursor:pointer;font-size:14px;max-height:18px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap title="' + title + '" onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)>' + name + '</div></div>' + devNotify + '</td>'; --} }
                 // style10 is removed
                 r += '<div class="d-flex align-items-center flex-grow-1" style=cursor:pointer;font-size:14px;max-height:18px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap title="' + title + '" onmouseup=gotoDevice(\'' + node._id + '\',null,null,event)>' + name + '</div></div>' + devNotify + '</td>';
 
@@ -7594,21 +7542,14 @@
                 if (sessionHtml && metaHtml) { metaHtml += ' • ' + sessionHtml; }
                 else if (sessionHtml) { metaHtml = sessionHtml; }
 
-                { { !-- var actionButtons = '<button type="button" class="btn-connect" onclick="gotoDevice(\'' + node._id + '\',null,null,event)" title="Connect to device">' + "Connect" + '</button>'; --} }
                 // The connect button is only shown if the device is online, has an agent connection, is an actual device (not a switch or PDU), and the user has permissions to connect.
-                {
-                    {
-                        !-- var actionButtons = '<button type="button" class="btn-connect" onclick="event.stopPropagation();(function(id){gotoDevice(id,11);var n=getNodeFromId(id);var m=n?meshes[n.meshid]:null;if(n&&m&&(n.conn&1)&&(m.mtype==2)&&(desktop==null)&&(n.agent.caps&1)){connectDesktop(null,3);}})(\'' + node._id + '\')" title="Connect to device">Connect</button>';
-                        actionButtons += '<button type="button" class="btn-menu" tabindex=0 title="More actions" onclick="event.stopPropagation();showDeviceContextMenu(\'' + node._id + '\',event)">⋮</button>'; --}
-                }
+            
                 var actionButtons = '';
                 if (isOnline && sessionCount > 0) {
                     // Device is online AND has active sessions → show View Sessions button
-                    { { !--actionButtons += '<button type="button" class="btn-connect btn-sessions" onclick="event.stopPropagation();gotoDevice(\'' + node._id + '\',10,null,event)" title="View active sessions"><i class="fa-solid fa-users" style="margin-right:4px;"></i>Sessions <span class="session-count-badge">' + sessionCount + '</span></button>'; --} }
                     actionButtons += '<button type="button" class="btn-connect btn-sessions" onclick="event.stopPropagation();showDeviceSessions(\'' + node._id + '\',null,event)" title="View active sessions"><i class="fa-solid fa-users" style="margin-right:4px;"></i>Sessions <span class="session-count-badge">' + sessionCount + '</span></button>';
                 } else if (isOnline) {
                     // Device is online, no active sessions → show Connect button
-                    { { !--actionButtons += '<button type="button" class="btn-connect" onclick="event.stopPropagation();(function(id){gotoDevice(id,11);var n=getNodeFromId(id);var m=n?meshes[n.meshid]:null;if(n&&m&&(n.conn&1)&&(m.mtype==2)&&(desktop==null)&&(n.agent.caps&1)){connectDesktop(null,3);}})(\'' + node._id + '\')" title="Connect to device">Connect</button>'; --} }
                     var actionButtons = '<button type="button" class="btn-connect" onclick="event.stopPropagation();(function(id){' +
                         'gotoDevice(id,11);' +
                         'var n=getNodeFromId(id);' +
@@ -7632,7 +7573,6 @@
                 var cardHtml = '';
                 cardHtml += '<div class="device-card" cmenu=devsContentMenu tabindex=0 onkeypress="if (event.key==\'Enter\') gotoDevice(\'' + node._id + '\',null,null,event)">';
                 cardHtml += '<div class="device-card-checkbox"><input class="' + node.meshid + ' DeviceCheckbox form-check-input" type="checkbox" value="devid_' + node._id + '" onchange="p1devcheck(event)" ' + (checkedNodeids[node._id] ? 'checked' : '') + '></div>';
-                { { !--cardHtml += '<div class="device-card-icon" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)"><div class="i' + icon + '" style="width:32px; height:32px; line-height: 32px;"></div></div>'; --} }
                 // Map node.icon to Font Awesome icons, with a default if not set
                 var faIcon = (node.icon == 1) ? 'fa-desktop' : (node.icon == 2) ? 'fa-server' : (node.icon == 3) ? 'fa-network-wired' : (node.icon == 4) ? 'fa-laptop' : (node.icon == 5) ? 'fa-mobile-alt' : (node.icon == 6) ? 'fa-printer' : 'fa-computer';
                 cardHtml += '<div class="device-card-icon" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)"><i class="fa-solid ' + faIcon + '" style="font-size:22px;color:#4b5563;"></i></div>'; cardHtml += '<div class="device-card-main" onmouseup="gotoDevice(\'' + node._id + '\',null,null,event)" style="cursor: pointer;">';
@@ -7741,74 +7681,7 @@
             meshserver.send({ action: 'msg', type: 'localapp', nodeid: decodeURIComponent(nodeid), appid: decodeURIComponent(appid), value: { cmd: 'cancelhelp' } });
         }
 
-        // Show currently active sessions on this device
-        {
-            {
-                !-- function showDeviceSessions(nodeid, force, e) {
-                    if (e) haltEvent(e);
-                    if (xxdialogMode && !force) return false;
-                    var node = null, x = '';
-                    if (nodeid == null) { node = currentNode; } else { node = getNodeFromId(nodeid); }
-                    if ((node == null) || (node.sessions == null)) { setDialogMode(0); return false; }
-                    for (var i in node.sessions) {
-                        if ((i == 'kvm') && (node.sessions.multidesk == null)) {
-                            x += '<u>' + "Remote Desktop" + '</u>';
-                            for (var j in node.sessions.kvm) {
-                                if (j.startsWith('user/')) {
-                                    var trash = '';
-                                    if (((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF))) { trash = ' <i role=button onclick=\'return endDeviceSession("kvm", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger" ></i>'; }
-                                    x += addHtmlValue2(getUserName(j), ((node.sessions.kvm[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.kvm[j]))) + trash);
-                                } else if (j == 'busy') {
-                                    x += addHtmlValue2("Device is busy", ((node.sessions.kvm[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.kvm[j]))));
-                                }
-                            }
-                        } else if (i == 'multidesk') {
-                            x += '<u>' + "Remote Desktop" + '</u>';
-                            for (var j in node.sessions.multidesk) {
-                                var trash = '';
-                                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("multidesk", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
-                                x += addHtmlValue2(getUserName(j), ((node.sessions.multidesk[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.multidesk[j]))) + trash);
-                            }
-                        } else if (i == 'terminal') {
-                            x += '<u>' + "Terminal" + '</u>';
-                            for (var j in node.sessions.terminal) {
-                                var trash = '';
-                                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("terminal", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
-                                x += addHtmlValue2(getUserName(j), ((node.sessions.terminal[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.terminal[j]))) + trash);
-                            }
-                        } else if (i == 'files') {
-                            x += '<u>' + "Files" + '</u>';
-                            for (var j in node.sessions.files) {
-                                var trash = '';
-                                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("files", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
-                                x += addHtmlValue2(getUserName(j), ((node.sessions.files[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.files[j]))) + trash);
-                            }
-                        } else if (i == 'tcp') {
-                            x += '<u>' + "TCP Routing" + '</u>';
-                            for (var j in node.sessions.tcp) {
-                                var trash = '';
-                                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("tcp", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
-                                x += addHtmlValue2(getUserName(j), ((node.sessions.tcp[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.tcp[j]))) + trash);
-                            }
-                        } else if (i == 'udp') {
-                            x += '<u>' + "UDP Routing" + '</u>';
-                            for (var j in node.sessions.udp) {
-                                var trash = '';
-                                if ((j == userinfo._id) || (GetNodeRights(node) == 0xFFFFFFFF)) { trash = ' <i role=button onclick=\'return endDeviceSession("udp", "' + encodeURIComponentEx(node._id) + '", "' + encodeURIComponentEx(j) + '")\' title="' + "Disconnect this session" + '" class="fa-fw fa-solid fa-trash text-danger"></i>'; }
-                                x += addHtmlValue2(getUserName(j), ((node.sessions.udp[j] == 1) ? "1 session" : nobreak(format("{0} sessions", node.sessions.udp[j]))) + trash);
-                            }
-                        }
-                    }
-                    if (x != '') {
-                        xxdialogTag = 'SESSIONS-' + node._id;
-                        setModalContent('xxAddAgent', "Sessions" + ' - ' + EscapeHtml(node.name), x);
-                        showModal('xxAddAgentModal', 'idx_dlgOkButton');
-                    } else {
-                        setDialogMode(0);
-                    }
-                    return false;
-                } --}
-        }
+      
         function showDeviceSessions(nodeid, force, e, noReopenOnEmpty) {
             if (e) haltEvent(e);
             if (xxdialogMode && !force) return false;
@@ -8879,7 +8752,6 @@
                 checkedNodeids = {};
                 var devdivs = document.getElementsByName('xxdevice' + Q('viewselect').value);
                 // Checking that the parent style is null will insure that "select all" does not select any devices in collapsed groups
-                { { !-- for (var i = 0; i < devdivs.length; i++) { if ((devdivs[i].parentElement.attributes.style == null) || (devdivs[i].parentElement.attributes.style.value.indexOf('display') < 0)) { checkedNodeids[devdivs[i].id.substring(3)] = 1; } } --} }
                 // Updated to also check for "display: block" since some browsers report the style differently
                 for (var i = 0; i < devdivs.length; i++) {
                     if ((devdivs[i].parentElement.attributes.style == null) || (devdivs[i].parentElement.attributes.style.value.indexOf('display') < 0)) {
@@ -8931,12 +8803,6 @@
             }
 
             // Check if any of the selected devices have a MQTT connection active
-            {
-                {
-                    !-- if (features & 0x00400000) {
-                        for (var i in nodeids) { if ((getNodeFromId(nodeids[i]).conn & 16) != 0) { addedOptions.push({ v: 103, name: "Send MQTT Message" });; break; } }
-                    } --}
-            }
             if (features & 0x00400000) {
                 for (var i in nodeids) { var _n = getNodeFromId(nodeids[i]); if (_n && (_n.conn & 16) != 0) { addedOptions.push({ v: 103, name: "Send MQTT Message" });; break; } }
             }
@@ -15131,7 +14997,16 @@
             gdownloadFile = { path: decodeURIComponent(x), file: decodeURIComponent(y), size: z, tsize: 0, data: '', state: 0, id: Math.random(), tag: tag }
             //console.log('p13downloadFileCancel', gdownloadFile);
             files.sendText({ action: 'download', sub: 'start', id: gdownloadFile.id, path: gdownloadFile.path });
-            setModalContent('xxAddAgent', "Download File", '<div>' + gdownloadFile.file + '</div><br /><progress id=d2progressBar style=width:100% value=0 max=' + z + ' />');
+            var progressHtml = '<div id="p13dfileName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; margin-bottom: 12px; color: #2c3e50; font-size: 15px;">' + EscapeHtml(gdownloadFile.file) + '</div>' +
+                '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">' +
+                '<div class="progress" style="height: 12px; background-color: #dee2e6; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
+                '<div id="d2progressInner" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; background: linear-gradient(45deg, #3498db, #2980b9); transition: width 0.3s ease;"></div>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #7f8c8d; font-family: sans-serif;">' +
+                '<div id="d2progressDetails">0 / 0</div>' +
+                '<div id="d2progressText" style="font-weight: bold; color: #3498db;">0%</div>' +
+                '</div></div>';
+            setModalContent('xxAddAgent', "Download File", progressHtml);
             showModal('xxAddAgentModal', 'idx_dlgOkButton', () => p13downloadFileCancel());
         }
 
@@ -15155,7 +15030,7 @@
             if (data.length > 4) {
                 gdownloadFile.tsize += (data.length - 4); // Add to the total bytes received
                 gdownloadFile.data += data.substring(4); // Append the data
-                Q('d2progressBar').value = gdownloadFile.tsize; // Change the progress bar
+                p13updateDownloadProgress(); // Change the progress bar
             }
             if ((ReadInt(data, 0) & 1) != 0) { // Check end flag
                 if (gdownloadFile.tag == 'viewer') {
@@ -15304,11 +15179,20 @@
         }
 
         function p13uploadFileContinue(b, files) {
-            uploadFile = {};
-            uploadFile.xpath = p13filetreelocation.join('/');
-            uploadFile.xfiles = files;
-            uploadFile.xfilePtr = -1;
-            setModalContent('xxAddAgent', "Upload File", '<div id=p13dfileName>' + "Connecting..." + '</div><br /><progress id=d2progressBar style=width:100% value=0 max=0 />');
+            uploadFile = { xpath: p13filetreelocation.join('/'), xfiles: files, xfilePtr: -1, totalSize: 0, totalSentSoFar: 0 };
+            for (var i = 0; i < files.length; i++) { uploadFile.totalSize += files[i].size; }
+
+            var progressHtml = '<div id="p13dfileName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; margin-bottom: 12px; color: #2c3e50; font-size: 15px;">Connecting...</div>' +
+                '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">' +
+                '<div class="progress" style="height: 12px; background-color: #dee2e6; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.1);">' +
+                '<div id="d2progressInner" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; background: linear-gradient(45deg, #2ecc71, #27ae60); transition: width 0.3s ease;"></div>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #7f8c8d; font-family: sans-serif;">' +
+                '<div id="d2progressDetails">0 / 0</div>' +
+                '<div id="d2progressText" style="font-weight: bold; color: #2ecc71;">0%</div>' +
+                '</div></div>';
+
+            setModalContent('xxAddAgent', "Upload File", progressHtml);
             showModal('xxAddAgentModal', 'idx_dlgCancelButton', () => p13uploadFileCancel(10));
             document.getElementById('idx_dlgOkButton').style.display = 'none'; // hide OK button
             p13uploadNextFile();
@@ -15330,13 +15214,14 @@
 
         // Push the next file
         function p13uploadNextFile() {
+            if (uploadFile.xfilePtr >= 0) { uploadFile.totalSentSoFar += uploadFile.xfiles[uploadFile.xfilePtr].size; }
             uploadFile.xfilePtr++;
             if (uploadFile.xfiles.length > uploadFile.xfilePtr) {
                 uploadFile.xptr = 0;
                 var file = uploadFile.xfiles[uploadFile.xfilePtr];
-                QH('p13dfileName', EscapeHtml(file.name));
-                Q('d2progressBar').max = file.size;
-                Q('d2progressBar').value = 0;
+                console.log('Upload (' + (uploadFile.xfilePtr + 1) + '/' + uploadFile.xfiles.length + '): ' + file.name + ' (' + file.size + ' bytes)');
+                QH('p13dfileName', format("Uploading ({0}/{1}): {2}", uploadFile.xfilePtr + 1, uploadFile.xfiles.length, EscapeHtml(file.name)));
+                p13updateProgressBar();
                 if (file.xdata == null) {
                     uploadFile.xfile = file;
                     // If the remote file already exists and is smaller then our file, see if we can resume the trasfer
@@ -15374,10 +15259,10 @@
         function p13gotUploadData(cmd) {
             if ((uploadFile == null) || (parseInt(uploadFile.xfilePtr) != parseInt(cmd.reqid))) { return; }
             switch (cmd.action) {
-                case 'uploadstart': { uploadFile.xdataPriming = 8; p13uploadNextPart(false); break; } // Send 8 more blocks of 16k to fill the websocket.
-                case 'uploadack': { p13uploadNextPart(false); break; }
-                case 'uploaddone': { if (uploadFile.xfiles.length > uploadFile.xfilePtr + 1) { p13uploadNextFile(); } else { p13uploadFileTransferDone(); } break; }
-                case 'uploaderror': { p13uploadFileCancel(); break; }
+                case 'uploadstart': { console.log('Upload Start Ack: ' + cmd.reqid); uploadFile.xdataPriming = 8; p13uploadNextPart(false); break; } // Send 8 more blocks of 16k to fill the websocket.
+                case 'uploadack': { console.log('Upload Ack: ' + cmd.reqid); p13uploadNextPart(false); break; }
+                case 'uploaddone': { console.log('Upload Done: ' + cmd.reqid); if (uploadFile.xfiles.length > uploadFile.xfilePtr + 1) { p13uploadNextFile(); } else { p13uploadFileTransferDone(); } break; }
+                case 'uploaderror': { console.error('Upload Error: ' + cmd.reqid); p13uploadFileCancel(); break; }
                 case 'uploadhash': {
                     var file = uploadFile.xfiles[uploadFile.xfilePtr];
                     if (file) {
@@ -15415,11 +15300,16 @@
                         files.send(dataslice); // The data does not start with 0 or 123 "{" so it can't be confused for JSON.
                     }
                     uploadFile.xptr = end;
-                    Q('d2progressBar').value = end;
+                    if (uploadFile.xptr % 655360 == 0 || uploadFile.xptr == end) console.log('Sent chunk: ' + uploadFile.xptr + '/' + data.byteLength + (dataPriming ? ' (priming)' : ''));
+                    p13updateProgressBar();
                 }
             } else if (uploadFile.xfile) {
                 if (uploadFile.xreader != null) return; // Data reading already in process
-                if (uploadFile.xptr >= uploadFile.xfile.size) return;
+                if (uploadFile.xptr >= uploadFile.xfile.size) {
+                    console.log('File is 0 bytes or finished, sending uploaddone');
+                    files.sendText(JSON.stringify({ action: 'uploaddone', reqid: uploadFile.xfilePtr }));
+                    return;
+                }
                 var end = uploadFile.xptr + (attemptWebRTC ? 16384 : 65536);
                 if (end > uploadFile.xfile.size) { if (dataPriming == true) { return; } end = uploadFile.xfile.size; }
                 uploadFile.xreader = new FileReader();
@@ -15437,15 +15327,42 @@
                         files.send(dataslice); // The data does not start with 0 or 123 "{" so it can't be confused for JSON.
                     }
                     uploadFile.xptr = end;
-                    Q('d2progressBar').value = end;
+                    console.log('Sent chunk: ' + uploadFile.xptr + '/' + uploadFile.xfile.size + (dataPriming ? ' (priming)' : ''));
+                    p13updateProgressBar();
                     if (uploadFile.xptr >= uploadFile.xfile.size) {
                         files.sendText(JSON.stringify({ action: 'uploaddone', reqid: uploadFile.xfilePtr }));
                     } else {
-                        if (uploadFile.xdataPriming > 0) { uploadFile.xdataPriming--; p13uploadNextPart(true); }
+                        if (uploadFile.xdataPriming > 0) { 
+                            uploadFile.xdataPriming--; 
+                            p13uploadNextPart(true); 
+                        } else {
+                            console.log('Waiting for ack...');
+                        }
                     }
                 };
                 uploadFile.xreader.readAsArrayBuffer(uploadFile.xfile.slice(uploadFile.xptr, end));
             }
+        }
+
+        function p13updateProgressBar() {
+            if (uploadFile == null || uploadFile.totalSize == 0) return;
+            var totalSent = uploadFile.totalSentSoFar + (uploadFile.xptr || 0);
+            var percent = Math.floor((totalSent / uploadFile.totalSize) * 100);
+            if (percent > 100) percent = 100;
+            var inner = Q('d2progressInner');
+            if (inner) inner.style.width = percent + '%';
+            QH('d2progressText', percent + '%');
+            QH('d2progressDetails', getNiceSize3(totalSent) + ' / ' + getNiceSize3(uploadFile.totalSize));
+        }
+
+        function p13updateDownloadProgress() {
+            if (gdownloadFile == null || gdownloadFile.size == 0) return;
+            var percent = Math.floor((gdownloadFile.tsize / gdownloadFile.size) * 100);
+            if (percent > 100) percent = 100;
+            var inner = Q('d2progressInner');
+            if (inner) inner.style.width = percent + '%';
+            QH('d2progressText', percent + '%');
+            QH('d2progressDetails', getNiceSize3(gdownloadFile.tsize) + ' / ' + getNiceSize3(gdownloadFile.size));
         }
 
         //

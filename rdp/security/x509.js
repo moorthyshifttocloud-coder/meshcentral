@@ -26,14 +26,14 @@ var asn1 = require('../asn1');
  * @returns {asn1.univ.Choice}
  */
 function DirectoryString() {
-	return new asn1.univ.Choice({
-		teletexString : new asn1.univ.T61String(),
-		printableString : new asn1.univ.PrintableString(),
-		universalString : new asn1.univ.UniversalString(),
-		utf8String : new asn1.univ.UTF8String(),
-		bmpString : new asn1.univ.BMPString(),
-		ia5String : new asn1.univ.IA5String()
-	});
+  return new asn1.univ.Choice({
+    teletexString: new asn1.univ.T61String(),
+    printableString: new asn1.univ.PrintableString(),
+    universalString: new asn1.univ.UniversalString(),
+    utf8String: new asn1.univ.UTF8String(),
+    bmpString: new asn1.univ.BMPString(),
+    ia5String: new asn1.univ.IA5String()
+  });
 }
 
 /**
@@ -41,7 +41,7 @@ function DirectoryString() {
  * @returns {asn1.univ.Choice}
  */
 function AttributeValue() {
-	return DirectoryString();
+  return DirectoryString();
 }
 
 /**
@@ -49,7 +49,7 @@ function AttributeValue() {
  * @returns {asn1.univ.ObjectIdentifier}
  */
 function AttributeType() {
-	return new asn1.univ.ObjectIdentifier();
+  return new asn1.univ.ObjectIdentifier();
 }
 
 /**
@@ -57,10 +57,10 @@ function AttributeType() {
  * @returns {asn1.univ.Sequence}
  */
 function AttributeTypeAndValue() {
-	return new asn1.univ.Sequence({
-		type : AttributeType(),
-		value : AttributeValue()
-	});
+  return new asn1.univ.Sequence({
+    type: AttributeType(),
+    value: AttributeValue()
+  });
 }
 
 /**
@@ -68,7 +68,7 @@ function AttributeTypeAndValue() {
  * @returns {asn1.univ.SetOf}
  */
 function RelativeDistinguishedName() {
-	return new asn1.univ.SetOf(AttributeTypeAndValue);
+  return new asn1.univ.SetOf(AttributeTypeAndValue);
 }
 
 /**
@@ -76,7 +76,7 @@ function RelativeDistinguishedName() {
  * @returns {asn1.univ.SequenceOf}
  */
 function RDNSequence() {
-	return new asn1.univ.SequenceOf(RelativeDistinguishedName);
+  return new asn1.univ.SequenceOf(RelativeDistinguishedName);
 }
 
 /**
@@ -84,9 +84,9 @@ function RDNSequence() {
  * @returns {asn1.univ.Choice}
  */
 function Name() {
-	return new asn1.univ.Choice({
-		rdnSequence : RDNSequence()
-	});
+  return new asn1.univ.Choice({
+    rdnSequence: RDNSequence()
+  });
 }
 
 /**
@@ -94,10 +94,10 @@ function Name() {
  * @returns {asn1.univ.Sequence}
  */
 function AlgorithmIdentifier() {
-	return new asn1.univ.Sequence({
-		algorithm : new asn1.univ.ObjectIdentifier(),
-		parameters : new asn1.univ.Null()
-	});
+  return new asn1.univ.Sequence({
+    algorithm: new asn1.univ.ObjectIdentifier(),
+    parameters: new asn1.univ.Null()
+  });
 }
 
 /**
@@ -105,11 +105,11 @@ function AlgorithmIdentifier() {
  * @returns {asn1.univ.Sequence}
  */
 function Extension() {
-	return new asn1.univ.Sequence({
-		extnID : new asn1.univ.ObjectIdentifier(),
-		critical : new asn1.univ.Boolean(),
-		extnValue : new asn1.univ.OctetString()
-	});
+  return new asn1.univ.Sequence({
+    extnID: new asn1.univ.ObjectIdentifier(),
+    critical: new asn1.univ.Boolean(),
+    extnValue: new asn1.univ.OctetString()
+  });
 }
 
 /**
@@ -117,7 +117,7 @@ function Extension() {
  * @returns {asn1.univ.SequenceOf}
  */
 function Extensions() {
-	return new asn1.univ.SequenceOf(Extension);
+  return new asn1.univ.SequenceOf(Extension);
 }
 
 /**
@@ -125,10 +125,10 @@ function Extensions() {
  * @returns {asn1.univ.Choice}
  */
 function Time() {
-	return new asn1.univ.Choice({
-		utcTime : new asn1.univ.UTCTime(),
-		generalTime : new asn1.univ.GeneralizedTime()
-	});
+  return new asn1.univ.Choice({
+    utcTime: new asn1.univ.UTCTime(),
+    generalTime: new asn1.univ.GeneralizedTime()
+  });
 }
 
 /**
@@ -136,10 +136,10 @@ function Time() {
  * @returns {asn1.univ.Sequence}
  */
 function Validity() {
-	return new asn1.univ.Sequence({
-		notBefore : Time(),
-		notAfter : Time()
-	});
+  return new asn1.univ.Sequence({
+    notBefore: Time(),
+    notAfter: Time()
+  });
 }
 
 /**
@@ -147,7 +147,7 @@ function Validity() {
  * @returns {asn1.univ.Integer}
  */
 function CertificateSerialNumber() {
-	return new asn1.univ.Integer();
+  return new asn1.univ.Integer();
 }
 
 /**
@@ -155,10 +155,10 @@ function CertificateSerialNumber() {
  * @returns {asn1.univ.Sequence}
  */
 function SubjectPublicKeyInfo() {
-	return new asn1.univ.Sequence({
-		algorithm : AlgorithmIdentifier(),
-		subjectPublicKey : new asn1.univ.BitString()
-	});
+  return new asn1.univ.Sequence({
+    algorithm: AlgorithmIdentifier(),
+    subjectPublicKey: new asn1.univ.BitString()
+  });
 }
 
 /**
@@ -166,7 +166,7 @@ function SubjectPublicKeyInfo() {
  * @returns {asn1.univ.BitString}
  */
 function UniqueIdentifier() {
-	return new asn1.univ.BitString();
+  return new asn1.univ.BitString();
 }
 
 /**
@@ -174,18 +174,24 @@ function UniqueIdentifier() {
  * @returns {asn1.univ.Sequence}
  */
 function TbsCertificate() {
-	return new asn1.univ.Sequence({
-		version : CertificateSerialNumber().explicitTag(new asn1.spec.Asn1Tag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Constructed, 0)),
-		serialNumber : new asn1.univ.Integer(),
-		signature : AlgorithmIdentifier(),
-		issuer : Name(),
-		validity : Validity(),
-		subject : Name(),
-		subjectPublicKeyInfo : SubjectPublicKeyInfo(),
-		issuerUniqueID : UniqueIdentifier().implicitTag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Primitive, 1).optional(),
-		subjectUniqueID : UniqueIdentifier().implicitTag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Primitive, 2).optional(),
-		extensions : Extensions().implicitTag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Primitive, 3).optional()
-	});
+  return new asn1.univ.Sequence({
+    version: CertificateSerialNumber().explicitTag(
+      new asn1.spec.Asn1Tag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Constructed, 0)
+    ),
+    serialNumber: new asn1.univ.Integer(),
+    signature: AlgorithmIdentifier(),
+    issuer: Name(),
+    validity: Validity(),
+    subject: Name(),
+    subjectPublicKeyInfo: SubjectPublicKeyInfo(),
+    issuerUniqueID: UniqueIdentifier()
+      .implicitTag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Primitive, 1)
+      .optional(),
+    subjectUniqueID: UniqueIdentifier()
+      .implicitTag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Primitive, 2)
+      .optional(),
+    extensions: Extensions().implicitTag(asn1.spec.TagClass.Context, asn1.spec.TagFormat.Primitive, 3).optional()
+  });
 }
 
 /**
@@ -193,24 +199,24 @@ function TbsCertificate() {
  * @returns {asn1.univ.Sequence}
  */
 function X509Certificate() {
-	return new asn1.univ.Sequence({
-		tbsCertificate : TbsCertificate(),
-		signatureAlgorithm : AlgorithmIdentifier(),
-		signatureValue : new asn1.univ.BitString()
-	});
+  return new asn1.univ.Sequence({
+    tbsCertificate: TbsCertificate(),
+    signatureAlgorithm: AlgorithmIdentifier(),
+    signatureValue: new asn1.univ.BitString()
+  });
 }
 
 function RSAPublicKey() {
-	return new asn1.univ.Sequence({
-		modulus : new asn1.univ.Integer(),
-		publicExponent : new asn1.univ.Integer()
-	});
+  return new asn1.univ.Sequence({
+    modulus: new asn1.univ.Integer(),
+    publicExponent: new asn1.univ.Integer()
+  });
 }
 
 /**
  * Module Export
  */
 module.exports = {
-	X509Certificate : X509Certificate,
-	RSAPublicKey : RSAPublicKey
+  X509Certificate: X509Certificate,
+  RSAPublicKey: RSAPublicKey
 };

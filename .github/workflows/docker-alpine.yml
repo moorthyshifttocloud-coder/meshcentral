@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: '0 0 * * *' # Daily at 00:00 UTC
   release:
-    types: [ published ]
+    types: [published]
 
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "24.x"
+          node-version: '24.x'
       - name: Run translate.js (ignore errors)
         run: node translate.js || true
         working-directory: translate

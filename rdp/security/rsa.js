@@ -24,20 +24,20 @@ var BigInteger = require('./jsbn');
  * @param pubExp {integer}
  */
 function publicKey(modulus, pubExp) {
-	return {
-		n : modulus,
-		e : pubExp
-	}
+  return {
+    n: modulus,
+    e: pubExp
+  };
 }
 
 function encrypt(data, publicKey) {
-	return new BigInteger(data).modPowInt(publicKey.e, new BigInteger(publicKey.n)).toBuffer();
+  return new BigInteger(data).modPowInt(publicKey.e, new BigInteger(publicKey.n)).toBuffer();
 }
 
 /**
  * Module Export
  */
 module.exports = {
-	publicKey : publicKey,
-	encrypt : encrypt
+  publicKey: publicKey,
+  encrypt: encrypt
 };

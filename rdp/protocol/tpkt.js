@@ -28,26 +28,29 @@ var events = require('events');
  * @see http://msdn.microsoft.com/en-us/library/cc240589.aspx
  */
 var Action = {
-	FASTPATH_ACTION_FASTPATH : 0x0,
-    FASTPATH_ACTION_X224 : 0x3
+  FASTPATH_ACTION_FASTPATH: 0x0,
+  FASTPATH_ACTION_X224: 0x3
 };
 
 /**
  * TPKT layer of rdp stack
  */
 function TPKT(transport) {
-	this.transport = transport;
-	// wait 2 bytes
-	this.transport.expect(2);
-	// next state is receive header
-	var self = this;
-	this.transport.once('data', function(s) {
-		self.recvHeader(s);
-	}).on('close', function() {
-		self.emit('close');
-	}).on('error', function (err) {
-		self.emit('error', err);
-	});
+  this.transport = transport;
+  // wait 2 bytes
+  this.transport.expect(2);
+  // next state is receive header
+  var self = this;
+  this.transport
+    .once('data', function (s) {
+      self.recvHeader(s);
+    })
+    .on('close', function () {
+      self.emit('close');
+    })
+    .on('error', function (err) {
+      self.emit('error', err);
+    });
 }
 
 /**
@@ -60,31 +63,29 @@ inherits(TPKT, events.EventEmitter);
  * @param s {type.Stream}
  */
 TPKT.prototype.recvHeader = function (s) {
-	var version = new type.UInt8().read(s).value;
-	var self = this;
-	if(version === Action.FASTPATH_ACTION_X224) {
-		new type.UInt8().read(s);
-		this.transport.expect(2);
-		this.transport.once('data', function(s) {
-			self.recvExtendedHeader(s);
-		});
-	}
-	else {
-		this.secFlag = ((version >> 6) & 0x3);
-		var length = new type.UInt8().read(s).value;
-		if (length & 0x80) {
-			this.transport.expect(1);
-			this.transport.once('data', function(s) {
-				self.recvExtendedFastPathHeader(s, length);
-			});
-		}
-		else {
-			this.transport.expect(length - 2);
-			this.transport.once('data', function(s) {
-				self.recvFastPath(s);
-			});
-		}
-	}
+  var version = new type.UInt8().read(s).value;
+  var self = this;
+  if (version === Action.FASTPATH_ACTION_X224) {
+    new type.UInt8().read(s);
+    this.transport.expect(2);
+    this.transport.once('data', function (s) {
+      self.recvExtendedHeader(s);
+    });
+  } else {
+    this.secFlag = (version >> 6) & 0x3;
+    var length = new type.UInt8().read(s).value;
+    if (length & 0x80) {
+      this.transport.expect(1);
+      this.transport.once('data', function (s) {
+        self.recvExtendedFastPathHeader(s, length);
+      });
+    } else {
+      this.transport.expect(length - 2);
+      this.transport.once('data', function (s) {
+        self.recvFastPath(s);
+      });
+    }
+  }
 };
 
 /**
@@ -92,13 +93,13 @@ TPKT.prototype.recvHeader = function (s) {
  * @param s {type.Stream}
  */
 TPKT.prototype.recvExtendedHeader = function (s) {
-	var size = new type.UInt16Be().read(s);
-	this.transport.expect(size.value - 4);
-	//next state receive packet
-	var self = this;
-	this.transport.once('data', function(s) {
-		self.recvData(s);
-	});
+  var size = new type.UInt16Be().read(s);
+  this.transport.expect(size.value - 4);
+  //next state receive packet
+  var self = this;
+  this.transport.once('data', function (s) {
+    self.recvData(s);
+  });
 };
 
 /**
@@ -106,13 +107,13 @@ TPKT.prototype.recvExtendedHeader = function (s) {
  * @param s {type.Stream}
  */
 TPKT.prototype.recvData = function (s) {
-	this.emit('data', s);
-	this.transport.expect(2);
-	//next state receive header
-	var self = this;
-	this.transport.once('data', function(s) {
-		self.recvHeader(s);
-	});
+  this.emit('data', s);
+  this.transport.expect(2);
+  //next state receive header
+  var self = this;
+  this.transport.once('data', function (s) {
+    self.recvHeader(s);
+  });
 };
 
 /**
@@ -120,15 +121,15 @@ TPKT.prototype.recvData = function (s) {
  * @param s {type.Stream}
  */
 TPKT.prototype.recvExtendedFastPathHeader = function (s, length) {
-	var rightPart = new type.UInt8().read(s).value;
-	var leftPart = length & ~0x80;
-	var packetSize = (leftPart << 8) + rightPart;
+  var rightPart = new type.UInt8().read(s).value;
+  var leftPart = length & ~0x80;
+  var packetSize = (leftPart << 8) + rightPart;
 
-	var self = this;
-	this.transport.expect(packetSize - 3);
-	this.transport.once('data', function(s) {
-		self.recvFastPath(s);
-	});
+  var self = this;
+  this.transport.expect(packetSize - 3);
+  this.transport.once('data', function (s) {
+    self.recvFastPath(s);
+  });
 };
 
 /**
@@ -136,36 +137,37 @@ TPKT.prototype.recvExtendedFastPathHeader = function (s, length) {
  * @param s {type.Stream}
  */
 TPKT.prototype.recvFastPath = function (s) {
-	this.emit('fastPathData', this.secFlag, s);
-	var self = this;
-	this.transport.expect(2);
-	this.transport.once('data', function(s) {
-		self.recvHeader(s);
-	});
+  this.emit('fastPathData', this.secFlag, s);
+  var self = this;
+  this.transport.expect(2);
+  this.transport.once('data', function (s) {
+    self.recvHeader(s);
+  });
 };
 
 /**
  * Send message throught TPKT layer
  * @param message {type.*}
  */
-TPKT.prototype.send = function(message) {
-	this.transport.send(new type.Component([
-	    new type.UInt8(Action.FASTPATH_ACTION_X224),
-	    new type.UInt8(0),
-	    new type.UInt16Be(message.size() + 4),
-	    message
-	]));
+TPKT.prototype.send = function (message) {
+  this.transport.send(
+    new type.Component([
+      new type.UInt8(Action.FASTPATH_ACTION_X224),
+      new type.UInt8(0),
+      new type.UInt16Be(message.size() + 4),
+      message
+    ])
+  );
 };
 
 /**
  * close stack
  */
-TPKT.prototype.close = function() {
-	this.transport.close();
+TPKT.prototype.close = function () {
+  this.transport.close();
 };
 
 /**
  * Module exports
  */
 module.exports = TPKT;
-

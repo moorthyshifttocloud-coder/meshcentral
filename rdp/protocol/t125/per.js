@@ -25,17 +25,16 @@ var error = require('../../core').error;
  * @returns read length from per format
  */
 function readLength(s) {
-	var byte = new type.UInt8().read(s).value;
-	var size = 0;
-	if(byte & 0x80) {
-		byte &= ~0x80;
-		size = byte << 8;
-		size += new type.UInt8().read(s).value;
-	}
-	else {
-		size = byte;
-	}
-	return size;
+  var byte = new type.UInt8().read(s).value;
+  var size = 0;
+  if (byte & 0x80) {
+    byte &= ~0x80;
+    size = byte << 8;
+    size += new type.UInt8().read(s).value;
+  } else {
+    size = byte;
+  }
+  return size;
 }
 
 /**
@@ -43,12 +42,11 @@ function readLength(s) {
  * @returns type objects per encoding value
  */
 function writeLength(value) {
-	if(value > 0x7f) {
-		return new type.UInt16Be(value | 0x8000);
-	}
-	else {
-		return new type.UInt8(value);
-	}
+  if (value > 0x7f) {
+    return new type.UInt16Be(value | 0x8000);
+  } else {
+    return new type.UInt8(value);
+  }
 }
 
 /**
@@ -56,7 +54,7 @@ function writeLength(value) {
  * @returns {integer} choice decoding from per encoding
  */
 function readChoice(s) {
-	return new type.UInt8().read(s).value;
+  return new type.UInt8().read(s).value;
 }
 
 /**
@@ -64,7 +62,7 @@ function readChoice(s) {
  * @returns {type.UInt8} choice per encoded
  */
 function writeChoice(choice) {
-	return new type.UInt8(choice);
+  return new type.UInt8(choice);
 }
 
 /**
@@ -72,7 +70,7 @@ function writeChoice(choice) {
  * @returns {integer} number represent selection
  */
 function readSelection(s) {
-	return new type.UInt8().read(s).value;
+  return new type.UInt8().read(s).value;
 }
 
 /**
@@ -80,7 +78,7 @@ function readSelection(s) {
  * @returns {type.UInt8} per encoded selection
  */
 function writeSelection(selection) {
-	return new type.UInt8(selection);
+  return new type.UInt8(selection);
 }
 
 /**
@@ -88,7 +86,7 @@ function writeSelection(selection) {
  * @returns {integer} number of sets
  */
 function readNumberOfSet(s) {
-	return new type.UInt8().read(s).value;
+  return new type.UInt8().read(s).value;
 }
 
 /**
@@ -96,7 +94,7 @@ function readNumberOfSet(s) {
  * @returns {type.UInt8} per encoded nuimber of sets
  */
 function writeNumberOfSet(numberOfSet) {
-	return new type.UInt8(numberOfSet);
+  return new type.UInt8(numberOfSet);
 }
 
 /**
@@ -104,7 +102,7 @@ function writeNumberOfSet(numberOfSet) {
  * @returns {integer} enumerates number
  */
 function readEnumerates(s) {
-	return new type.UInt8().read(s).value;
+  return new type.UInt8().read(s).value;
 }
 
 /**
@@ -112,7 +110,7 @@ function readEnumerates(s) {
  * @returns {type.UInt8} per encoded enumerate
  */
 function writeEnumerates(enumerate) {
-	return new type.UInt8(enumerate);
+  return new type.UInt8(enumerate);
 }
 
 /**
@@ -120,22 +118,22 @@ function writeEnumerates(enumerate) {
  * @returns {integer} integer per decoded
  */
 function readInteger(s) {
-	var result;
-	var size = readLength(s);
-	switch(size) {
-	case 1:
-		result = new type.UInt8();
-		break;
-	case 2:
-		result = new type.UInt16Be();
-		break;
-	case 4:
-		result = new type.UInt32Be();
-		break;
-	default:
-		throw new error.UnexpectedFatalError('NODE_RDP_PROTOCOL_T125_PER_BAD_INTEGER_LENGTH');
-	}
-	return result.read(s).value;
+  var result;
+  var size = readLength(s);
+  switch (size) {
+    case 1:
+      result = new type.UInt8();
+      break;
+    case 2:
+      result = new type.UInt16Be();
+      break;
+    case 4:
+      result = new type.UInt32Be();
+      break;
+    default:
+      throw new error.UnexpectedFatalError('NODE_RDP_PROTOCOL_T125_PER_BAD_INTEGER_LENGTH');
+  }
+  return result.read(s).value;
 }
 
 /**
@@ -143,15 +141,13 @@ function readInteger(s) {
  * @returns {type.Component} per encoded integer
  */
 function writeInteger(value) {
-	if(value <= 0xff) {
-		return new type.Component([writeLength(1), new type.UInt8(value)]);
-	}
-	else if(value < 0xffff) {
-		return new type.Component([writeLength(2), new type.UInt16Be(value)]);
-	}
-	else {
-		return new type.Component([writeLength(4), new type.UInt32Be(value)]);
-	}
+  if (value <= 0xff) {
+    return new type.Component([writeLength(1), new type.UInt8(value)]);
+  } else if (value < 0xffff) {
+    return new type.Component([writeLength(2), new type.UInt16Be(value)]);
+  } else {
+    return new type.Component([writeLength(4), new type.UInt32Be(value)]);
+  }
 }
 
 /**
@@ -160,7 +156,7 @@ function writeInteger(value) {
  * @returns {integer} per decoded integer 16 bits
  */
 function readInteger16(s, minimum) {
-	return new type.UInt16Be().read(s).value + (minimum || 0);
+  return new type.UInt16Be().read(s).value + (minimum || 0);
 }
 
 /**
@@ -169,7 +165,7 @@ function readInteger16(s, minimum) {
  * @returns {type.UInt16Be} per encoded integer 16 bits
  */
 function writeInteger16(value, minimum) {
-	return new type.UInt16Be(value - (minimum || 0));
+  return new type.UInt16Be(value - (minimum || 0));
 }
 
 /**
@@ -178,25 +174,25 @@ function writeInteger16(value, minimum) {
  * @param oid {array} object identifier to check
  */
 function readObjectIdentifier(s, oid) {
-	var size = readLength(s);
-	if(size !== 5) {
-		return false;
-	}
+  var size = readLength(s);
+  if (size !== 5) {
+    return false;
+  }
 
-	var a_oid = [0, 0, 0, 0, 0, 0];
-	var t12 = new type.UInt8().read(s).value;
-	a_oid[0] = t12 >> 4;
-	a_oid[1] = t12 & 0x0f;
-	a_oid[2] = new type.UInt8().read(s).value;
-	a_oid[3] = new type.UInt8().read(s).value;
-	a_oid[4] = new type.UInt8().read(s).value;
-	a_oid[5] = new type.UInt8().read(s).value;
+  var a_oid = [0, 0, 0, 0, 0, 0];
+  var t12 = new type.UInt8().read(s).value;
+  a_oid[0] = t12 >> 4;
+  a_oid[1] = t12 & 0x0f;
+  a_oid[2] = new type.UInt8().read(s).value;
+  a_oid[3] = new type.UInt8().read(s).value;
+  a_oid[4] = new type.UInt8().read(s).value;
+  a_oid[5] = new type.UInt8().read(s).value;
 
-	for(var i in oid) {
-		if(oid[i] !== a_oid[i]) return false;
-	}
+  for (var i in oid) {
+    if (oid[i] !== a_oid[i]) return false;
+  }
 
-	return true;
+  return true;
 }
 
 /**
@@ -204,7 +200,14 @@ function readObjectIdentifier(s, oid) {
  * @returns {type.Component} per encoded object identifier
  */
 function writeObjectIdentifier(oid) {
-	return new type.Component([new type.UInt8(5), new type.UInt8((oid[0] << 4) & (oid[1] & 0x0f)), new type.UInt8(oid[2]), new type.UInt8(oid[3]), new type.UInt8(oid[4]), new type.UInt8(oid[5])]);
+  return new type.Component([
+    new type.UInt8(5),
+    new type.UInt8((oid[0] << 4) & (oid[1] & 0x0f)),
+    new type.UInt8(oid[2]),
+    new type.UInt8(oid[3]),
+    new type.UInt8(oid[4]),
+    new type.UInt8(oid[5])
+  ]);
 }
 
 /**
@@ -213,9 +216,9 @@ function writeObjectIdentifier(oid) {
  * @param minValue
  */
 function readNumericString(s, minValue) {
-    var length = readLength(s);
-    length = (length + minValue + 1) / 2;
-    s.readPadding(length);
+  var length = readLength(s);
+  length = (length + minValue + 1) / 2;
+  s.readPadding(length);
 }
 
 /**
@@ -224,30 +227,29 @@ function readNumericString(s, minValue) {
  * @returns {type.Component} per encoded numeric string
  */
 function writeNumericString(nStr, minValue) {
-    var length = nStr.length;
-    var mlength = minValue;
-    if(length - minValue >= 0) {
-        mlength = length - minValue;
+  var length = nStr.length;
+  var mlength = minValue;
+  if (length - minValue >= 0) {
+    mlength = length - minValue;
+  }
+
+  var result = [];
+
+  for (var i = 0; i < length; i += 2) {
+    var c1 = nStr.charCodeAt(i);
+    var c2 = 0;
+    if (i + 1 < length) {
+      c2 = nStr.charCodeAt(i + 1);
+    } else {
+      c2 = 0x30;
     }
-    
-    var result = [];
-    
-    for(var i = 0; i < length; i += 2) {
-        var c1 = nStr.charCodeAt(i);
-    	var c2 = 0;
-        if(i + 1 < length) {
-            c2 = nStr.charCodeAt(i + 1);
-        }
-        else {
-            c2 = 0x30;
-        }
-        c1 = (c1 - 0x30) % 10;
-        c2 = (c2 - 0x30) % 10;
-        
-        result[result.length] = new type.UInt8((c1 << 4) | c2);
-    }
-    
-    return new type.Component([writeLength(mlength), new type.Component(result)]);
+    c1 = (c1 - 0x30) % 10;
+    c2 = (c2 - 0x30) % 10;
+
+    result[result.length] = new type.UInt8((c1 << 4) | c2);
+  }
+
+  return new type.Component([writeLength(mlength), new type.Component(result)]);
 }
 
 /**
@@ -255,7 +257,7 @@ function writeNumericString(nStr, minValue) {
  * @param length {integer} length of padding
  */
 function readPadding(s, length) {
-    s.readPadding(length);
+  s.readPadding(length);
 }
 
 /**
@@ -263,7 +265,7 @@ function readPadding(s, length) {
  * @returns {type.BinaryString} per encoded padding
  */
 function writePadding(length) {
-    return new type.BinaryString(Buffer.from(Array(length + 1).join("\x00")));
+  return new type.BinaryString(Buffer.from(Array(length + 1).join('\x00')));
 }
 
 /**
@@ -273,18 +275,18 @@ function writePadding(length) {
  * @returns {Boolean} true if read octectStream is equal to octetStream
  */
 function readOctetStream(s, octetStream, minValue) {
-    var size = readLength(s) + (minValue || 0);
-    if(size !== octetStream.length) {
-        return false;
+  var size = readLength(s) + (minValue || 0);
+  if (size !== octetStream.length) {
+    return false;
+  }
+  for (var i = 0; i < size; i++) {
+    var c = new type.UInt8().read(s);
+    if (octetStream.charCodeAt(i) !== c.value) {
+      return false;
     }
-    for(var i = 0; i < size; i++) {
-        var c = new type.UInt8().read(s);
-        if(octetStream.charCodeAt(i) !== c.value) {
-            return false;
-        }
-    }
-        
-    return true;
+  }
+
+  return true;
 }
 
 /**
@@ -293,46 +295,46 @@ function readOctetStream(s, octetStream, minValue) {
  * @returns {type.Component} per encoded octet stream
  */
 function writeOctetStream(oStr, minValue) {
-	minValue = minValue || 0;
-    var length = oStr.length;
-    var mlength = minValue;
-    
-    if(length - minValue >= 0) {
-        mlength = length - minValue;
-    }
-    
-    result = [];
-    for(var i = 0; i < length; i++) {
-        result[result.length] = new type.UInt8(oStr[i]);
-    }
-    
-    return new type.Component([writeLength(mlength), new type.Component(result)]);
+  minValue = minValue || 0;
+  var length = oStr.length;
+  var mlength = minValue;
+
+  if (length - minValue >= 0) {
+    mlength = length - minValue;
+  }
+
+  result = [];
+  for (var i = 0; i < length; i++) {
+    result[result.length] = new type.UInt8(oStr[i]);
+  }
+
+  return new type.Component([writeLength(mlength), new type.Component(result)]);
 }
 
 /**
  * Module exports
  */
 module.exports = {
-	readLength : readLength,
-	writeLength : writeLength,
-	readChoice : readChoice,
-	writeChoice : writeChoice,
-	readSelection : readSelection,
-	writeSelection : writeSelection,
-	readNumberOfSet : readNumberOfSet,
-	writeNumberOfSet : writeNumberOfSet,
-	readEnumerates : readEnumerates,
-	writeEnumerates : writeEnumerates,
-	readInteger : readInteger,
-	writeInteger : writeInteger,
-	readInteger16 : readInteger16,
-	writeInteger16 : writeInteger16,
-	readObjectIdentifier : readObjectIdentifier,
-	writeObjectIdentifier : writeObjectIdentifier,
-	readNumericString : readNumericString,
-	writeNumericString : writeNumericString,
-	readPadding : readPadding,
-	writePadding : writePadding,
-	readOctetStream : readOctetStream,
-	writeOctetStream : writeOctetStream
+  readLength: readLength,
+  writeLength: writeLength,
+  readChoice: readChoice,
+  writeChoice: writeChoice,
+  readSelection: readSelection,
+  writeSelection: writeSelection,
+  readNumberOfSet: readNumberOfSet,
+  writeNumberOfSet: writeNumberOfSet,
+  readEnumerates: readEnumerates,
+  writeEnumerates: writeEnumerates,
+  readInteger: readInteger,
+  writeInteger: writeInteger,
+  readInteger16: readInteger16,
+  writeInteger16: writeInteger16,
+  readObjectIdentifier: readObjectIdentifier,
+  writeObjectIdentifier: writeObjectIdentifier,
+  readNumericString: readNumericString,
+  writeNumericString: writeNumericString,
+  readPadding: readPadding,
+  writePadding: writePadding,
+  readOctetStream: readOctetStream,
+  writeOctetStream: writeOctetStream
 };

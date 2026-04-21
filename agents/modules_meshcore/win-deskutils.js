@@ -27,8 +27,8 @@ limitations under the License.
 
 var SPI_GETDESKWALLPAPER = 0x0073;
 var SPI_SETDESKWALLPAPER = 0x0014;
-var SPI_GETMOUSETRAILS = 0x005E;
-var SPI_SETMOUSETRAILS = 0x005D;
+var SPI_GETMOUSETRAILS = 0x005e;
+var SPI_SETMOUSETRAILS = 0x005d;
 
 var GM = require('_GenericMarshal');
 var user32 = GM.CreateNativeProxy('user32.dll');
@@ -40,14 +40,13 @@ kernel32.CreateMethod('GetTickCount');
 //
 // This function is a helper method to dispatch method calls to different user sessions
 //
-function sessionDispatch(tsid, parent, method, args)
-{
-    //
-    // Check to see if the process owner of the current processor is root
-    //
-    var sid = undefined;
-    var stype = require('user-sessions').getProcessOwnerName(process.pid).tsid == 0 ? 1 : 0;
-    /*
+function sessionDispatch(tsid, parent, method, args) {
+  //
+  // Check to see if the process owner of the current processor is root
+  //
+  var sid = undefined;
+  var stype = require('user-sessions').getProcessOwnerName(process.pid).tsid == 0 ? 1 : 0;
+  /*
         The following is the list of possible values for stype.
         If the current process owner is root, we set the stype to user,
         because we cannot set/get any properties from this user, we
@@ -65,92 +64,92 @@ function sessionDispatch(tsid, parent, method, args)
         ILibProcessPipe_SpawnTypes_POSIX_DETACHED = 0x8000
         ------------------------------------------------------------------------
     */
-    console.log('stype: ' + stype);
-    if (stype == 1)
-    {
-        if (tsid == null && require('MeshAgent')._tsid != null)
-        {
-            stype = 5;                          // ILibProcessPipe_SpawnTypes_SPECIFIED_USER
-            sid = require('MeshAgent')._tsid;   // If this is set, it was set via user selection UI
-        }
-        else
-        {
-            sid = tsid;                         // Set the SID to be whatever was passed in
-        }
+  console.log('stype: ' + stype);
+  if (stype == 1) {
+    if (tsid == null && require('MeshAgent')._tsid != null) {
+      stype = 5; // ILibProcessPipe_SpawnTypes_SPECIFIED_USER
+      sid = require('MeshAgent')._tsid; // If this is set, it was set via user selection UI
+    } else {
+      sid = tsid; // Set the SID to be whatever was passed in
     }
+  }
 
-    // Spawn a child process in the appropriate user session, and relay the response back via stdout
-    var mod = Buffer.from(getJSModule('win-deskutils')).toString('base64');
-    var prog = "try { addModule('win-deskutils', process.env['win_deskutils']);} catch (x) { } var x;try{x=require('win-deskutils').dispatch('" + parent + "', '" + method + "', " + JSON.stringify(args) + ");console.log(x);}catch(z){console.log(z);process.exit(1);}process.exit(0);";
-    var child = require('child_process').execFile(process.execPath, [process.execPath.split('\\').pop(), '-b64exec', Buffer.from(prog).toString('base64')], { type: stype, uid: sid, env: { win_deskutils: getJSModule('win-deskutils') } });
+  // Spawn a child process in the appropriate user session, and relay the response back via stdout
+  var mod = Buffer.from(getJSModule('win-deskutils')).toString('base64');
+  var prog =
+    "try { addModule('win-deskutils', process.env['win_deskutils']);} catch (x) { } var x;try{x=require('win-deskutils').dispatch('" +
+    parent +
+    "', '" +
+    method +
+    "', " +
+    JSON.stringify(args) +
+    ');console.log(x);}catch(z){console.log(z);process.exit(1);}process.exit(0);';
+  var child = require('child_process').execFile(
+    process.execPath,
+    [process.execPath.split('\\').pop(), '-b64exec', Buffer.from(prog).toString('base64')],
+    { type: stype, uid: sid, env: { win_deskutils: getJSModule('win-deskutils') } }
+  );
 
-    child.stdout.str = '';
-    child.stdout.on('data', function (c) { this.str += c.toString(); });
-    child.stderr.on('data', function (c) { });
-    child.on('exit', function (c) { this.exitCode = c; });
-    child.waitExit();
-    if (child.exitCode == 0)
-    {
-        return (child.stdout.str.trim()); // If the return code was 0, then relay the response from stdout
-    }
-    else
-    {
-        throw (child.stdout.str.trim()); // If the return code was nonzero, then the stdout response is the exception that should be bubbled
-    }
+  child.stdout.str = '';
+  child.stdout.on('data', function (c) {
+    this.str += c.toString();
+  });
+  child.stderr.on('data', function (c) {});
+  child.on('exit', function (c) {
+    this.exitCode = c;
+  });
+  child.waitExit();
+  if (child.exitCode == 0) {
+    return child.stdout.str.trim(); // If the return code was 0, then relay the response from stdout
+  } else {
+    throw child.stdout.str.trim(); // If the return code was nonzero, then the stdout response is the exception that should be bubbled
+  }
 }
 
 //
 // This function gets the path of the windows desktop background of the specified user desktop session
 //
-function background_get(tsid)
-{
-    if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
-    {
-        // Need to disatch to different session first
-        return (sessionDispatch(tsid, 'background', 'get', []));
-    }
-    var v = GM.CreateVariable(1024);
-    var ret = user32.SystemParametersInfoA(SPI_GETDESKWALLPAPER, v._size, v, 0);
-    if (ret.Val == 0)
-    {
-        throw ('Error occured trying to fetch wallpaper');
-    }
-    return (v.String);
+function background_get(tsid) {
+  if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
+  {
+    // Need to disatch to different session first
+    return sessionDispatch(tsid, 'background', 'get', []);
+  }
+  var v = GM.CreateVariable(1024);
+  var ret = user32.SystemParametersInfoA(SPI_GETDESKWALLPAPER, v._size, v, 0);
+  if (ret.Val == 0) {
+    throw 'Error occured trying to fetch wallpaper';
+  }
+  return v.String;
 }
 
 //
 // This function sets the path for the windows desktop background of the specified user desktop session
 //
-function background_set(path, tsid)
-{
-    if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
-    {
-        // Need to disatch to different session first
-        return (sessionDispatch(tsid, 'background', 'set', [path]));
-    }
-    var nb = GM.CreateVariable(path);
-    var ret = user32.SystemParametersInfoA(SPI_SETDESKWALLPAPER, nb._size, nb, 0);
-    if (ret.Val == 0)
-    {
-        throw ('Error occured trying to set wallpaper');
-    }
-    return;
+function background_set(path, tsid) {
+  if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
+  {
+    // Need to disatch to different session first
+    return sessionDispatch(tsid, 'background', 'set', [path]);
+  }
+  var nb = GM.CreateVariable(path);
+  var ret = user32.SystemParametersInfoA(SPI_SETDESKWALLPAPER, nb._size, nb, 0);
+  if (ret.Val == 0) {
+    throw 'Error occured trying to set wallpaper';
+  }
+  return;
 }
 
 //
 // This is a helper function that is called by the child process from sessionDispatch()
 //
-function dispatch(parent, method, args)
-{
-    try
-    {
-        return (this[parent][method].apply(this, args));
-    }
-    catch (e)
-    {
-        console.log('ERROR: ' + e);
-        throw ('Error occured trying to dispatch: ' + method);
-    }
+function dispatch(parent, method, args) {
+  try {
+    return this[parent][method].apply(this, args);
+  } catch (e) {
+    console.log('ERROR: ' + e);
+    throw 'Error occured trying to dispatch: ' + method;
+  }
 }
 
 //
@@ -158,38 +157,34 @@ function dispatch(parent, method, args)
 // Setting value 0 or one disables this feature
 // Otherwise, value is the number of cursors to render for this feature
 //
-function mousetrails_set(value, tsid)
-{
-    if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
-    {
-        // Need to disatch to different session first
-        return (sessionDispatch(tsid, 'mouse', 'setTrails', [value]));
-    }
-    var ret = user32.SystemParametersInfoA(SPI_SETMOUSETRAILS, value, 0, 0);
-    if (ret.Val == 0)
-    {
-        throw ('Error occured trying to fetch wallpaper');
-    }
+function mousetrails_set(value, tsid) {
+  if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
+  {
+    // Need to disatch to different session first
+    return sessionDispatch(tsid, 'mouse', 'setTrails', [value]);
+  }
+  var ret = user32.SystemParametersInfoA(SPI_SETMOUSETRAILS, value, 0, 0);
+  if (ret.Val == 0) {
+    throw 'Error occured trying to fetch wallpaper';
+  }
 }
 
 //
 // This function returns the number of cursors the mousetrail accessibility feature will render
 // A value of 0 or 1 means the feature is disabled, otherwise it is the number of cursors that will be rendered
 //
-function mousetrails_get(tsid)
-{
-    if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
-    {
-        // Need to disatch to different session first
-        return (sessionDispatch(tsid, 'mouse', 'getTrails', []));
-    }
-    var v = GM.CreateVariable(4);
-    var ret = user32.SystemParametersInfoA(SPI_GETMOUSETRAILS, v._size, v, 0);
-    if (ret.Val == 0)
-    {
-        throw ('Error occured trying to fetch wallpaper');
-    }
-    return (v.toBuffer().readUInt32LE());
+function mousetrails_get(tsid) {
+  if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
+  {
+    // Need to disatch to different session first
+    return sessionDispatch(tsid, 'mouse', 'getTrails', []);
+  }
+  var v = GM.CreateVariable(4);
+  var ret = user32.SystemParametersInfoA(SPI_GETMOUSETRAILS, v._size, v, 0);
+  if (ret.Val == 0) {
+    throw 'Error occured trying to fetch wallpaper';
+  }
+  return v.toBuffer().readUInt32LE();
 }
 
 //
@@ -203,49 +198,44 @@ function mousetrails_get(tsid)
 // MSDN documentation:
 // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getlastinputinfo
 //
-function idle_getSeconds(tsid)
-{
-    if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
-    {
-        // Need to dispatch to different session first
-        return (sessionDispatch(tsid, 'idle', 'getSeconds', []));
-    }
-    
-    // Allocate 8 bytes for the LASTINPUTINFO struct:
-    //   UINT  cbSize  (offset 0, 4 bytes) - must be set to 8 before calling
-    //   DWORD dwTime  (offset 4, 4 bytes) - tick count of last input event
-    var lii = GM.CreateVariable(8);
+function idle_getSeconds(tsid) {
+  if (tsid != null || tsid === null) // TSID is not undefined or is explicitly null
+  {
+    // Need to dispatch to different session first
+    return sessionDispatch(tsid, 'idle', 'getSeconds', []);
+  }
 
-    // cbSize must be set to the size of the struct (8) before calling
-    lii.toBuffer().writeUInt32LE(8, 0);
+  // Allocate 8 bytes for the LASTINPUTINFO struct:
+  //   UINT  cbSize  (offset 0, 4 bytes) - must be set to 8 before calling
+  //   DWORD dwTime  (offset 4, 4 bytes) - tick count of last input event
+  var lii = GM.CreateVariable(8);
 
-    var ret = user32.GetLastInputInfo(lii);
-    if (ret.Val == 0)
-    {
-        throw ('Error occured trying to get last input info');
-    }
+  // cbSize must be set to the size of the struct (8) before calling
+  lii.toBuffer().writeUInt32LE(8, 0);
 
-    // Read dwTime from byte offset 4
-    var dwTime = lii.toBuffer().readUInt32LE(4);
+  var ret = user32.GetLastInputInfo(lii);
+  if (ret.Val == 0) {
+    throw 'Error occured trying to get last input info';
+  }
 
-    // GetTickCount returns the number of milliseconds since system boot (32-bit, wraps after ~49.7 days)
-    var tickNow = kernel32.GetTickCount().Val;
+  // Read dwTime from byte offset 4
+  var dwTime = lii.toBuffer().readUInt32LE(4);
 
-    // Handle 32-bit wraparound case
-    var idleMs;
-    if (tickNow >= dwTime)
-    {
-        // Normal case: no wraparound
-        idleMs = tickNow - dwTime;
-    }
-    else
-    {
-        // Wraparound occurred: tickNow wrapped to 0 while dwTime is still large
-        // Calculate the time from dwTime to the wrap point (0xFFFFFFFF) plus time since wrap
-        idleMs = (0xFFFFFFFF - dwTime) + tickNow + 1;
-    }
+  // GetTickCount returns the number of milliseconds since system boot (32-bit, wraps after ~49.7 days)
+  var tickNow = kernel32.GetTickCount().Val;
 
-    return Math.floor(idleMs / 1000);
+  // Handle 32-bit wraparound case
+  var idleMs;
+  if (tickNow >= dwTime) {
+    // Normal case: no wraparound
+    idleMs = tickNow - dwTime;
+  } else {
+    // Wraparound occurred: tickNow wrapped to 0 while dwTime is still large
+    // Calculate the time from dwTime to the wrap point (0xFFFFFFFF) plus time since wrap
+    idleMs = 0xffffffff - dwTime + tickNow + 1;
+  }
+
+  return Math.floor(idleMs / 1000);
 }
 
 //
@@ -253,44 +243,37 @@ function idle_getSeconds(tsid)
 // This is useful for detecting if ANY user (console or RDP) is actively using the machine.
 // Returns a promise that resolves to the minimum idle seconds, or -1 if no users are logged in.
 //
-function idle_getSecondsAllSessions()
-{
-    var promise = require('promise');
-    return new promise(function (resolve, reject)
-    {
-        require('user-sessions').enumerateUsers().then(function (sessions)
-        {
-            var minIdleSeconds = Infinity;
-            for (var sessionId in sessions)
-            {
-                var session = sessions[sessionId];
-                
-                // Only check Active sessions with a logged-in user (Username is present)
-                // Skip "Connected" sessions (console when disconnected) and "Listening" sessions
-                if (session.State === 'Active' && session.Username && session.Username !== '')
-                {
-                    try
-                    {
-                        var idleSeconds = parseFloat(sessionDispatch(session.SessionId, 'idle', 'getSeconds', []));
-                        if (idleSeconds < minIdleSeconds)
-                        {
-                            minIdleSeconds = idleSeconds;
-                        }
-                    }
-                    catch (e)
-                    {
-                        // Session might not support GetLastInputInfo, skip it
-                    }
-                }
+function idle_getSecondsAllSessions() {
+  var promise = require('promise');
+  return new promise(function (resolve, reject) {
+    require('user-sessions')
+      .enumerateUsers()
+      .then(function (sessions) {
+        var minIdleSeconds = Infinity;
+        for (var sessionId in sessions) {
+          var session = sessions[sessionId];
+
+          // Only check Active sessions with a logged-in user (Username is present)
+          // Skip "Connected" sessions (console when disconnected) and "Listening" sessions
+          if (session.State === 'Active' && session.Username && session.Username !== '') {
+            try {
+              var idleSeconds = parseFloat(sessionDispatch(session.SessionId, 'idle', 'getSeconds', []));
+              if (idleSeconds < minIdleSeconds) {
+                minIdleSeconds = idleSeconds;
+              }
+            } catch (e) {
+              // Session might not support GetLastInputInfo, skip it
             }
-            
-            // If no active user sessions found, return -1 to indicate "no users logged in"
-            resolve(minIdleSeconds === Infinity ? -1 : Math.floor(minIdleSeconds));
-        }).catch(function (err)
-        {
-            reject(err);
-        });
-    });
+          }
+        }
+
+        // If no active user sessions found, return -1 to indicate "no users logged in"
+        resolve(minIdleSeconds === Infinity ? -1 : Math.floor(minIdleSeconds));
+      })
+      .catch(function (err) {
+        reject(err);
+      });
+  });
 }
 
 module.exports = { background: { get: background_get, set: background_set } };

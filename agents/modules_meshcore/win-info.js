@@ -16,175 +16,191 @@ limitations under the License.
 
 var promise = require('promise');
 
-function qfe()
-{
-    try {
-        var tokens = require('win-wmi').query('ROOT\\CIMV2', 'SELECT * FROM Win32_QuickFixEngineering');
-        if (tokens[0]){
-            for (var index = 0; index < tokens.length; index++) {
-                for (var key in tokens[index]) {
-                    if (key.startsWith('__')) delete tokens[index][key];
-                }
-            }
-            return (tokens);
-        } else {
-            return ([]);
+function qfe() {
+  try {
+    var tokens = require('win-wmi').query('ROOT\\CIMV2', 'SELECT * FROM Win32_QuickFixEngineering');
+    if (tokens[0]) {
+      for (var index = 0; index < tokens.length; index++) {
+        for (var key in tokens[index]) {
+          if (key.startsWith('__')) delete tokens[index][key];
         }
-    } catch (ex) {
-        return ([]);
+      }
+      return tokens;
+    } else {
+      return [];
     }
+  } catch (ex) {
+    return [];
+  }
 }
-function av()
-{
-    var result = [];
-    try { 
-        var tokens = require('win-wmi-fixed').query('ROOT\\SecurityCenter2', 'SELECT * FROM AntiVirusProduct');
-        if (tokens.length == 0) { return ([]); }
-        // Process each antivirus product
-        for (var i = 0; i < tokens.length; ++i) {
-            var product = tokens[i];
-            var modifiedPath = product.pathToSignedProductExe || '';
-            // Expand environment variables (e.g., %ProgramFiles%)
-            var regex = /%([^%]+)%/g;
-            var match;
-            while ((match = regex.exec(product.pathToSignedProductExe)) !== null) {
-                var envVar = match[1];
-                var envValue = process.env[envVar] || '';
-                if (envValue) {
-                    modifiedPath = modifiedPath.replace(match[0], envValue);
-                }
-            }
-            // Check if the executable exists (unless it's Windows Defender pseudo-path)
-            var flag = true;
-            if (modifiedPath !== 'windowsdefender://') {
-                try {
-                    if (!require('fs').existsSync(modifiedPath)) {
-                        flag = false;
-                    }
-                } catch (ex) {
-                    flag = false;
-                }
-            }
-            // Only include products with valid executables
-            if (flag) {
-                var status = {};
-                status.product = product.displayName || '';
-                status.updated = (parseInt(product.productState) & 0x10) == 0;
-                status.enabled = (parseInt(product.productState) & 0x1000) == 0x1000;
-                result.push(status);
-            }
+function av() {
+  var result = [];
+  try {
+    var tokens = require('win-wmi-fixed').query('ROOT\\SecurityCenter2', 'SELECT * FROM AntiVirusProduct');
+    if (tokens.length == 0) {
+      return [];
+    }
+    // Process each antivirus product
+    for (var i = 0; i < tokens.length; ++i) {
+      var product = tokens[i];
+      var modifiedPath = product.pathToSignedProductExe || '';
+      // Expand environment variables (e.g., %ProgramFiles%)
+      var regex = /%([^%]+)%/g;
+      var match;
+      while ((match = regex.exec(product.pathToSignedProductExe)) !== null) {
+        var envVar = match[1];
+        var envValue = process.env[envVar] || '';
+        if (envValue) {
+          modifiedPath = modifiedPath.replace(match[0], envValue);
         }
-        return (result);
-    } catch (ex) {
-        return ([]);
-    }
-}
-function defrag(options)
-{
-    var ret = new promise(function (res, rej) { this._res = res; this._rej = rej; });
-    var path = '';
-
-    switch(require('os').arch())
-    {
-        case 'x64':
-            if (require('_GenericMarshal').PointerSize == 4)
-            {
-                // 32 Bit App on 64 Bit Windows
-                ret._rej('Cannot defrag volume on 64 bit Windows from 32 bit application');
-                return (ret);
-            }
-            else
-            {
-                // 64 Bit App
-                path = process.env['windir'] + '\\System32\\defrag.exe';
-            }
-            break;
-        case 'ia32':
-            // 32 Bit App on 32 Bit Windows
-            path = process.env['windir'] + '\\System32\\defrag.exe';
-            break;
-        default:
-            ret._rej(require('os').arch() + ' not supported');
-            return (ret);
-            break;
-    }
-
-    ret.child = require('child_process').execFile(process.env['windir'] + '\\System32\\defrag.exe', ['defrag', options.volume + ' /A']);
-    ret.child.promise = ret;
-    ret.child.promise.options = options;
-    ret.child.stdout.str = ''; ret.child.stdout.on('data', function (c) { this.str += c.toString(); });
-    ret.child.stderr.str = ''; ret.child.stderr.on('data', function (c) { this.str += c.toString(); });
-    ret.child.on('exit', function (code)
-    {
-        var lines = this.stdout.str.trim().split('\r\n');
-        var obj = { volume: this.promise.options.volume };
-        for (var i in lines)
-        {
-            var token = lines[i].split('=');
-            if(token.length == 2)
-            {
-                switch(token[0].trim().toLowerCase())
-                {
-                    case 'volume size':
-                        obj['size'] = token[1];
-                        break;
-                    case 'free space':
-                        obj['free'] = token[1];
-                        break;
-                    case 'total fragmented space':
-                        obj['fragmented'] = token[1];
-                        break;
-                    case 'largest free space size':
-                        obj['largestFragment'] = token[1];
-                        break;
-                }               
-            }
+      }
+      // Check if the executable exists (unless it's Windows Defender pseudo-path)
+      var flag = true;
+      if (modifiedPath !== 'windowsdefender://') {
+        try {
+          if (!require('fs').existsSync(modifiedPath)) {
+            flag = false;
+          }
+        } catch (ex) {
+          flag = false;
         }
-        this.promise._res(obj);
-    });
-    return (ret);
+      }
+      // Only include products with valid executables
+      if (flag) {
+        var status = {};
+        status.product = product.displayName || '';
+        status.updated = (parseInt(product.productState) & 0x10) == 0;
+        status.enabled = (parseInt(product.productState) & 0x1000) == 0x1000;
+        result.push(status);
+      }
+    }
+    return result;
+  } catch (ex) {
+    return [];
+  }
 }
-function regQuery(H, Path, Key)
-{
-    try
-    {
-        return(require('win-registry').QueryKey(H, Path, Key));
+function defrag(options) {
+  var ret = new promise(function (res, rej) {
+    this._res = res;
+    this._rej = rej;
+  });
+  var path = '';
+
+  switch (require('os').arch()) {
+    case 'x64':
+      if (require('_GenericMarshal').PointerSize == 4) {
+        // 32 Bit App on 64 Bit Windows
+        ret._rej('Cannot defrag volume on 64 bit Windows from 32 bit application');
+        return ret;
+      } else {
+        // 64 Bit App
+        path = process.env['windir'] + '\\System32\\defrag.exe';
+      }
+      break;
+    case 'ia32':
+      // 32 Bit App on 32 Bit Windows
+      path = process.env['windir'] + '\\System32\\defrag.exe';
+      break;
+    default:
+      ret._rej(require('os').arch() + ' not supported');
+      return ret;
+      break;
+  }
+
+  ret.child = require('child_process').execFile(process.env['windir'] + '\\System32\\defrag.exe', [
+    'defrag',
+    options.volume + ' /A'
+  ]);
+  ret.child.promise = ret;
+  ret.child.promise.options = options;
+  ret.child.stdout.str = '';
+  ret.child.stdout.on('data', function (c) {
+    this.str += c.toString();
+  });
+  ret.child.stderr.str = '';
+  ret.child.stderr.on('data', function (c) {
+    this.str += c.toString();
+  });
+  ret.child.on('exit', function (code) {
+    var lines = this.stdout.str.trim().split('\r\n');
+    var obj = { volume: this.promise.options.volume };
+    for (var i in lines) {
+      var token = lines[i].split('=');
+      if (token.length == 2) {
+        switch (token[0].trim().toLowerCase()) {
+          case 'volume size':
+            obj['size'] = token[1];
+            break;
+          case 'free space':
+            obj['free'] = token[1];
+            break;
+          case 'total fragmented space':
+            obj['fragmented'] = token[1];
+            break;
+          case 'largest free space size':
+            obj['largestFragment'] = token[1];
+            break;
+        }
+      }
     }
-    catch(e)
-    {
-        return (null);
-    }
+    this.promise._res(obj);
+  });
+  return ret;
 }
-function pendingReboot()
-{
-    var tmp = null;
-    var ret = null;
-    var HKEY = require('win-registry').HKEY;
-    if(regQuery(HKEY.LocalMachine, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing', 'RebootPending') !=null)
-    {
-        ret = 'Component Based Servicing';
-    }
-    else if(regQuery(HKEY.LocalMachine, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate', 'RebootRequired'))
-    {
-        ret = 'Windows Update';
-    }
-    else if ((tmp=regQuery(HKEY.LocalMachine, 'SYSTEM\\CurrentControlSet\\Control\\Session Manager', 'PendingFileRenameOperations'))!=null && tmp != 0 && tmp != '')
-    {
-        ret = 'File Rename';
-    }
-    else if (regQuery(HKEY.LocalMachine, 'SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName', 'ComputerName') != regQuery(HKEY.LocalMachine, 'SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ComputerName', 'ComputerName'))
-    {
-        ret = 'System Rename';
-    }
-    return (ret);
+function regQuery(H, Path, Key) {
+  try {
+    return require('win-registry').QueryKey(H, Path, Key);
+  } catch (e) {
+    return null;
+  }
+}
+function pendingReboot() {
+  var tmp = null;
+  var ret = null;
+  var HKEY = require('win-registry').HKEY;
+  if (
+    regQuery(
+      HKEY.LocalMachine,
+      'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing',
+      'RebootPending'
+    ) != null
+  ) {
+    ret = 'Component Based Servicing';
+  } else if (
+    regQuery(HKEY.LocalMachine, 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate', 'RebootRequired')
+  ) {
+    ret = 'Windows Update';
+  } else if (
+    (tmp = regQuery(
+      HKEY.LocalMachine,
+      'SYSTEM\\CurrentControlSet\\Control\\Session Manager',
+      'PendingFileRenameOperations'
+    )) != null &&
+    tmp != 0 &&
+    tmp != ''
+  ) {
+    ret = 'File Rename';
+  } else if (
+    regQuery(
+      HKEY.LocalMachine,
+      'SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName',
+      'ComputerName'
+    ) != regQuery(HKEY.LocalMachine, 'SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ComputerName', 'ComputerName')
+  ) {
+    ret = 'System Rename';
+  }
+  return ret;
 }
 
-function installedApps()
-{
-    var promise = require('promise');
-    var ret = new promise(function (a, r) { this._resolve = a; this._reject = r; });
-    
-    var code = "\
+function installedApps() {
+  var promise = require('promise');
+  var ret = new promise(function (a, r) {
+    this._resolve = a;
+    this._reject = r;
+  });
+
+  var code =
+    "\
     var reg = require('win-registry');\
     var result = [];\
     var val, tmp;\
@@ -228,53 +244,88 @@ function installedApps()
     }\
     console.log(JSON.stringify(result,'', 1));process.exit();";
 
-    ret.child = require('child_process').execFile(process.execPath, [process.execPath.split('\\').pop().split('.exe')[0], '-exec "' + code + '"']);
-    ret.child.promise = ret;
-    ret.child.stdout.str = ''; ret.child.stdout.on('data', function (c) { this.str += c.toString(); });
-    ret.child.on('exit', function (c) { this.promise._resolve(JSON.parse(this.stdout.str.trim())); });
-    return (ret);
+  ret.child = require('child_process').execFile(process.execPath, [
+    process.execPath.split('\\').pop().split('.exe')[0],
+    '-exec "' + code + '"'
+  ]);
+  ret.child.promise = ret;
+  ret.child.stdout.str = '';
+  ret.child.stdout.on('data', function (c) {
+    this.str += c.toString();
+  });
+  ret.child.on('exit', function (c) {
+    this.promise._resolve(JSON.parse(this.stdout.str.trim()));
+  });
+  return ret;
 }
 
-function installedStoreApps(){
-    try {
-        var tokens = require('win-wmi-fixed').query('ROOT\\CIMV2', 'SELECT * FROM Win32_InstalledStoreProgram');
-        if (tokens[0]){
-            for (var index = 0; index < tokens.length; index++) {
-                for (var key in tokens[index]) {
-                    if (key.startsWith('__')) delete tokens[index][key];
-                }
-            }
-            return (tokens);
-        } else {
-            return ([]);
-        };
-    } catch (ex) {
-        return ([]);
-    }
-}
-
-function defender(){
-    try {
-        var tokens = require('win-wmi').query('ROOT\\Microsoft\\Windows\\Defender', 'SELECT * FROM MSFT_MpComputerStatus', ['RealTimeProtectionEnabled','IsTamperProtected','AntivirusSignatureVersion','AntivirusSignatureLastUpdated']);
-        if (tokens[0]){
-            var info = { RealTimeProtection: tokens[0].RealTimeProtectionEnabled, TamperProtected: tokens[0].IsTamperProtected };
-            if (tokens[0].AntivirusSignatureVersion) { info.AntivirusSignatureVersion = tokens[0].AntivirusSignatureVersion; }
-            if (tokens[0].AntivirusSignatureLastUpdated) { info.AntivirusSignatureLastUpdated = tokens[0].AntivirusSignatureLastUpdated; }
-            return (info);
-        } else {
-            return ({});
+function installedStoreApps() {
+  try {
+    var tokens = require('win-wmi-fixed').query('ROOT\\CIMV2', 'SELECT * FROM Win32_InstalledStoreProgram');
+    if (tokens[0]) {
+      for (var index = 0; index < tokens.length; index++) {
+        for (var key in tokens[index]) {
+          if (key.startsWith('__')) delete tokens[index][key];
         }
-    } catch (ex) {
-        return ({});
+      }
+      return tokens;
+    } else {
+      return [];
     }
+  } catch (ex) {
+    return [];
+  }
 }
 
-if (process.platform == 'win32')
-{
-    module.exports = { qfe: qfe, av: av, defrag: defrag, pendingReboot: pendingReboot, installedApps: installedApps, installedStoreApps: installedStoreApps, defender: defender };
+function defender() {
+  try {
+    var tokens = require('win-wmi').query('ROOT\\Microsoft\\Windows\\Defender', 'SELECT * FROM MSFT_MpComputerStatus', [
+      'RealTimeProtectionEnabled',
+      'IsTamperProtected',
+      'AntivirusSignatureVersion',
+      'AntivirusSignatureLastUpdated'
+    ]);
+    if (tokens[0]) {
+      var info = {
+        RealTimeProtection: tokens[0].RealTimeProtectionEnabled,
+        TamperProtected: tokens[0].IsTamperProtected
+      };
+      if (tokens[0].AntivirusSignatureVersion) {
+        info.AntivirusSignatureVersion = tokens[0].AntivirusSignatureVersion;
+      }
+      if (tokens[0].AntivirusSignatureLastUpdated) {
+        info.AntivirusSignatureLastUpdated = tokens[0].AntivirusSignatureLastUpdated;
+      }
+      return info;
+    } else {
+      return {};
+    }
+  } catch (ex) {
+    return {};
+  }
 }
-else
-{
-    var not_supported = function () { throw (process.platform + ' not supported'); };
-    module.exports = { qfe: not_supported, av: not_supported, defrag: not_supported, pendingReboot: not_supported, installedApps: not_supported, installedStoreApps: not_supported, defender: not_supported };
+
+if (process.platform == 'win32') {
+  module.exports = {
+    qfe: qfe,
+    av: av,
+    defrag: defrag,
+    pendingReboot: pendingReboot,
+    installedApps: installedApps,
+    installedStoreApps: installedStoreApps,
+    defender: defender
+  };
+} else {
+  var not_supported = function () {
+    throw process.platform + ' not supported';
+  };
+  module.exports = {
+    qfe: not_supported,
+    av: not_supported,
+    defrag: not_supported,
+    pendingReboot: not_supported,
+    installedApps: not_supported,
+    installedStoreApps: not_supported,
+    defender: not_supported
+  };
 }

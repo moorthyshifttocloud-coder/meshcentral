@@ -23,8 +23,8 @@ var t125 = require('./t125');
 var rdp = require('./rdp');
 
 module.exports = {
-	TPKT : TPKT,
-	x224 : x224,
-	t125 : t125,
-	rdp : rdp
+  TPKT: TPKT,
+  x224: x224,
+  t125: t125,
+  rdp: rdp
 };

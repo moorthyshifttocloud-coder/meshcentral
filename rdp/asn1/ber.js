@@ -29,16 +29,15 @@ var error = require('../core').error;
  * @returns {Boolean} True for valid tag matching
  */
 function decodeTag(s, tag) {
-	var nextTag = new type.UInt8().read(s).value;
-	if (tag.tagNumber > 30) {
-		nextTagNumber = new type.UInt8().read(s).value;
-	}
-	else {
-		nextTagNumber = nextTag & 0x1F;
-	}
-	
-	return ((nextTag & 0xE0) === (tag.tagClass | tag.tagFormat)) && (nextTagNumber === tag.tagNumber);
-};
+  var nextTag = new type.UInt8().read(s).value;
+  if (tag.tagNumber > 30) {
+    nextTagNumber = new type.UInt8().read(s).value;
+  } else {
+    nextTagNumber = nextTag & 0x1f;
+  }
+
+  return (nextTag & 0xe0) === (tag.tagClass | tag.tagFormat) && nextTagNumber === tag.tagNumber;
+}
 
 /**
  * Parse length(L) field of BER TLV
@@ -46,21 +45,19 @@ function decodeTag(s, tag) {
  * @returns {integer}
  */
 function decodeLength(s) {
-	var size = new type.UInt8().read(s).value;
-	if(size & 0x80) {
-		size &= ~0x80;
-		if(size === 1) {
-			size = new type.UInt8().read(s).value;
-		}
-		else if(size === 2) {
-			size = new type.UInt16Be().read(s).value;
-		}
-		else{
-			throw new error.ProtocolError('NODE_RDP_ASN1_BER_INVALID_LENGTH');
-		}
-	}
-	return size;
-};
+  var size = new type.UInt8().read(s).value;
+  if (size & 0x80) {
+    size &= ~0x80;
+    if (size === 1) {
+      size = new type.UInt8().read(s).value;
+    } else if (size === 2) {
+      size = new type.UInt16Be().read(s).value;
+    } else {
+      throw new error.ProtocolError('NODE_RDP_ASN1_BER_INVALID_LENGTH');
+    }
+  }
+  return size;
+}
 
 /**
  * Decode tuple TLV (Tag Length Value) of BER
@@ -69,43 +66,41 @@ function decodeLength(s) {
  * @returns {type.BinaryString} Value of tuple
  */
 function decode(s, tag) {
-	if (!decodeTag(s, tag)) {
-		throw new error.ProtocolError('NODE_RDP_ASN1_BER_INVALID_TAG');
-	}
-	var length = decodeLength(s);
-	
-	if (length === 0) {
-		return new type.Stream(0);
-	}
-	return new type.BinaryString(null,{ readLength : new type.CallableValue(length) }).read(s);
-};
+  if (!decodeTag(s, tag)) {
+    throw new error.ProtocolError('NODE_RDP_ASN1_BER_INVALID_TAG');
+  }
+  var length = decodeLength(s);
+
+  if (length === 0) {
+    return new type.Stream(0);
+  }
+  return new type.BinaryString(null, { readLength: new type.CallableValue(length) }).read(s);
+}
 
 function encodeTag(tag) {
-	if(tag.tagNumber > 30) {
-		return new type.Component([new type.UInt8(tag.tagClass | tag.tagFormat | 0x1F), new type.UInt8(tag.tagNumber)]);
-	}
-	else {
-		return new type.UInt8((tag.tagClass | tag.tagFormat) | (tag.tagNumber & 0x1F));
-	}
+  if (tag.tagNumber > 30) {
+    return new type.Component([new type.UInt8(tag.tagClass | tag.tagFormat | 0x1f), new type.UInt8(tag.tagNumber)]);
+  } else {
+    return new type.UInt8(tag.tagClass | tag.tagFormat | (tag.tagNumber & 0x1f));
+  }
 }
 
 function encodeLength(length) {
-	if(length > 0x7f) {
-        return new type.Component([new type.UInt8(0x82), new type.UInt16Be(length)]);
-    }
-    else {
-        return new type.UInt8(length);
-    }
+  if (length > 0x7f) {
+    return new type.Component([new type.UInt8(0x82), new type.UInt16Be(length)]);
+  } else {
+    return new type.UInt8(length);
+  }
 }
 
 function encode(tag, buffer) {
-	return new type.Component([encodeTag(tag), encodeLength(buffer.size()), buffer]);
+  return new type.Component([encodeTag(tag), encodeLength(buffer.size()), buffer]);
 }
 
 /**
  * Module Export
  */
 module.exports = {
-	decode : decode,
-	encode : encode
+  decode: decode,
+  encode: encode
 };

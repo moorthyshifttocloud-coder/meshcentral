@@ -4,7 +4,6 @@ about: Create a report to help us improve
 title: ''
 labels: bug
 assignees: ''
-
 ---
 
 **Describe the bug**
@@ -12,6 +11,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -24,30 +24,34 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Server Software (please complete the following information):**
- - OS: [e.g. Ubuntu]
- - Virtualization: [e.g. Docker]
- - Network: [e.g. LAN/WAN, reverse proxy, cloudflare, ssl offload, etc...]
- - Version: [e.g. 1.0.43]
- - Node: [e.g. 18.4.0]
+
+- OS: [e.g. Ubuntu]
+- Virtualization: [e.g. Docker]
+- Network: [e.g. LAN/WAN, reverse proxy, cloudflare, ssl offload, etc...]
+- Version: [e.g. 1.0.43]
+- Node: [e.g. 18.4.0]
 
 **Client Device (please complete the following information):**
- - Device: [e.g. Laptop]
- - OS: [e.g. Ubuntu]
- - Network: [e.g. Local to Meshcentral, Remote over WAN]
- - Browser: [e.g. Google Chrome]
- - MeshCentralRouter Version: [if applicable]
+
+- Device: [e.g. Laptop]
+- OS: [e.g. Ubuntu]
+- Network: [e.g. Local to Meshcentral, Remote over WAN]
+- Browser: [e.g. Google Chrome]
+- MeshCentralRouter Version: [if applicable]
 
 **Remote Device (please complete the following information):**
- - Device: [e.g. Laptop]
- - OS: [e.g. Windows 10 21H2]
- - Network: [e.g. Local to Meshcentral, Remote over WAN]
- - Current Core Version (if known): [**HINT**: Go to a device then `console` Tab then type `info`]
+
+- Device: [e.g. Laptop]
+- OS: [e.g. Windows 10 21H2]
+- Network: [e.g. Local to Meshcentral, Remote over WAN]
+- Current Core Version (if known): [**HINT**: Go to a device then `console` Tab then type `info`]
 
 **Additional context**
 Add any other context about the problem here.
 
 **Your sanitized config.json file**  
 Please sanitize your configuration (remove private or irrelevant values) before posting, using the community tool at https://sanitizer.meshcentraltools.com/
+
 ```
 {
   "$schema": "https://raw.githubusercontent.com/Ylianst/MeshCentral/master/meshcentral-config-schema.json",

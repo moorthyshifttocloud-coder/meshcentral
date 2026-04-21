@@ -23,9 +23,9 @@ var inherits = require('util').inherits;
  * Fatal error stop program
  */
 function FatalError(message, code) {
-	Error.captureStackTrace(this);
-	this.message = message || "";
-	this.code = code || 'NODE_RDP_CORE_ERROR_NO_ERROR_CODE';
+  Error.captureStackTrace(this);
+  this.message = message || '';
+  this.code = code || 'NODE_RDP_CORE_ERROR_NO_ERROR_CODE';
 }
 
 /**
@@ -37,9 +37,9 @@ inherits(FatalError, Error);
  * Protocol error (non fatal);
  */
 function ProtocolError(code, message) {
-	Error.captureStackTrace(this);
-	this.code = code;
-	this.message = message || "";
+  Error.captureStackTrace(this);
+  this.code = code;
+  this.message = message || '';
 }
 
 /**
@@ -51,9 +51,9 @@ inherits(ProtocolError, Error);
  * ImplementationError error (non fatal);
  */
 function ImplementationError(code, message) {
-	Error.captureStackTrace(this);
-	this.code = code;
-	this.message = message || "";
+  Error.captureStackTrace(this);
+  this.code = code;
+  this.message = message || '';
 }
 
 /**
@@ -65,7 +65,7 @@ inherits(ImplementationError, Error);
  * Module exports
  */
 module.exports = {
-		FatalError : FatalError,
-		ProtocolError : ProtocolError,
-		ImplementationError : ImplementationError
+  FatalError: FatalError,
+  ProtocolError: ProtocolError,
+  ImplementationError: ImplementationError
 };

@@ -19,6 +19,6 @@
 
 var protocol = require('./protocol');
 module.exports = {
-	createClient : protocol.rdp.createClient,
-	createServer : protocol.rdp.createServer
+  createClient: protocol.rdp.createClient,
+  createServer: protocol.rdp.createServer
 };

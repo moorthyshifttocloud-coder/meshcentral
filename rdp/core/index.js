@@ -24,9 +24,9 @@ var error = require('./error');
 var rle = require('./rle');
 
 module.exports = {
-	layer : layer,
-	type : type,
-	log : log,
-	error : error,
-	rle : rle
+  layer: layer,
+  type: type,
+  log: log,
+  error: error,
+  rle: rle
 };

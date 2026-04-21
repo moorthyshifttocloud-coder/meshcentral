@@ -22,7 +22,7 @@ var univ = require('./univ');
 var spec = require('./spec');
 
 module.exports = {
-	ber : ber,
-	univ : univ,
-	spec : spec
+  ber: ber,
+  univ: univ,
+  spec: spec
 };
