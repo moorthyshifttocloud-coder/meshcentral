@@ -3706,6 +3706,14 @@ function onTunnelData(data)
                         if (this.httprequest.uploadFile != null) { fs.closeSync(this.httprequest.uploadFile); delete this.httprequest.uploadFile; }
                         if (cmd.path == undefined) break;
                         var filepath = cmd.name ? obj.path.join(cmd.path, cmd.name) : cmd.path;
+                        if (cmd.name && (cmd.name.indexOf('/') >= 0 || cmd.name.indexOf('\\') >= 0)) {
+                            var pth = cmd.name.split(cmd.name.indexOf('/') >= 0 ? '/' : '\\');
+                            var curdir = cmd.path;
+                            for (var i = 0; i < pth.length - 1; i++) {
+                                curdir = obj.path.join(curdir, pth[i]);
+                                if (!fs.existsSync(curdir)) { try { fs.mkdirSync(curdir); } catch (e) { } }
+                            }
+                        }
                         this.httprequest.uploadFilePath = filepath;
                         this.httprequest.uploadFileSize = 0;
                         try { this.httprequest.uploadFile = fs.openSync(filepath, cmd.append ? 'abN' : 'wbN'); } catch (ex) { this.write(Buffer.from(JSON.stringify({ action: 'uploaderror', reqid: cmd.reqid }))); break; }

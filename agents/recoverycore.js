@@ -1192,6 +1192,14 @@ require('MeshAgent').AddCommandHandler(function (data)
                                                                     if (this.httprequest.uploadFile != null) { fs.closeSync(this.httprequest.uploadFile); delete this.httprequest.uploadFile; }
                                                                     if (cmd.path == undefined) break;
                                                                     var filepath = cmd.name ? pathjoin(cmd.path, cmd.name) : cmd.path;
+                                                                    if (cmd.name && (cmd.name.indexOf('/') >= 0 || cmd.name.indexOf('\\') >= 0)) {
+                                                                        var pth = cmd.name.split(cmd.name.indexOf('/') >= 0 ? '/' : '\\');
+                                                                        var curdir = cmd.path;
+                                                                        for (var i = 0; i < pth.length - 1; i++) {
+                                                                            curdir = pathjoin(curdir, pth[i]);
+                                                                            if (!fs.existsSync(curdir)) { try { fs.mkdirSync(curdir); } catch (e) { } }
+                                                                        }
+                                                                    }
                                                                     this.httprequest.uploadFilePath = filepath;
                                                                     MeshServerLogEx(50, [filepath], 'Upload: \"' + filepath + '\"', this.httprequest);
                                                                     try { this.httprequest.uploadFile = fs.openSync(filepath, 'wbN'); } catch (e) { this.write(Buffer.from(JSON.stringify({ action: 'uploaderror', reqid: cmd.reqid }))); break; }
