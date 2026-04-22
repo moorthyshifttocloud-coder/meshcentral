@@ -534,7 +534,7 @@ var CreateAgentRedirect = function (meshserver, module, serverPublicNamePort, au
     console.log('[MeshCentral] [2] MeshCentral Relay  -- Connected');
     if (!obj.latency.lastSend) {
       obj.latency.lastSend = setInterval(function () {
-        if (obj.latency.current == -1) {
+        if (obj.socket == null || obj.socket.readyState != 1) {
           clearInterval(obj.latency.lastSend);
           obj.latency.lastSend = null;
         } else {

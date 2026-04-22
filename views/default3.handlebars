@@ -15158,28 +15158,39 @@
 
             // Check if we are going to overwrite any files
             var winAgent = isWindowsNode(currentNode);
-            var targetFiles = [], overWriteCount = 0;
-            for (var i in p13filetree.dir) { if (winAgent) { targetFiles.push(p13filetree.dir[i].n.toLowerCase()); } else { targetFiles.push(p13filetree.dir[i].n); } }
+            var targetFilesMap = {}, overWriteCount = 0;
+            for (var i in p13filetree.dir) {
+                var fname = p13filetree.dir[i].n;
+                if (winAgent) { fname = fname.toLowerCase(); }
+                targetFilesMap[fname] = p13filetree.dir[i];
+            }
             for (var i = 0; i < files.length; i++) {
-                if (winAgent) {
-                    if (targetFiles.indexOf(files[i].name.toLowerCase()) >= 0) { overWriteCount++; }
-                } else {
-                    if (targetFiles.indexOf(files[i].name) >= 0) { overWriteCount++; }
-                }
+                var fname = files[i].name;
+                if (winAgent) { fname = fname.toLowerCase(); }
+                if (targetFilesMap[fname]) { overWriteCount++; }
             }
 
             if (overWriteCount == 0) {
                 // If no overwrite, go ahead with upload
-                p13uploadFileContinue(1, files);
+                p13uploadFileContinue(1, files, targetFilesMap);
             } else {
                 // Otherwise, prompt for confirmation
                 setModalContent('xxAddAgent', "Upload File", format((overWriteCount == 1) ? "Upload will overwrite 1 file. Continue?" : "Upload will overwrite {0} files. Continue?", overWriteCount));
-                showModal('xxAddAgentModal', 'idx_dlgOkButton', () => p13uploadFileContinue(3, files));
+                showModal('xxAddAgentModal', 'idx_dlgOkButton', () => p13uploadFileContinue(3, files, targetFilesMap));
             }
         }
 
-        function p13uploadFileContinue(b, files) {
-            uploadFile = { xpath: p13filetreelocation.join('/'), xfiles: files, xfilePtr: -1, totalSize: 0, totalSentSoFar: 0 };
+        function p13uploadFileContinue(b, files, targetFilesMap) {
+            if (targetFilesMap == null) {
+                var winAgent = isWindowsNode(currentNode);
+                targetFilesMap = {};
+                for (var i in p13filetree.dir) {
+                    var fname = p13filetree.dir[i].n;
+                    if (winAgent) { fname = fname.toLowerCase(); }
+                    targetFilesMap[fname] = p13filetree.dir[i];
+                }
+            }
+            uploadFile = { xpath: p13filetreelocation.join('/'), xfiles: files, xfilePtr: -1, totalSize: 0, totalSentSoFar: 0, targetFilesMap: targetFilesMap };
             for (var i = 0; i < files.length; i++) { uploadFile.totalSize += files[i].size; }
 
             var progressHtml = '<div id="p13dfileName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; margin-bottom: 12px; color: #2c3e50; font-size: 15px;">Connecting...</div>' +
@@ -15226,7 +15237,12 @@
                     uploadFile.xfile = file;
                     // If the remote file already exists and is smaller then our file, see if we can resume the trasfer
                     var f = null;
-                    for (var i in p13filetree.dir) { if (p13filetree.dir[i].n == file.name) { f = p13filetree.dir[i]; } }
+                    if (uploadFile.targetFilesMap) {
+                        var winAgent = isWindowsNode(currentNode);
+                        var fname = file.name;
+                        if (winAgent) { fname = fname.toLowerCase(); }
+                        f = uploadFile.targetFilesMap[fname];
+                    }
                     if ((f != null) && (f.s <= uploadFile.xfile.size)) {
                         performHashOnFile(uploadFile.xfile, function (hash) { files.sendText(JSON.stringify({ action: 'uploadhash', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: (file.webkitRelativePath || file.name), tag: { h: hash.toUpperCase(), s: f.s, skip: f.s == uploadFile.xfile.size } })); });
                     } else {
