@@ -5353,28 +5353,37 @@ function onTunnelData(data) {
           var spoolDir = (process.platform == 'win32')
             ? obj.path.join(process.env.TEMP || 'C:\\Temp', 'MeshCentralPrint')
             : '/tmp/MeshCentralPrint';
+          var spoolFile = obj.path.join(spoolDir, 'CloudPrint.pdf');
           try { if (!fs.existsSync(spoolDir)) fs.mkdirSync(spoolDir, { recursive: true }); } catch (e) {}
+          
+          if (process.platform == 'win32') {
+            // Windows: Create the virtual printer if it doesn't exist
+            var ps = 'if (!(Get-PrinterPort -Name "' + spoolFile + '" -ErrorAction SilentlyContinue)) { Add-PrinterPort -Name "' + spoolFile + '" }; ';
+            ps += 'if (!(Get-Printer -Name "MeshCentral Cloud Print" -ErrorAction SilentlyContinue)) { Add-Printer -Name "MeshCentral Cloud Print" -DriverName "Microsoft Print to PDF" -PortName "' + spoolFile + '" }';
+            obj.childProcess.exec('powershell -Command "' + ps + '"', function(err, stdout, stderr) {
+                if (err) { that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Printer setup failed: ' + stderr }))); }
+            });
+          }
+
           if (this._cloudPrintWatcher) { try { this._cloudPrintWatcher.close(); } catch(e) {} delete this._cloudPrintWatcher; }
-          var cpjobQueue = {};
-          function cpSendFile(fpath, fname) {
+          var lastPrintTime = 0;
+
+          function cpSendFile(fpath) {
             var prevSz = -1;
             var checkStable = setInterval(function() {
               try {
                 var sz = fs.statSync(fpath).size;
                 if (sz === prevSz && sz > 0) {
                   clearInterval(checkStable);
+                  // Read the file with a shared lock (rbN) to avoid conflict with printer driver if possible
                   try {
-                    var ext2 = fname.split('.').pop().toLowerCase();
-                    var mime2 = 'application/pdf';
-                    if (['png','jpg','jpeg','bmp','gif'].indexOf(ext2) >= 0) mime2 = 'image/' + (ext2 === 'jpg' ? 'jpeg' : ext2);
-                    else if (['txt','log'].indexOf(ext2) >= 0) mime2 = 'text/plain';
                     var stat2 = fs.statSync(fpath);
                     var sz2 = stat2.size;
-                    var fd2 = fs.openSync(fpath, 'rbN');
+                    var fd2 = fs.openSync(fpath, 'r');
                     var ptr2 = 0;
                     var cs2 = 65536;
                     var rid = Date.now();
-                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: fname, mimetype: mime2, size: sz2, reqid: rid })));
+                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: 'CloudPrint.pdf', mimetype: 'application/pdf', size: sz2, reqid: rid })));
                     function doChunk() {
                       if (ptr2 < sz2) {
                         var ln2 = Math.min(cs2, sz2 - ptr2);
@@ -5383,29 +5392,35 @@ function onTunnelData(data) {
                         ptr2 += ln2;
                         that.write(Buffer.from(JSON.stringify({ action: 'cloudprintdata', reqid: rid, chunk: b2.toString('base64'), last: (ptr2 >= sz2) })));
                         if (ptr2 < sz2) { setTimeout(doChunk, 5); }
-                        else { try { fs.closeSync(fd2); } catch(e2) {} setTimeout(function(){ try { fs.unlinkSync(fpath); } catch(e3){} }, 1000); }
+                        else { 
+                          try { fs.closeSync(fd2); } catch(e2) {} 
+                          try { fs.writeFileSync(fpath, ''); } catch(e3) {} // Truncate file so it's ready for next job
+                        }
                       }
                     }
                     doChunk();
                   } catch(ex2) {
-                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', error: 'Read error: ' + ex2.message })));
+                    // If file is locked, retry in a bit
+                    setTimeout(function() { cpSendFile(fpath); }, 1000);
                   }
                 } else { prevSz = sz; }
               } catch(e) { clearInterval(checkStable); }
-            }, 300);
+            }, 500);
           }
+
           try {
+            // Watch the directory for the specific file change
             this._cloudPrintWatcher = fs.watch(spoolDir, function(evt, fname) {
-              if (!fname || evt !== 'rename') return;
-              if (cpjobQueue[fname]) return;
-              cpjobQueue[fname] = true;
-              setTimeout(function() { delete cpjobQueue[fname]; }, 3000);
-              var fpath = obj.path.join(spoolDir, fname);
-              setTimeout(function() {
-                try { if (fs.existsSync(fpath)) cpSendFile(fpath, fname); } catch(e) {}
-              }, 500);
+              if (fname === 'CloudPrint.pdf') {
+                var now = Date.now();
+                if (now - lastPrintTime < 2000) return; // Debounce
+                lastPrintTime = now;
+                setTimeout(function() {
+                  if (fs.existsSync(spoolFile)) cpSendFile(spoolFile);
+                }, 500);
+              }
             });
-            this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir })));
+            this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
           } catch(ex) {
             this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: ex.message })));
           }

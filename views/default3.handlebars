@@ -15257,9 +15257,9 @@
                     }
                     messagebox('Cloud Print Active',
                         'Cloud Print is now ON.<br><br>' +
-                        'On the remote PC, open any file, click <b>Print</b>, choose <b>Microsoft Print to PDF</b>, and <b>save the PDF to:</b><br><br>' +
-                        '<code style="word-break:break-all">' + (cmd.spooldir || '') + '</code><br><br>' +
-                        'The file will be automatically sent to your browser for printing.');
+                        'On the remote PC, a new printer named <b>"MeshCentral Cloud Print"</b> has been added.<br><br>' +
+                        'Simply open any document, click <b>Print</b>, and select the <b>"MeshCentral Cloud Print"</b> printer.<br><br>' +
+                        'The document will automatically pop up in your local browser for printing!');
                 } else if (cmd.status === 'stopped') {
                     _cloudPrintActive = false;
                     _cloudPrintChunks = {};
