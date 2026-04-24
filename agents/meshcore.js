@@ -5291,6 +5291,61 @@ function onTunnelData(data) {
           );
           break;
         }
+        case 'remoteprint': {
+          var filepath = cmd.name ? obj.path.join(cmd.path, cmd.name) : cmd.path;
+          try {
+            var stats = fs.statSync(filepath);
+            var fd = fs.openSync(filepath, 'rbN');
+            var size = stats.size;
+            var ext = cmd.name.split('.').pop().toLowerCase();
+            var mimetype = 'application/octet-stream';
+            if (ext === 'pdf') mimetype = 'application/pdf';
+            else if (['png', 'jpg', 'jpeg', 'bmp', 'gif'].indexOf(ext) >= 0) mimetype = 'image/' + (ext === 'jpg' ? 'jpeg' : ext);
+            else if (['txt', 'log'].indexOf(ext) >= 0) mimetype = 'text/plain';
+
+            var ptr = 0;
+            var chunk_size = 65536;
+            var that = this;
+            
+            function sendNextPrintChunk() {
+               if (ptr < size) {
+                  var len = Math.min(chunk_size, size - ptr);
+                  var buf = Buffer.alloc(len);
+                  fs.readSync(fd, buf, 0, len, ptr);
+                  ptr += len;
+                  that.write(Buffer.from(JSON.stringify({
+                    action: 'remoteprintdata',
+                    reqid: cmd.reqid,
+                    name: cmd.name,
+                    mimetype: mimetype,
+                    size: size,
+                    chunk: buf.toString('base64'),
+                    last: (ptr >= size)
+                  })));
+                  if (ptr < size) {
+                     setTimeout(sendNextPrintChunk, 5);
+                  } else {
+                     try { fs.closeSync(fd); } catch (e) {}
+                  }
+               } else if (size === 0) {
+                  that.write(Buffer.from(JSON.stringify({
+                    action: 'remoteprintdata',
+                    reqid: cmd.reqid,
+                    name: cmd.name,
+                    mimetype: mimetype,
+                    size: size,
+                    chunk: '',
+                    last: true
+                  })));
+                  try { fs.closeSync(fd); } catch (e) {}
+               }
+            }
+            sendNextPrintChunk();
+          } catch (ex) {
+            this.write(Buffer.from(JSON.stringify({ action: 'remoteprintdata', reqid: cmd.reqid, error: 'File not found or access denied' })));
+          }
+          break;
+        }
         case 'copy': {
           // Copy a bunch of files from scpath to dspath
           for (var i in cmd.names) {

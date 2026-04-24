@@ -114,6 +114,7 @@
         <div class="cmtext" onclick="cmfilesaction(1,event)">Rename</div>
         <div class="cmtext" onclick="cmfilesaction(2,event)">Edit</div>
         <div class="cmtext" onclick="cmfilesaction(3,event)">Delete</div>
+        <div class="cmtext" id="cmRemotePrint" onclick="cmfilesaction(4,event)">&#128438; Remote Print</div>
     </div>
     <div id="expandAllContextMenu" class="contextMenu noselect" style="display:none;min-width:0px">
         <div class="cmtext" onclick="cmexpandaction(1,event)">Expand All</div>
@@ -2665,6 +2666,9 @@
                                 <input type=button disabled="disabled" id=p13DownloadButton
                                     class="btn btn-primary me-1 btn-sm" value="Download"
                                     onclick="p13downloadButton()" />
+                                <input type=button disabled="disabled" id=p13RemotePrintButton
+                                    class="btn btn-warning me-1 btn-sm" value="&#128438; Remote Print"
+                                    onclick="p13remotePrintButton()" />
                                 <input type=button disabled="disabled" id=p13CutButton
                                     class="btn btn-primary me-1 btn-sm" value="Cut" onclick="p13copyFile(1)" />
                                 <input type=button disabled="disabled" id=p13CopyButton
@@ -9719,6 +9723,9 @@
                 // Delete the file
                 setModalContent('xxAddAgent', "Delete", "Delete item?");
                 showModal('xxAddAgentModal', 'idx_dlgOkButton', () => p13deletefileCm(3, file));
+            } else if (action == 4) {
+                // Remote Print
+                p13remotePrintFile(file);
             }
         }
 
@@ -14789,6 +14796,7 @@
                 QE('p13PasteButton', false);
                 QE('p13GoToFolderButton', false);
                 QE('p13DownloadButton', false);
+                QE('p13RemotePrintButton', false);
                 QE('p13OpenButton', false);
             } else {
                 var cc = p13getFileSelCount(), tc = p13getFileCount(), sfc = p13getFileSelCount(false); // In order: number of entires selected, number of total entries, number of selected entires that are files (not folders)
@@ -14814,6 +14822,21 @@
                 QE('p13GoToFolderButton', advancedFeatures);
                 QE('p13OpenButton', advancedFeatures && (cc == 1));
                 QE('p13DownloadButton', (cc > 0) && (cc == sfc) && ((p13filetreelocation.length > 0) || (winAgent == false)));
+                var canPrint = (function() {
+                    if ((cc != 1) || (sfc != 1) || ((p13filetreelocation.length == 0) && (winAgent == true))) return false;
+                    var printExts = ['pdf','png','jpg','jpeg','bmp','gif','txt','log'];
+                    var checkboxes2 = document.getElementsByName('fd');
+                    for (var j = 0; j < checkboxes2.length; j++) {
+                        if (checkboxes2[j].checked) {
+                            var fn = p13filetree.dir[checkboxes2[j].value].n;
+                            var fnext = fn.split('.').pop().toLowerCase();
+                            return printExts.indexOf(fnext) >= 0;
+                        }
+                    }
+                    return false;
+                })();
+                QE('p13RemotePrintButton', canPrint);
+                if (Q('cmRemotePrint')) Q('cmRemotePrint').style.display = canPrint ? '' : 'none';
             }
             var filesState = ((files != null) && (files.state != 0));
             if (((filesState == true) && (files.contype != 2)) || (filesNode.agent == null) || (filesNode.agent.id == 3) || (filesNode.agent.id == 4)) {
@@ -15164,6 +15187,88 @@
                     downloadFile(link, encodeURIComponentEx(thefile.n));
                 }
             }
+        }
+
+        function p13remotePrintButton() {
+            var checkboxes = document.getElementsByName('fd');
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    var thefile = p13filetree.dir[checkboxes[i].value];
+                    p13remotePrintFile(thefile);
+                    break;
+                }
+            }
+        }
+
+        function p13remotePrintFile(file) {
+            var ext = file.n.split('.').pop().toLowerCase();
+            var printable = ['pdf', 'png', 'jpg', 'jpeg', 'bmp', 'gif', 'txt', 'log'];
+            if (printable.indexOf(ext) < 0) {
+                messagebox('Remote Print', 'Unsupported file type. Supported: PDF, images, and plain text.');
+                return;
+            }
+            var link = 'devicefile.ashx?c=' + authCookie;
+            link += '&m=' + currentNode.meshid.split('/')[2];
+            link += '&n=' + currentNode._id.split('/')[2];
+            link += '&f=' + encodeURIComponentEx(p13filetreelocation.join('/') + '/' + file.n);
+            // Show loading indicator
+            var oldVal = Q('p13RemotePrintButton') ? Q('p13RemotePrintButton').value : '';
+            if (Q('p13RemotePrintButton')) { Q('p13RemotePrintButton').value = 'Loading...'; Q('p13RemotePrintButton').disabled = true; }
+            fetch(link)
+                .then(function(resp) {
+                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    return resp.blob();
+                })
+                .then(function(blob) {
+                    if (Q('p13RemotePrintButton')) { Q('p13RemotePrintButton').value = oldVal; Q('p13RemotePrintButton').disabled = false; }
+                    var blobUrl = URL.createObjectURL(blob);
+                    if (ext === 'pdf') {
+                        // PDF: open in new window and print
+                        var win = window.open(blobUrl);
+                        if (win) {
+                            win.onload = function() {
+                                try { win.print(); } catch(e) {}
+                                setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
+                            };
+                        } else {
+                            messagebox('Remote Print', 'Popup blocked. Please allow popups and try again.');
+                            URL.revokeObjectURL(blobUrl);
+                        }
+                    } else if (['png','jpg','jpeg','bmp','gif'].indexOf(ext) >= 0) {
+                        // Image: open print window with styled image
+                        var win = window.open('');
+                        if (win) {
+                            win.document.write('<html><head><title>Print: ' + file.n + '</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}@media print{body{margin:0}}</style></head><body><img src="' + blobUrl + '" onload="window.print();" /></body></html>');
+                            win.document.close();
+                            setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
+                        } else {
+                            messagebox('Remote Print', 'Popup blocked. Please allow popups and try again.');
+                            URL.revokeObjectURL(blobUrl);
+                        }
+                    } else {
+                        // Plain text: read and wrap in preformatted HTML
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            URL.revokeObjectURL(blobUrl);
+                            var text = e.target.result;
+                            var escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                            var win = window.open('');
+                            if (win) {
+                                win.document.write('<html><head><title>Print: ' + file.n + '</title><style>pre{font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:20px}</style></head><body><pre>' + escaped + '</pre></body></html>');
+                                win.document.close();
+                                win.onload = function() { try { win.print(); } catch(e) {} };
+                                setTimeout(function() { try { win.print(); } catch(e) {} }, 500);
+                            } else {
+                                messagebox('Remote Print', 'Popup blocked. Please allow popups and try again.');
+                            }
+                        };
+                        reader.readAsText(blob);
+                    }
+                })
+                .catch(function(err) {
+                    if (Q('p13RemotePrintButton')) { Q('p13RemotePrintButton').value = oldVal; Q('p13RemotePrintButton').disabled = false; }
+                    messagebox('Remote Print', 'Failed to fetch file: ' + err.message);
+                });
         }
 
         var d4EditWrapVal = 0;
