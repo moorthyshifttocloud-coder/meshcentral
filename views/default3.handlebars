@@ -63,6 +63,8 @@
     <script type="text/javascript" src="js/ui-components.js"></script>
     {{{customJSTags}}}
     <title>{{{title}}}</title>
+    <!-- Uppy -->
+    <link href="uppy/uppy.min.css" rel="stylesheet">
 </head>
 
 <body id="body" oncontextmenu="handleContextMenu(event)" style="display:none;min-width:495px"
@@ -2656,6 +2658,10 @@
                                 <input type=button disabled="disabled" id=p13UploadFolderButton
                                     class="btn btn-primary me-1 btn-sm" value="Upload Folder"
                                     onclick="p13uploadFolder()" />
+                                <input type=button disabled="disabled" id=p13FastUploadButton
+                                    class="btn btn-success me-1 btn-sm" value="Fast Upload File" onclick="p13fastUploadFile()" />
+                                <input type=button disabled="disabled" id=p13FastUploadFolderButton
+                                    class="btn btn-success me-1 btn-sm" value="Fast Upload Folder" onclick="p13fastUploadFolder()" />
                                 <input type=button disabled="disabled" id=p13DownloadButton
                                     class="btn btn-primary me-1 btn-sm" value="Download"
                                     onclick="p13downloadButton()" />
@@ -14766,6 +14772,8 @@
                 QE('p13DeleteFileButton', false);
                 QE('p13NewFolderButton', false);
                 QE('p13UploadButton', false);
+                QE('p13FastUploadButton', false);
+                QE('p13FastUploadFolderButton', false);
                 QE('p13UploadFolderButton', false);
                 QE('p13NewFileButton', false);
                 QE('p13RenameFileButton', false);
@@ -14788,6 +14796,8 @@
                 QE('p13DeleteFileButton', (cc > 0) && ((p13filetreelocation.length > 0) || (winAgent == false)));
                 QE('p13NewFolderButton', advancedFeatures && ((p13filetreelocation.length > 0) || (winAgent == false)));
                 QE('p13UploadButton', ((p13filetreelocation.length > 0) || (winAgent == false) || (currentNode.agent.id == 14)));
+                QE('p13FastUploadButton', ((p13filetreelocation.length > 0) || (winAgent == false) || (currentNode.agent.id == 14)));
+                QE('p13FastUploadFolderButton', ((p13filetreelocation.length > 0) || (winAgent == false) || (currentNode.agent.id == 14)));
                 QE('p13UploadFolderButton', ((p13filetreelocation.length > 0) || (winAgent == false) || (currentNode.agent.id == 14)));
                 QE('p13NewFileButton', advancedFeatures && ((p13filetreelocation.length > 0) || (winAgent == false)));
                 QE('p13RenameFileButton', advancedFeatures && (cc == 1) && ((p13filetreelocation.length > 0) || (winAgent == false)));
@@ -14857,6 +14867,68 @@
         }
         function p13renamefileEx(b, t) { t.newname = Q('p13renameinput').value; files.sendText(t); p13folderup(999); }
         function p13fileNameCheck(e) { var x = isFilenameValid(Q('p13renameinput').value); QE('idx_dlgOkButton', x); if ((x == true) && (e != null) && (e.keyCode == 13)) { dialogclose(1); } }
+        async function p13fastUploadInit(isFolder) {
+            setModalContent('xxAddAgent', isFolder ? "Fast Upload Folder" : "Fast Upload File", '<div id="uppy-dashboard">Loading Uppy...</div>');
+            showModal('xxAddAgentModal', 'idx_dlgCancelButton', function() { p13folderup(9999); });
+            document.getElementById('idx_dlgOkButton').style.display = 'none';
+
+            var winAgent = isWindowsNode(currentNode);
+            var agentPath = p13filetreelocation.join('/');
+            if (winAgent && agentPath === '') agentPath = 'C:\\';
+
+            function getCookie(name) {
+                var nameEQ = name + "=";
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+            var authCookie = getCookie('rauth') || getCookie('meshauth');
+
+            try {
+                const { Uppy, Dashboard, Tus } = await import('./uppy/uppy.min.mjs');
+
+                document.getElementById('uppy-dashboard').innerHTML = '';
+                var uppyOptions = {
+                    restrictions: { maxNumberOfFiles: null }
+                };
+                var uppy = new Uppy({
+                    restrictions: { maxNumberOfFiles: null },
+                    meta: {
+                        nodeid: currentNode._id,
+                        agentPath: agentPath
+                    }
+                })
+                .use(Dashboard, {
+                    inline: true,
+                    target: '#uppy-dashboard',
+                    showProgressDetails: true,
+                    fileManagerSelectionType: isFolder ? 'folders' : 'files',
+                    proudlyDisplayPoweredByUppy: false
+                })
+                .use(Tus, {
+                    endpoint: 'tus/',
+                    chunkSize: 5 * 1024 * 1024, // 5MB chunks to bypass reverse proxy payload limits
+                    limit: 5, // Upload up to 5 chunks in parallel
+                    removeFingerprintOnSuccess: true,
+                    headers: authCookie ? { 'Authorization': 'Bearer ' + authCookie } : {}
+                });
+
+                // For folder uploads, ensure relativePath is sent as 'filename' metadata
+                uppy.on('file-added', (file) => {
+                    const rpath = (file.meta && file.meta.relativePath) ? file.meta.relativePath : file.name;
+                    uppy.setFileMeta(file.id, { filename: rpath });
+                });
+            } catch (ex) {
+                document.getElementById('uppy-dashboard').innerHTML = '<div style="padding: 20px; color: red;"><b>Error loading Uppy</b><br/>' + ex.message + '<br/><br/>If you are behind a strict firewall or Content Security Policy, you may need to allow unpkg.com or releases.transloadit.com.</div>';
+            }
+        }
+        function p13fastUploadFile() { p13fastUploadInit(false); }
+        function p13fastUploadFolder() { p13fastUploadInit(true); }
+
         function p13uploadFile() {
             setModalContent('xxAddAgent', "Upload File", '<input type=file name=files id=p13uploadinput class="form-control" multiple=multiple onchange="updateUploadDialogOk(\'p13uploadinput\')" />');
             showModal('xxAddAgentModal', 'idx_dlgOkButton', () => p13uploadFileEx());

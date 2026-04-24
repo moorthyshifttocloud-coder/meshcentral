@@ -7501,7 +7501,16 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
 
     // Send the file back
     try {
-      res.sendFile(obj.path.join(obj.filespath, 'tmp', c.f));
+      const fpath = obj.path.join(obj.filespath, 'tmp', c.f);
+      console.log('Tus: Agent is downloading: ' + fpath + ' for node: ' + c.nid);
+      res.sendFile(fpath, function (err) {
+        if (err) {
+          console.log('Tus: Error sending file to agent:', err);
+        }
+        // Cleanup the Tus temporary files
+        try { obj.fs.unlinkSync(fpath); } catch (e) {}
+        try { obj.fs.unlinkSync(fpath + '.info'); } catch (e) {}
+      });
       return;
     } catch (ex) {
       res.sendStatus(404);
@@ -10909,8 +10918,6 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
                         if (parent.amtEventHandler) {
                           parent.amtEventHandler.handleAmtEvent(eventData, nodeid, amthost);
                         }
-                        //res.send('OK');
-
                         return;
                       }
                     }
@@ -13279,9 +13286,9 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
 
       // Setup security headers
       const geourl = domain.geolocation ? ' *.openstreetmap.org' : '';
-      var selfurl = ' wss://' + req.headers.host;
+      var selfurl = ' wss://' + req.headers.host + ' https://' + req.headers.host + ' http://' + req.headers.host;
       if (xforwardedhost != null && xforwardedhost != req.headers.host) {
-        selfurl += ' wss://' + xforwardedhost;
+        selfurl += ' wss://' + xforwardedhost + ' https://' + xforwardedhost + ' http://' + xforwardedhost;
       }
       const extraScriptSrc =
         parent.config.settings.extrascriptsrc != null ? ' ' + parent.config.settings.extrascriptsrc : '';
@@ -13330,7 +13337,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
       var cspBase =
         "default-src 'none'; font-src 'self' fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' " +
         extraScriptSrc +
-        "; connect-src 'self'" +
+        "; connect-src 'self' http://" + req.headers.host + " https://" + req.headers.host +
         geourl +
         selfurl +
         "; img-src 'self' blob: data:" +
@@ -13519,6 +13526,93 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
       }
     }
     function setupHTTPHandlers() {
+      console.log('Tus: Setting up handlers...');
+      // Setup Tus server
+      try {
+        const { Server, EVENTS } = require('@tus/server');
+        const { FileStore } = require('@tus/file-store');
+        if (!obj.tusServer) {
+          obj.tusServer = new Server({
+            path: '/tus', // We will handle the prefix stripping manually if needed
+            relativeLocation: true,
+            datastore: new FileStore({ directory: obj.path.join(obj.parent.filespath, 'tmp') })
+          });
+          console.log('Tus Server Initialized');
+          // Log all events for debugging
+          for (const eventName of Object.values(EVENTS)) {
+            if (eventName === EVENTS.POST_RECEIVE) continue;
+            obj.tusServer.on(eventName, (req, res, upload) => {
+              console.log('Tus Event:', eventName, upload?.id, 'Metadata:', JSON.stringify(upload?.metadata));
+            });
+          }
+          obj.tusServer.on(EVENTS.POST_FINISH, (req, res, upload) => {
+            console.log('Tus: Processing POST_FINISH for ' + upload.id);
+            const metadata = upload.metadata || {};
+            if (metadata.nodeid && metadata.agentPath) {
+              const session = obj.tusSessions?.get(upload.id) || {};
+              const user = session.user;
+              const domain = session.domain;
+              if (user && domain) {
+                obj.tusSessions.delete(upload.id);
+                var ftarget = upload.id;
+                var tlsCertHash = null;
+                if (obj.parent.args.ignoreagenthashcheck == null || obj.parent.args.ignoreagenthashcheck === false) {
+                  tlsCertHash = obj.webCertificateFullHashs[domain.id];
+                  if (tlsCertHash != null) {
+                    tlsCertHash = Buffer.from(tlsCertHash, 'binary').toString('hex');
+                  }
+                }
+                obj.GetNodeWithRights(domain, user, metadata.nodeid, function (node, rights, visible) {
+                    if (node == null || (rights & 8) == 0 || visible == false) {
+                      console.log('Tus: Node not found or no rights:', metadata.nodeid);
+                      return;
+                    }
+                    const acmd = {
+                      action: 'wget',
+                      userid: user._id,
+                      username: user.name,
+                      realname: user.realname,
+                      remoteaddr: req.clientIp || '127.0.0.1',
+                      consent: 0,
+                      rights: rights,
+                      overwrite: true,
+                      createFolder: true,
+                      urlpath: '/agentdownload.ashx?c=' + obj.parent.encodeCookie(
+                        { a: 'tmpdl', d: domain.id, nid: node._id, f: ftarget },
+                        obj.parent.loginCookieEncryptionKey
+                      ),
+                      path: obj.path.join(metadata.agentPath, metadata.filename ? decodeURIComponent(metadata.filename) : upload.id),
+                      folder: metadata.agentPath,
+                      servertlshash: tlsCertHash
+                    };
+                    console.log('Tus: File stored at: ' + obj.path.join(obj.parent.filespath, 'tmp', upload.id));
+                    console.log('Tus: Sending wget to agent: ' + acmd.path);
+                    var agent = obj.wsagents[node._id];
+                    if (agent != null) {
+                      setTimeout(function() {
+                        try {
+                          agent.send(JSON.stringify(acmd));
+                          console.log('Command sent to agent.');
+                        } catch (ex) {
+                          console.log('Failed to send command to agent:', ex.message);
+                        }
+                      }, 500); // 500ms delay to ensure file handle is closed and OS file size is updated
+                    } else {
+                      console.log('Agent not connected for node:', node._id);
+                    }
+                    const event = { etype: 'node', action: 'fileupload', nodeid: node._id, msg: 'File upload finished: ' + (metadata.filename ? decodeURIComponent(metadata.filename) : upload.id), domain: domain.id };
+                    obj.parent.DispatchEvent(['*', node._id, user._id, domain.id], obj, event);
+                  });
+                } else {
+                  console.log('Tus: Processing POST_FINISH failed. User:', !!user, 'Domain:', !!domain);
+                }
+              }
+            });
+          }
+        } catch (e) {
+        console.log('Tus server not configured', e);
+      }
+
       // Setup all HTTP handlers
       if (parent.pluginHandler != null) {
         parent.pluginHandler.callHook('hook_setupHttpHandlers', obj, parent);
@@ -13529,6 +13623,52 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
         });
       }
       for (var i in parent.config.domains) {
+        // Handle Tus Resumable Uploads
+        if (obj.tusServer) {
+          (function(url, domainX_config) {
+            obj.app.all([url + 'tus', url + 'tus/*'], function(req, res, next) {
+              console.log('Tus Request:', req.method, req.url, 'on', url + 'tus/');
+              const domainX = checkUserIpAddress(req, res);
+              if (domainX == null) { console.log('Tus Blocked: Invalid Domain'); return; }
+              var authUserid = null;
+              if (req.session != null && typeof req.session.userid == 'string') {
+                authUserid = req.session.userid;
+              } else if (req.query && req.query.auth) {
+                var loginCookie = obj.parent.decodeCookie(req.query.auth, obj.parent.loginCookieEncryptionKey, 60);
+                if (loginCookie && loginCookie.userid) authUserid = loginCookie.userid;
+              } else if (req.headers && req.headers['authorization']) {
+                 var authStr = req.headers['authorization'];
+                 if (authStr.startsWith('Bearer ')) {
+                     var loginCookie = obj.parent.decodeCookie(authStr.substring(7), obj.parent.loginCookieEncryptionKey, 60);
+                     if (loginCookie && loginCookie.userid) authUserid = loginCookie.userid;
+                 }
+              }
+              if (authUserid == null) { console.log('Tus Blocked: Unauthenticated'); res.sendStatus(401); return; }
+              req.meshUser = obj.users[authUserid];
+              req.meshDomain = domainX;
+              console.log('Tus Request Authenticated:', req.meshUser?._id, 'on', domainX?.id);
+              
+              const originalUrl = req.url;
+              if (url != '/' && req.url.startsWith(url)) { req.url = req.url.substring(url.length - 1); }
+              
+              // Map the upload ID to the authenticated session for POST_FINISH
+              const match = req.url.match(/^\/tus\/([a-zA-Z0-9]+)/);
+              if (match) {
+                obj.tusSessions = obj.tusSessions || new Map();
+                obj.tusSessions.set(match[1], { user: req.meshUser, domain: req.meshDomain, time: Date.now() });
+                
+                // Cleanup old sessions to prevent memory leaks
+                const now = Date.now();
+                for (const [key, val] of obj.tusSessions.entries()) {
+                  if (now - val.time > 3600000) obj.tusSessions.delete(key); // 1 hour
+                }
+              }
+
+              obj.tusServer.handle(req, res);
+              req.url = originalUrl; // Restore for Express
+            });
+          })(parent.config.domains[i].url, parent.config.domains[i]);
+        }
         if (parent.config.domains[i].dns != null || parent.config.domains[i].share != null) {
           continue;
         } // This is a subdomain with a DNS name, no added HTTP bindings needed.
@@ -13584,6 +13724,9 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
         obj.app.get(url + 'devicepowerevents.ashx', obj.handleDevicePowerEvents);
         obj.app.get(url + 'downloadfile.ashx', handleDownloadFile);
         obj.app.get(url + 'commander.ashx', handleMeshCommander);
+        obj.app.use(url + 'uppy', obj.express.static(obj.path.join(__dirname, 'node_modules', 'uppy', 'dist')));
+        // Tus handler was moved to the top of CreateWebServer
+
         obj.app.post(url + 'uploadfile.ashx', obj.bodyParser.urlencoded({ extended: false }), handleUploadFile);
         obj.app.post(
           url + 'uploadfilebatch.ashx',
