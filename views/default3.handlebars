@@ -2669,6 +2669,9 @@
                                 <input type=button disabled="disabled" id=p13RemotePrintButton
                                     class="btn btn-warning me-1 btn-sm" value="&#128438; Remote Print"
                                     onclick="p13remotePrintButton()" />
+                                <input type=button id=p13CloudPrintButton
+                                    class="btn btn-danger me-1 btn-sm" value="&#9729; Cloud Print: OFF"
+                                    onclick="p13toggleCloudPrint()" />
                                 <input type=button disabled="disabled" id=p13CutButton
                                     class="btn btn-primary me-1 btn-sm" value="Cut" onclick="p13copyFile(1)" />
                                 <input type=button disabled="disabled" id=p13CopyButton
@@ -14500,6 +14503,9 @@
             // Process file upload commands
             if ((data.action != null) && (data.action.startsWith('upload'))) { p13gotUploadData(data); return; }
 
+            // Process Cloud Print commands
+            if ((data.action != null) && (data.action.startsWith('cloudprint'))) { p13handleCloudPrintMsg(data); return; }
+
             // Process any SSH actions
             switch (data.action) {
                 case 'sshauth': { sshTunnelAuthDialog(data, p13sshConnectEx); return; }
@@ -15211,7 +15217,6 @@
             link += '&m=' + currentNode.meshid.split('/')[2];
             link += '&n=' + currentNode._id.split('/')[2];
             link += '&f=' + encodeURIComponentEx(p13filetreelocation.join('/') + '/' + file.n);
-            // Show loading indicator
             var oldVal = Q('p13RemotePrintButton') ? Q('p13RemotePrintButton').value : '';
             if (Q('p13RemotePrintButton')) { Q('p13RemotePrintButton').value = 'Loading...'; Q('p13RemotePrintButton').disabled = true; }
             fetch(link)
@@ -15221,54 +15226,103 @@
                 })
                 .then(function(blob) {
                     if (Q('p13RemotePrintButton')) { Q('p13RemotePrintButton').value = oldVal; Q('p13RemotePrintButton').disabled = false; }
-                    var blobUrl = URL.createObjectURL(blob);
-                    if (ext === 'pdf') {
-                        // PDF: open in new window and print
-                        var win = window.open(blobUrl);
-                        if (win) {
-                            win.onload = function() {
-                                try { win.print(); } catch(e) {}
-                                setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
-                            };
-                        } else {
-                            messagebox('Remote Print', 'Popup blocked. Please allow popups and try again.');
-                            URL.revokeObjectURL(blobUrl);
-                        }
-                    } else if (['png','jpg','jpeg','bmp','gif'].indexOf(ext) >= 0) {
-                        // Image: open print window with styled image
-                        var win = window.open('');
-                        if (win) {
-                            win.document.write('<html><head><title>Print: ' + file.n + '</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}@media print{body{margin:0}}</style></head><body><img src="' + blobUrl + '" onload="window.print();" /></body></html>');
-                            win.document.close();
-                            setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
-                        } else {
-                            messagebox('Remote Print', 'Popup blocked. Please allow popups and try again.');
-                            URL.revokeObjectURL(blobUrl);
-                        }
-                    } else {
-                        // Plain text: read and wrap in preformatted HTML
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
-                            URL.revokeObjectURL(blobUrl);
-                            var text = e.target.result;
-                            var escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-                            var win = window.open('');
-                            if (win) {
-                                win.document.write('<html><head><title>Print: ' + file.n + '</title><style>pre{font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:20px}</style></head><body><pre>' + escaped + '</pre></body></html>');
-                                win.document.close();
-                                win.onload = function() { try { win.print(); } catch(e) {} };
-                                setTimeout(function() { try { win.print(); } catch(e) {} }, 500);
-                            } else {
-                                messagebox('Remote Print', 'Popup blocked. Please allow popups and try again.');
-                            }
-                        };
-                        reader.readAsText(blob);
-                    }
+                    p13openBlobForPrint(blob, file.n, ext);
                 })
                 .catch(function(err) {
                     if (Q('p13RemotePrintButton')) { Q('p13RemotePrintButton').value = oldVal; Q('p13RemotePrintButton').disabled = false; }
                     messagebox('Remote Print', 'Failed to fetch file: ' + err.message);
                 });
+        }
+
+        // ---- Cloud Print state ----
+        var _cloudPrintActive = false;
+        var _cloudPrintChunks = {}; // reqid -> { chunks: [], mimetype, name }
+
+        function p13toggleCloudPrint() {
+            if (!files) { messagebox('Cloud Print', 'Connect to a device file manager first.'); return; }
+            if (_cloudPrintActive) {
+                files.sendText({ action: 'stopcloudprint' });
+            } else {
+                files.sendText({ action: 'startcloudprint' });
+            }
+        }
+
+        function p13handleCloudPrintMsg(cmd) {
+            if (cmd.action === 'cloudprintstatus') {
+                if (cmd.status === 'active') {
+                    _cloudPrintActive = true;
+                    if (Q('p13CloudPrintButton')) {
+                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: ON';
+                        Q('p13CloudPrintButton').className = 'btn btn-success me-1 btn-sm';
+                    }
+                    messagebox('Cloud Print Active',
+                        'Cloud Print is now ON.<br><br>' +
+                        'On the remote PC, open any file, click <b>Print</b>, choose <b>Microsoft Print to PDF</b>, and <b>save the PDF to:</b><br><br>' +
+                        '<code style="word-break:break-all">' + (cmd.spooldir || '') + '</code><br><br>' +
+                        'The file will be automatically sent to your browser for printing.');
+                } else if (cmd.status === 'stopped') {
+                    _cloudPrintActive = false;
+                    _cloudPrintChunks = {};
+                    if (Q('p13CloudPrintButton')) {
+                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
+                        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+                    }
+                } else if (cmd.status === 'error') {
+                    _cloudPrintActive = false;
+                    messagebox('Cloud Print Error', cmd.message || 'Unknown error');
+                    if (Q('p13CloudPrintButton')) {
+                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
+                        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+                    }
+                }
+            } else if (cmd.action === 'cloudprintjob') {
+                if (cmd.error) { messagebox('Cloud Print', 'Print job error: ' + cmd.error); return; }
+                // Start collecting chunks for this reqid
+                _cloudPrintChunks[cmd.reqid] = { chunks: [], mimetype: cmd.mimetype, name: cmd.name, size: cmd.size };
+            } else if (cmd.action === 'cloudprintdata') {
+                var job = _cloudPrintChunks[cmd.reqid];
+                if (!job) return;
+                if (cmd.chunk) job.chunks.push(Uint8Array.from(atob(cmd.chunk), function(c) { return c.charCodeAt(0); }));
+                if (cmd.last) {
+                    delete _cloudPrintChunks[cmd.reqid];
+                    var blob = new Blob(job.chunks, { type: job.mimetype });
+                    var ext2 = (job.name || '').split('.').pop().toLowerCase();
+                    p13openBlobForPrint(blob, job.name, ext2);
+                }
+            }
+        }
+
+        function p13openBlobForPrint(blob, filename, ext) {
+            var blobUrl = URL.createObjectURL(blob);
+            if (ext === 'pdf') {
+                var win = window.open(blobUrl);
+                if (win) {
+                    win.onload = function() { try { win.print(); } catch(e) {} setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000); };
+                    // fallback if onload doesn't fire (some browsers)
+                    setTimeout(function() { try { win.print(); } catch(e) {} }, 2000);
+                } else { messagebox('Cloud Print', 'Popup blocked. Please allow popups and try again.'); URL.revokeObjectURL(blobUrl); }
+            } else if (['png','jpg','jpeg','bmp','gif'].indexOf(ext) >= 0) {
+                var win = window.open('');
+                if (win) {
+                    win.document.write('<html><head><title>Print: ' + filename + '</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}@media print{body{margin:0}}</style></head><body><img src="' + blobUrl + '" onload="window.print();" /></body></html>');
+                    win.document.close();
+                    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
+                } else { messagebox('Cloud Print', 'Popup blocked. Please allow popups and try again.'); URL.revokeObjectURL(blobUrl); }
+            } else {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    URL.revokeObjectURL(blobUrl);
+                    var text = e.target.result;
+                    var escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                    var win = window.open('');
+                    if (win) {
+                        win.document.write('<html><head><title>Print: ' + filename + '</title><style>pre{font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:20px}</style></head><body><pre>' + escaped + '</pre></body></html>');
+                        win.document.close();
+                        setTimeout(function() { try { win.print(); } catch(e) {} }, 500);
+                    } else { messagebox('Cloud Print', 'Popup blocked. Please allow popups and try again.'); }
+                };
+                reader.readAsText(blob);
+            }
         }
 
         var d4EditWrapVal = 0;

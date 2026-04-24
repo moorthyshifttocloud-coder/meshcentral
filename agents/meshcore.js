@@ -5302,7 +5302,9 @@ function onTunnelData(data) {
             if (ext === 'pdf') mimetype = 'application/pdf';
             else if (['png', 'jpg', 'jpeg', 'bmp', 'gif'].indexOf(ext) >= 0) mimetype = 'image/' + (ext === 'jpg' ? 'jpeg' : ext);
             else if (['txt', 'log'].indexOf(ext) >= 0) mimetype = 'text/plain';
-
+            else if (['doc', 'docx'].indexOf(ext) >= 0) {
+    mimetype = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+}
             var ptr = 0;
             var chunk_size = 65536;
             var that = this;
@@ -5344,6 +5346,74 @@ function onTunnelData(data) {
           } catch (ex) {
             this.write(Buffer.from(JSON.stringify({ action: 'remoteprintdata', reqid: cmd.reqid, error: 'File not found or access denied' })));
           }
+          break;
+        }
+        case 'startcloudprint': {
+          var that = this;
+          var spoolDir = (process.platform == 'win32')
+            ? obj.path.join(process.env.TEMP || 'C:\\Temp', 'MeshCentralPrint')
+            : '/tmp/MeshCentralPrint';
+          try { if (!fs.existsSync(spoolDir)) fs.mkdirSync(spoolDir, { recursive: true }); } catch (e) {}
+          if (this._cloudPrintWatcher) { try { this._cloudPrintWatcher.close(); } catch(e) {} delete this._cloudPrintWatcher; }
+          var cpjobQueue = {};
+          function cpSendFile(fpath, fname) {
+            var prevSz = -1;
+            var checkStable = setInterval(function() {
+              try {
+                var sz = fs.statSync(fpath).size;
+                if (sz === prevSz && sz > 0) {
+                  clearInterval(checkStable);
+                  try {
+                    var ext2 = fname.split('.').pop().toLowerCase();
+                    var mime2 = 'application/pdf';
+                    if (['png','jpg','jpeg','bmp','gif'].indexOf(ext2) >= 0) mime2 = 'image/' + (ext2 === 'jpg' ? 'jpeg' : ext2);
+                    else if (['txt','log'].indexOf(ext2) >= 0) mime2 = 'text/plain';
+                    var stat2 = fs.statSync(fpath);
+                    var sz2 = stat2.size;
+                    var fd2 = fs.openSync(fpath, 'rbN');
+                    var ptr2 = 0;
+                    var cs2 = 65536;
+                    var rid = Date.now();
+                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: fname, mimetype: mime2, size: sz2, reqid: rid })));
+                    function doChunk() {
+                      if (ptr2 < sz2) {
+                        var ln2 = Math.min(cs2, sz2 - ptr2);
+                        var b2 = Buffer.alloc(ln2);
+                        fs.readSync(fd2, b2, 0, ln2, ptr2);
+                        ptr2 += ln2;
+                        that.write(Buffer.from(JSON.stringify({ action: 'cloudprintdata', reqid: rid, chunk: b2.toString('base64'), last: (ptr2 >= sz2) })));
+                        if (ptr2 < sz2) { setTimeout(doChunk, 5); }
+                        else { try { fs.closeSync(fd2); } catch(e2) {} setTimeout(function(){ try { fs.unlinkSync(fpath); } catch(e3){} }, 1000); }
+                      }
+                    }
+                    doChunk();
+                  } catch(ex2) {
+                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', error: 'Read error: ' + ex2.message })));
+                  }
+                } else { prevSz = sz; }
+              } catch(e) { clearInterval(checkStable); }
+            }, 300);
+          }
+          try {
+            this._cloudPrintWatcher = fs.watch(spoolDir, function(evt, fname) {
+              if (!fname || evt !== 'rename') return;
+              if (cpjobQueue[fname]) return;
+              cpjobQueue[fname] = true;
+              setTimeout(function() { delete cpjobQueue[fname]; }, 3000);
+              var fpath = obj.path.join(spoolDir, fname);
+              setTimeout(function() {
+                try { if (fs.existsSync(fpath)) cpSendFile(fpath, fname); } catch(e) {}
+              }, 500);
+            });
+            this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir })));
+          } catch(ex) {
+            this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: ex.message })));
+          }
+          break;
+        }
+        case 'stopcloudprint': {
+          if (this._cloudPrintWatcher) { try { this._cloudPrintWatcher.close(); } catch(e) {} delete this._cloudPrintWatcher; }
+          this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'stopped' })));
           break;
         }
         case 'copy': {
