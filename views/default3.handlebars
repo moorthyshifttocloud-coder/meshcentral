@@ -3911,6 +3911,7 @@
             QV('ScrollToTopButton', (features2 & 0x08000000) != 0);
         }
 
+
         function refreshCookieSession() {
             var xdr = null;
             try { xdr = new XDomainRequest(); } catch (e) { }
@@ -15286,7 +15287,7 @@
                 if (!document.getElementById('cpLoadingCorner')) {
                     var loader = document.createElement('div');
                     loader.id = 'cpLoadingCorner';
-                    loader.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e293b;color:#f8fafc;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:bold;z-index:999999;box-shadow:0 4px 12px rgba(0,0,0,0.4);border:1px solid #334155;font-family:sans-serif;';
+                    loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e293b;color:#f8fafc;padding:15px 24px;border-radius:20px;font-size:16px;font-weight:bold;z-index:999999;box-shadow:0 10px 25px rgba(0,0,0,0.5);border:1px solid #334155;font-family:sans-serif;text-align:center;';
                     loader.innerHTML = 'Loading Print... <span id="cpLoadPct" style="color:#3b82f6;">0%</span>';
                     document.body.appendChild(loader);
                 }
@@ -15339,8 +15340,14 @@
             
             var newWin = window.open(htmlBlobUrl, '_blank');
             if (!newWin) {
-                // Fallback if popup blocker prevented the new tab
-                window.open(pdfBlobUrl, '_blank');
+                // Browser blocked the popup! We must show a button for the user to click.
+                var a = document.createElement('a');
+                a.href = htmlBlobUrl;
+                a.target = '_blank';
+                a.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#ef4444;color:#fff;padding:20px 30px;border-radius:12px;font-size:18px;font-weight:bold;z-index:9999999;box-shadow:0 10px 25px rgba(0,0,0,0.5);text-decoration:none;font-family:sans-serif;cursor:pointer;text-align:center;';
+                a.innerText = 'Print Job Ready (Click to Open)';
+                a.onclick = function() { document.body.removeChild(this); };
+                document.body.appendChild(a);
             }
         }
 
