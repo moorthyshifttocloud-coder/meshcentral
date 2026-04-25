@@ -5405,55 +5405,52 @@ function onTunnelData(data) {
               var totalSize = rawData.length;
               if (totalSize === 0) { isStreaming = false; cooldownTicks = 0; return; }
 
-              sendConsoleText('Cloud Print: [3] Sending ' + totalSize + ' bytes to browser...', sid);
+              sendConsoleText('Cloud Print: [3] Sending ' + totalSize + ' bytes (paced 50ms)...', sid);
 
               var rid = (new Date()).getTime();
-              var chunkSize = 32768; // 32KB raw per chunk
+              var chunkSize = 65536; // 64KB per chunk
+
+              // --- Deferred cleanup (called when browser sends cloudprintcomplete) ---
+              var deleteAttempts = 0;
+              function tryCleanup() {
+                  try {
+                      if (require('fs').existsSync(fpath)) { require('fs').unlinkSync(fpath); }
+                      var psPath2 = 'powershell.exe';
+                      if (process.env['SystemRoot']) psPath2 = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+                      var resetPs = '$ErrorActionPreference="SilentlyContinue"; Get-WmiObject -Class Win32_PrintJob | Where-Object { $_.Name -match "MeshCentral" } | ForEach-Object { $_.Delete() }';
+                      require('child_process').execFile(psPath2, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-Command', resetPs], function() {});
+                      lastKnownSize = 0;
+                      stableCount = 0;
+                      processing = false;
+                  } catch(eDel) {
+                      deleteAttempts++;
+                      if (deleteAttempts < 20) { setTimeout(tryCleanup, 500); }
+                      else { sendConsoleText('Cloud Print: [ERR] Spooler refused to release file lock.', sid); processing = false; }
+                  }
+              }
 
               // Send job header first
               that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: 'CloudPrint.pdf', mimetype: 'application/pdf', size: totalSize, reqid: rid })));
 
-              // Send all chunks synchronously
-              var offset = 0;
-              while (offset < totalSize) {
-                var end = Math.min(offset + chunkSize, totalSize);
-                var slice = rawData.slice(offset, end);
-                offset = end;
-                var isLast = (offset >= totalSize);
-                that.write(Buffer.from(JSON.stringify({ action: 'cloudprintdata', reqid: rid, chunk: slice.toString('base64'), last: isLast })));
-              }
-
-              sendConsoleText('Cloud Print: [4] Job complete! Sent ' + totalSize + ' bytes to browser.', sid);
-
-              // The Windows Spooler often holds a "ghost lock" on the file for a few seconds
-              // after it finishes writing. We must retry deletion until it succeeds.
-              var deleteAttempts = 0;
-  function tryCleanup() {
-      try {
-          if (require('fs').existsSync(fpath)) { require('fs').unlinkSync(fpath); }
-
-          // Once successfully deleted, clear the stuck jobs in the Print Queue
-          var psPath2 = 'powershell.exe';
-          if (process.env['SystemRoot']) psPath2 = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
-          var resetPs = '$ErrorActionPreference="SilentlyContinue"; Get-WmiObject -Class Win32_PrintJob | Where-Object { $_.Name -match "MeshCentral" } | ForEach-Object { $_.Delete() }';
-          require('child_process').execFile(psPath2, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-Command', resetPs], function() {});
-          
-          lastKnownSize = 0;
-          stableCount = 0;
-          processing = false; // FINALLY DONE PROCESSING
-      } catch(eDel) {
-          deleteAttempts++;
-          if (deleteAttempts < 20) {
-              setTimeout(tryCleanup, 500);
-          } else {
-              sendConsoleText('Cloud Print: [ERR] Spooler refused to release file lock.', sid);
-              processing = false; // Give up
-          }
-      }
-  }
-              setTimeout(tryCleanup, 1000); // Give the spooler 1 second to release initially
-
-              isStreaming = false;
+              // --- Paced chunk sender ---
+              // Sending with a 50ms delay between chunks to avoid overwhelming the WebSocket buffer on WAN connections.
+              var cpOffset = 0;
+              var cpInterval = setInterval(function() {
+                  if (cpOffset >= totalSize) {
+                      clearInterval(cpInterval);
+                      sendConsoleText('Cloud Print: [4] All ' + totalSize + ' bytes sent. Awaiting browser confirmation...', sid);
+                      that._cloudPrintCleanup = tryCleanup; // Safe to clean up after cloudprintcomplete
+                      isStreaming = false;
+                      return;
+                  }
+                  var end = Math.min(cpOffset + chunkSize, totalSize);
+                  var slice = rawData.slice(cpOffset, end);
+                  cpOffset = end;
+                  var isLast = (cpOffset >= totalSize);
+                  try {
+                      that.write(Buffer.from(JSON.stringify({ action: 'cloudprintdata', reqid: rid, chunk: slice.toString('base64'), last: isLast })));
+                  } catch(eW) { sendConsoleText('Cloud Print: [ERR] Chunk write failed: ' + eW, sid); }
+              }, 50); // 50ms interval is safe for most WAN/Relay connections
 
             } catch(ex) {
               sendConsoleText('Cloud Print: [ERR] Stream failed: ' + (ex.message || ex), sid);
@@ -5461,7 +5458,12 @@ function onTunnelData(data) {
               cooldownTicks = 0;
             }
           }
- 
+
+          // Store references so cloudprintchunkack / cloudprintretry / cloudprintcomplete
+          // cases (separate switch blocks) can reach them via 'this'.
+          that._cpStreamFn = cpStream;
+          that._cloudPrintSpoolFile = spoolFile;
+
           sendConsoleText('Cloud Print: Preparing for print jobs...', sid);
 
           if (process.platform == 'win32') {
@@ -5610,6 +5612,38 @@ function onTunnelData(data) {
         case 'stopcloudprint': {
           if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e) {} delete this._cloudPrintPoller; }
           this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'stopped' })));
+          break;
+        }
+        case 'cloudprintchunkack': {
+          // Browser acknowledged receipt of one chunk. 
+          // (No longer used in the paced 50ms flow-control model, but kept for protocol compatibility).
+          break;
+        }
+        case 'cloudprintretry': {
+          // Browser detected an incomplete transfer. Re-stream using stored references.
+          // File is still on disk because cleanup is deferred until cloudprintcomplete.
+          var sid2 = this.httprequest ? this.httprequest.sessionid : null;
+          sendConsoleText('Cloud Print: [RETRY] Browser requested re-send.', sid2);
+          var retrySpoolFile = this._cloudPrintSpoolFile;
+          var retryCpStream = this._cpStreamFn;
+          if (retrySpoolFile && retryCpStream && fs.existsSync(retrySpoolFile)) {
+            this._cloudPrintCleanup = null;
+            var retryStat = fs.statSync(retrySpoolFile);
+            var retryMt = retryStat.mtime;
+            if (retryMt && retryMt.getTime) retryMt = retryMt.getTime();
+            sendConsoleText('Cloud Print: [RETRY] Re-streaming ' + retryStat.size + ' bytes...', sid2);
+            retryCpStream(retrySpoolFile, retryStat.size, retryMt);
+          } else {
+            sendConsoleText('Cloud Print: [RETRY] Spool file not available.', sid2);
+            this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Retry failed: print job expired. Please print again.' })));
+          }
+          break;
+        }
+        case 'cloudprintcomplete': {
+          // Browser confirmed full receipt. Safe to delete the spool file now.
+          var sid3 = this.httprequest ? this.httprequest.sessionid : null;
+          sendConsoleText('Cloud Print: [DONE] Browser confirmed receipt. Cleaning up spool file.', sid3);
+          if (this._cloudPrintCleanup) { try { this._cloudPrintCleanup(); } catch(eDone) {} this._cloudPrintCleanup = null; }
           break;
         }
         case 'copy': {

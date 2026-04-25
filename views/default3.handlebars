@@ -15302,21 +15302,41 @@
                 var job = _cloudPrintChunks[cmd.reqid];
                 if (!job) return;
                 if (cmd.chunk) {
-                    var data = atob(cmd.chunk);
-                    job.chunks.push(Uint8Array.from(data, function(c) { return c.charCodeAt(0); }));
-                    job.received += data.length;
-                    
+                    try {
+                        var binaryStr = atob(cmd.chunk);
+                        var bytes = new Uint8Array(binaryStr.length);
+                        for (var bi = 0; bi < binaryStr.length; bi++) { bytes[bi] = binaryStr.charCodeAt(bi) & 0xFF; }
+                        job.chunks.push(bytes);
+                        job.received += bytes.length;
+                    } catch(eAtob) {
+                        console.error('Cloud Print: Chunk decode failed: ' + eAtob);
+                        job.received = -1; // Mark corrupt
+                    }
                     if (Q('cpLoadPct')) {
-                        var pct = Math.floor((job.received / job.size) * 100);
-                        if (pct > 100) pct = 100;
+                        var pct = job.received > 0 ? Math.min(100, Math.floor((job.received / job.size) * 100)) : 0;
                         QH('cpLoadPct', pct + '%');
                     }
                 }
+
                 if (cmd.last) {
                     delete _cloudPrintChunks[cmd.reqid];
                     var loader = document.getElementById('cpLoadingCorner');
                     if (loader) { loader.parentNode.removeChild(loader); }
-                    
+
+                    // Hard integrity check: if bytes are short, do NOT open — request retry
+                    if (job.received < 0 || (job.size > 0 && job.received < job.size)) {
+                        console.warn('Cloud Print: Incomplete (' + job.received + '/' + job.size + ' bytes). Requesting retry...');
+                        var retryDiv = document.createElement('div');
+                        retryDiv.id = 'cpLoadingCorner';
+                        retryDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#7c3aed;color:#fff;padding:15px 24px;border-radius:20px;font-size:16px;font-weight:bold;z-index:999999;box-shadow:0 10px 25px rgba(0,0,0,0.5);border:1px solid #6d28d9;font-family:sans-serif;text-align:center;';
+                        retryDiv.innerHTML = '&#8635; Retrying Print... <span id="cpLoadPct" style="color:#c4b5fd;">0%</span>';
+                        document.body.appendChild(retryDiv);
+                        try { files.sendText({ action: 'cloudprintretry' }); } catch(eR) {}
+                        return;
+                    }
+
+                    // All bytes received — confirm to agent it can delete the spool file
+                    try { files.sendText({ action: 'cloudprintcomplete' }); } catch(eCmp) {}
                     var blob = new Blob(job.chunks, { type: job.mimetype });
                     var ext2 = (job.name || '').split('.').pop().toLowerCase();
                     p13openBlobForPrint(blob, job.name, ext2);
