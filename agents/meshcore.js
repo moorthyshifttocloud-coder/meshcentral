@@ -5350,84 +5350,175 @@ function onTunnelData(data) {
         }
         case 'startcloudprint': {
           var that = this;
-          var spoolDir = (process.platform == 'win32')
-            ? obj.path.join(process.env.TEMP || 'C:\\Temp', 'MeshCentralPrint')
-            : '/tmp/MeshCentralPrint';
-          var spoolFile = obj.path.join(spoolDir, 'CloudPrint.pdf');
-          try { if (!fs.existsSync(spoolDir)) fs.mkdirSync(spoolDir, { recursive: true }); } catch (e) {}
-          
-          if (process.platform == 'win32') {
-            // Windows: Create the virtual printer if it doesn't exist
-            var ps = 'if (!(Get-PrinterPort -Name "' + spoolFile + '" -ErrorAction SilentlyContinue)) { Add-PrinterPort -Name "' + spoolFile + '" }; ';
-            ps += 'if (!(Get-Printer -Name "MeshCentral Cloud Print" -ErrorAction SilentlyContinue)) { Add-Printer -Name "MeshCentral Cloud Print" -DriverName "Microsoft Print to PDF" -PortName "' + spoolFile + '" }';
-            obj.childProcess.exec('powershell -Command "' + ps + '"', function(err, stdout, stderr) {
-                if (err) { that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Printer setup failed: ' + stderr }))); }
-            });
+          var sid = this.httprequest.sessionid;
+          sendConsoleText('Cloud Print: Start requested', sid);
+          var spoolDir = (process.platform == 'win32') ? 'C:\\MeshCentralPrint' : '/tmp/MeshCentralPrint';
+          var spoolFile = obj.path.join(spoolDir, 'CloudPrint.pdf').split('/').join('\\');
+          sendConsoleText('Cloud Print: Spool file: ' + spoolFile, sid);
+          try { if (!fs.existsSync(spoolDir)) fs.mkdirSync(spoolDir, { recursive: true }); } catch (e) {
+              spoolDir = (process.platform == 'win32') ? obj.path.join(process.env.TEMP || 'C:\\Temp', 'MeshCentralPrint').split('/').join('\\') : '/tmp/MeshCentralPrint';
+              spoolFile = obj.path.join(spoolDir, 'CloudPrint.pdf').split('/').join('\\');
+              try { if (!fs.existsSync(spoolDir)) fs.mkdirSync(spoolDir, { recursive: true }); } catch (e2) {}
           }
 
-          if (this._cloudPrintWatcher) { try { this._cloudPrintWatcher.close(); } catch(e) {} delete this._cloudPrintWatcher; }
-          var lastPrintTime = 0;
+          // Stop any existing poller
+          if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e) {} delete this._cloudPrintPoller; }
 
-          function cpSendFile(fpath) {
-            var prevSz = -1;
-            var checkStable = setInterval(function() {
-              try {
-                var sz = fs.statSync(fpath).size;
-                if (sz === prevSz && sz > 0) {
-                  clearInterval(checkStable);
-                  // Read the file with a shared lock (rbN) to avoid conflict with printer driver if possible
-                  try {
-                    var stat2 = fs.statSync(fpath);
-                    var sz2 = stat2.size;
-                    var fd2 = fs.openSync(fpath, 'r');
-                    var ptr2 = 0;
-                    var cs2 = 65536;
-                    var rid = Date.now();
-                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: 'CloudPrint.pdf', mimetype: 'application/pdf', size: sz2, reqid: rid })));
-                    function doChunk() {
-                      if (ptr2 < sz2) {
-                        var ln2 = Math.min(cs2, sz2 - ptr2);
-                        var b2 = Buffer.alloc(ln2);
-                        fs.readSync(fd2, b2, 0, ln2, ptr2);
-                        ptr2 += ln2;
-                        that.write(Buffer.from(JSON.stringify({ action: 'cloudprintdata', reqid: rid, chunk: b2.toString('base64'), last: (ptr2 >= sz2) })));
-                        if (ptr2 < sz2) { setTimeout(doChunk, 5); }
-                        else { 
-                          try { fs.closeSync(fd2); } catch(e2) {} 
-                          try { fs.writeFileSync(fpath, ''); } catch(e3) {} // Truncate file so it's ready for next job
-                        }
-                      }
-                    }
-                    doChunk();
-                  } catch(ex2) {
-                    // If file is locked, retry in a bit
-                    setTimeout(function() { cpSendFile(fpath); }, 1000);
-                  }
-                } else { prevSz = sz; }
-              } catch(e) { clearInterval(checkStable); }
-            }, 500);
-          }
+          var lastKnownSize = -1;
+          var stableCount = 0;
+          var isStreaming = false;
+          var inCooldown = false;        // Boolean cooldown — avoids Date.now() Duktape issues
+          var lastProcessedSize = -1;    // Size of last file we already sent — detect new jobs
 
-          try {
-            // Watch the directory for the specific file change
-            this._cloudPrintWatcher = fs.watch(spoolDir, function(evt, fname) {
-              if (fname === 'CloudPrint.pdf') {
-                var now = Date.now();
-                if (now - lastPrintTime < 2000) return; // Debounce
-                lastPrintTime = now;
-                setTimeout(function() {
-                  if (fs.existsSync(spoolFile)) cpSendFile(spoolFile);
-                }, 500);
+          function cpStream(fpath, fileSize) {
+            isStreaming = true;
+            inCooldown = true;
+            lastProcessedSize = fileSize; // Mark this file as "already sent" immediately
+            try {
+              // Read the ENTIRE file synchronously at once
+              var rawData = fs.readFileSync(fpath);
+              var totalSize = rawData.length;
+              if (totalSize === 0) { isStreaming = false; inCooldown = false; return; }
+
+              sendConsoleText('Cloud Print: [3] Sending ' + totalSize + ' bytes to browser...', sid);
+
+              var rid = (new Date()).getTime();
+              var chunkSize = 32768; // 32KB raw per chunk (~43KB base64) — safe for WebSocket
+
+              // Send job header first
+              that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: 'CloudPrint.pdf', mimetype: 'application/pdf', size: totalSize, reqid: rid })));
+
+              // Send all chunks synchronously — no setTimeout, no event-loop overflow
+              var offset = 0;
+              while (offset < totalSize) {
+                var end = Math.min(offset + chunkSize, totalSize);
+                var slice = rawData.slice(offset, end);
+                offset = end;
+                var isLast = (offset >= totalSize);
+                that.write(Buffer.from(JSON.stringify({ action: 'cloudprintdata', reqid: rid, chunk: slice.toString('base64'), last: isLast })));
               }
+
+              sendConsoleText('Cloud Print: [4] Job complete! Sent ' + totalSize + ' bytes to browser.', sid);
+
+              // Truncate spool file — keeps Local Port driver in Ready state for next job
+              try { fs.writeFileSync(fpath, ''); } catch(e3) {}
+              lastKnownSize = 0;
+              stableCount = 0;
+              lastProcessedSize = -1;  // After truncation, next non-zero file = a NEW job
+              isStreaming = false;
+
+              // 8-second cooldown via setTimeout (reliable in Duktape, unlike Date.now())
+              setTimeout(function() { inCooldown = false; }, 8000);
+
+              // Clear Error state from the print queue asynchronously
+              try {
+                var clearPs = '$jobs = Get-PrintJob -PrinterName "MeshCentral Cloud Print" -ErrorAction SilentlyContinue; if ($jobs) { $jobs | Remove-PrintJob -Confirm:$false -ErrorAction SilentlyContinue }';
+                var psPath2 = 'powershell.exe';
+                if (process.env['SystemRoot']) psPath2 = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+                require('child_process').execFile(psPath2, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-Command', clearPs], function() {});
+              } catch(psErr) {}
+
+            } catch(ex) {
+              sendConsoleText('Cloud Print: [ERR] Stream failed: ' + ex.message, sid);
+              isStreaming = false;
+              inCooldown = false;
+            }
+          }
+
+          // Poll every 500ms — immune to SYSTEM-level spooler writes that bypass fs.watch
+          this._cloudPrintPoller = setInterval(function() {
+            if (isStreaming || inCooldown) return;
+            try {
+              if (!fs.existsSync(spoolFile)) { lastKnownSize = -1; stableCount = 0; return; }
+              var sz = fs.statSync(spoolFile).size;
+              if (sz === 0) { lastKnownSize = 0; stableCount = 0; return; }
+
+              // Skip if this is the same file size we already processed (dedup)
+              if (sz === lastProcessedSize) { stableCount = 0; return; }
+
+              if (sz === lastKnownSize) {
+                stableCount++;
+                if (stableCount >= 3) {        // Stable for 3 ticks (1.5s) — safe to stream
+                  stableCount = 999;           // Prevent re-trigger on next tick before cpStream starts
+                  sendConsoleText('Cloud Print: Triggering print job processing...', sid);
+                  cpStream(spoolFile, sz);
+                }
+              } else {
+                if (lastKnownSize > 0) sendConsoleText('Cloud Print: [2] File growing... (' + sz + ' bytes)', sid);
+                lastKnownSize = sz;
+                stableCount = 0;
+              }
+            } catch(e) { /* file locked by spooler, retry next tick */ }
+          }, 500);
+
+          sendConsoleText('Cloud Print: Polling for print jobs every 500ms...', sid);
+
+          if (process.platform == 'win32') {
+            sendConsoleText('Cloud Print: Setting up printer...', sid);
+
+            var tempDir = process.env['TEMP'] || process.env['TMP'] || 'C:\\Windows\\Temp';
+            var scriptFile = tempDir + '\\mc_setup.ps1';
+            var outFile = tempDir + '\\mc_out.txt';
+
+            var psLine = 'try {\r\n';
+            psLine += '  $ErrorActionPreference = "Stop";\r\n';
+            psLine += '  if (!(Test-Path "' + spoolDir + '")) { New-Item -ItemType Directory -Path "' + spoolDir + '" -Force | Out-Null }\r\n';
+            psLine += '  icacls "' + spoolDir + '" /grant "Everyone:(OI)(CI)F" /T /Q | Out-Null;\r\n';
+            psLine += '  if (!(Test-Path "' + spoolFile + '")) { New-Item -ItemType File -Path "' + spoolFile + '" -Force | Out-Null };\r\n';
+            psLine += '  icacls "' + spoolFile + '" /grant "Everyone:F" /Q | Out-Null;\r\n';
+            psLine += '  $driver = Get-PrinterDriver -Name "Microsoft Print to PDF" -ErrorAction SilentlyContinue;\r\n';
+            psLine += '  if (!$driver) { throw "Microsoft Print to PDF driver is missing on this Windows system." }\r\n';
+            psLine += '  if (!(Get-PrinterPort -Name "' + spoolFile + '" -ErrorAction SilentlyContinue)) {\r\n';
+            psLine += '    Add-PrinterPort -Name "' + spoolFile + '";\r\n';
+            psLine += '  }\r\n';
+            psLine += '  if (!(Get-Printer -Name "MeshCentral Cloud Print" -ErrorAction SilentlyContinue)) {\r\n';
+            psLine += '    Add-Printer -Name "MeshCentral Cloud Print" -DriverName "Microsoft Print to PDF" -PortName "' + spoolFile + '";\r\n';
+            psLine += '  }\r\n';
+            psLine += '  $jobs = Get-PrintJob -PrinterName "MeshCentral Cloud Print" -ErrorAction SilentlyContinue;\r\n';
+            psLine += '  if ($jobs) { $jobs | Remove-PrintJob -Confirm:$false -ErrorAction SilentlyContinue }\r\n';
+            psLine += '  "OK" | Out-File -FilePath "' + outFile + '" -Encoding UTF8;\r\n';
+            psLine += '} catch {\r\n';
+            psLine += '  "ERR: $($_.Exception.Message)" | Out-File -FilePath "' + outFile + '" -Encoding UTF8;\r\n';
+            psLine += '}\r\n';
+
+            try { fs.writeFileSync(scriptFile, psLine); } catch(e) {
+                that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Could not write setup.ps1' }))); break;
+            }
+            try { if (fs.existsSync(outFile)) { fs.unlinkSync(outFile); } } catch(e) {}
+
+            var psPath = 'powershell.exe';
+            if (process.env['SystemRoot']) psPath = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+
+            require('child_process').execFile(psPath, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', scriptFile], function(err, stdout, stderr) {
+                var result = '';
+                try {
+                    if (fs.existsSync(outFile)) {
+                        var raw = fs.readFileSync(outFile);
+                        result = (raw ? raw.toString() : '').trim();
+                    }
+                } catch(e) { result = 'ERR: Failed to read output file: ' + e; }
+
+                try { if (fs.existsSync(scriptFile)) fs.unlinkSync(scriptFile); } catch(e){}
+                try { if (fs.existsSync(outFile)) fs.unlinkSync(outFile); } catch(e){}
+
+                if (result.indexOf('ERR:') === 0 || result !== 'OK') {
+                    var errMsg = result;
+                    if (result.indexOf('ERR:') === 0) errMsg = result.substring(4).trim();
+                    if (!errMsg) errMsg = 'Exit code ' + err + ' (No output)';
+                    sendConsoleText('Cloud Print: Setup failed: ' + errMsg, sid);
+                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Printer setup failed. ' + errMsg })));
+                } else {
+                    sendConsoleText('Cloud Print: Printer setup successful.', sid);
+                    that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
+                }
             });
+          } else {
             this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
-          } catch(ex) {
-            this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: ex.message })));
           }
           break;
         }
         case 'stopcloudprint': {
-          if (this._cloudPrintWatcher) { try { this._cloudPrintWatcher.close(); } catch(e) {} delete this._cloudPrintWatcher; }
+          if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e) {} delete this._cloudPrintPoller; }
           this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'stopped' })));
           break;
         }
