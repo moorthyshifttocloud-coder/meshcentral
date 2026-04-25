@@ -14408,6 +14408,11 @@
                     if (files != null) { files.Stop(); files = null; }
                     if (xxdialogTag == 'fileMsgDialog') { setDialogMode(0); }
                     if (uploadFile != null) { p13uploadFileTransferDone(); uploadFile = null; }
+                    _cloudPrintActive = false; // Reset Cloud Print state
+                    if (Q('p13CloudPrintButton')) { 
+                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF'; 
+                        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm'; 
+                    }
                     break;
                 case 3:
                     p13filetreelocation = [];
@@ -14419,6 +14424,8 @@
                         p13filetreelocation = p13targetpath.split('/');
                         files.sendText({ action: 'ls', reqid: 1, path: p13targetpath });
                         if (files.serverIsRecording == true) { QV('filesRecordIcon', true); }
+                        // Auto-start Cloud Print
+                        setTimeout(function() { if (!_cloudPrintActive) p13toggleCloudPrint(); }, 500);
                     }
                     break;
                 default:
