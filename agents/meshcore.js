@@ -5369,11 +5369,35 @@ function onTunnelData(data) {
           var isStreaming = false;
           var inCooldown = false;        // Boolean cooldown — avoids Date.now() Duktape issues
           var lastProcessedSize = -1;    // Size of last file we already sent — detect new jobs
+          var lastProcessedMtime = 0;    // Modification time of last file sent
+          var staleCountTotal = 0;
+          var lockCount = 0;
+
+          function clearWindowsPrintQueue() {
+            if (process.platform != 'win32') return;
+            try {
+              var clearPs = '$jobs = Get-PrintJob -PrinterName "MeshCentral Cloud Print" -ErrorAction SilentlyContinue; if ($jobs) { $jobs | Remove-PrintJob -Confirm:$false -ErrorAction SilentlyContinue }';
+              var psPath2 = 'powershell.exe';
+              if (process.env['SystemRoot']) psPath2 = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+              require('child_process').execFile(psPath2, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-Command', clearPs], function() {});
+            } catch(psErr) {}
+          }
+
+          // Clear print queue on start to flush old stuck jobs
+          clearWindowsPrintQueue();
+          
+          try { 
+            // Completely REMOVE the old file. 
+            // "Microsoft Print to PDF" will fail if the file already exists.
+            if (fs.existsSync(spoolFile)) {
+                fs.unlinkSync(spoolFile);
+            }
+          } catch(e0) {}
 
           function cpStream(fpath, fileSize) {
             isStreaming = true;
             inCooldown = true;
-            lastProcessedSize = fileSize; // Mark this file as "already sent" immediately
+            lastProcessedSize = fileSize; 
             try {
               // Read the ENTIRE file synchronously at once
               var rawData = fs.readFileSync(fpath);
@@ -5383,12 +5407,12 @@ function onTunnelData(data) {
               sendConsoleText('Cloud Print: [3] Sending ' + totalSize + ' bytes to browser...', sid);
 
               var rid = (new Date()).getTime();
-              var chunkSize = 32768; // 32KB raw per chunk (~43KB base64) — safe for WebSocket
+              var chunkSize = 32768; // 32KB raw per chunk
 
               // Send job header first
               that.write(Buffer.from(JSON.stringify({ action: 'cloudprintjob', name: 'CloudPrint.pdf', mimetype: 'application/pdf', size: totalSize, reqid: rid })));
 
-              // Send all chunks synchronously — no setTimeout, no event-loop overflow
+              // Send all chunks synchronously
               var offset = 0;
               while (offset < totalSize) {
                 var end = Math.min(offset + chunkSize, totalSize);
@@ -5400,58 +5424,46 @@ function onTunnelData(data) {
 
               sendConsoleText('Cloud Print: [4] Job complete! Sent ' + totalSize + ' bytes to browser.', sid);
 
-              // Truncate spool file — keeps Local Port driver in Ready state for next job
-              try { fs.writeFileSync(fpath, ''); } catch(e3) {}
+              // The Windows Spooler often holds a "ghost lock" on the file for a few seconds
+              // after it finishes writing. We must retry deletion until it succeeds.
+              var deleteAttempts = 0;
+              function tryCleanup() {
+                  try {
+                      if (require('fs').existsSync(fpath)) { require('fs').unlinkSync(fpath); }
+                      
+                      // Once successfully deleted, clear the stuck jobs in the Print Queue
+                      var psPath2 = 'powershell.exe';
+                      if (process.env['SystemRoot']) psPath2 = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+                      var resetPs = '$ErrorActionPreference="SilentlyContinue"; Get-WmiObject -Class Win32_PrintJob | Where-Object { $_.Name -match "MeshCentral" } | ForEach-Object { $_.Delete() }';
+                      require('child_process').execFile(psPath2, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-Command', resetPs], function() {});
+                  } catch(eDel) {
+                      deleteAttempts++;
+                      if (deleteAttempts < 20) { // Try for up to 10 seconds
+                          setTimeout(tryCleanup, 500);
+                      } else {
+                          sendConsoleText('Cloud Print: [ERR] Spooler refused to release file lock. Next print may fail.', sid);
+                      }
+                  }
+              }
+              setTimeout(tryCleanup, 1000); // Give the spooler 1 second to release initially
+
               lastKnownSize = 0;
               stableCount = 0;
-              lastProcessedSize = -1;  // After truncation, next non-zero file = a NEW job
+              lastProcessedSize = -1;
+              lastProcessedMtime = 0;
               isStreaming = false;
 
-              // 8-second cooldown via setTimeout (reliable in Duktape, unlike Date.now())
-              setTimeout(function() { inCooldown = false; }, 8000);
-
-              // Clear Error state from the print queue asynchronously
-              try {
-                var clearPs = '$jobs = Get-PrintJob -PrinterName "MeshCentral Cloud Print" -ErrorAction SilentlyContinue; if ($jobs) { $jobs | Remove-PrintJob -Confirm:$false -ErrorAction SilentlyContinue }';
-                var psPath2 = 'powershell.exe';
-                if (process.env['SystemRoot']) psPath2 = process.env['SystemRoot'] + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
-                require('child_process').execFile(psPath2, ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-Command', clearPs], function() {});
-              } catch(psErr) {}
+              // 2-second cooldown (reliable in Duktape)
+              setTimeout(function() { inCooldown = false; }, 2000);
 
             } catch(ex) {
-              sendConsoleText('Cloud Print: [ERR] Stream failed: ' + ex.message, sid);
+              sendConsoleText('Cloud Print: [ERR] Stream failed: ' + (ex.message || ex), sid);
               isStreaming = false;
               inCooldown = false;
             }
           }
-
-          // Poll every 500ms — immune to SYSTEM-level spooler writes that bypass fs.watch
-          this._cloudPrintPoller = setInterval(function() {
-            if (isStreaming || inCooldown) return;
-            try {
-              if (!fs.existsSync(spoolFile)) { lastKnownSize = -1; stableCount = 0; return; }
-              var sz = fs.statSync(spoolFile).size;
-              if (sz === 0) { lastKnownSize = 0; stableCount = 0; return; }
-
-              // Skip if this is the same file size we already processed (dedup)
-              if (sz === lastProcessedSize) { stableCount = 0; return; }
-
-              if (sz === lastKnownSize) {
-                stableCount++;
-                if (stableCount >= 3) {        // Stable for 3 ticks (1.5s) — safe to stream
-                  stableCount = 999;           // Prevent re-trigger on next tick before cpStream starts
-                  sendConsoleText('Cloud Print: Triggering print job processing...', sid);
-                  cpStream(spoolFile, sz);
-                }
-              } else {
-                if (lastKnownSize > 0) sendConsoleText('Cloud Print: [2] File growing... (' + sz + ' bytes)', sid);
-                lastKnownSize = sz;
-                stableCount = 0;
-              }
-            } catch(e) { /* file locked by spooler, retry next tick */ }
-          }, 500);
-
-          sendConsoleText('Cloud Print: Polling for print jobs every 500ms...', sid);
+ 
+          sendConsoleText('Cloud Print: Preparing for print jobs...', sid);
 
           if (process.platform == 'win32') {
             sendConsoleText('Cloud Print: Setting up printer...', sid);
@@ -5510,6 +5522,81 @@ function onTunnelData(data) {
                 } else {
                     sendConsoleText('Cloud Print: Printer setup successful.', sid);
                     that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
+
+                    // Start the poller ONLY after successful setup
+                    if (that._cloudPrintPoller) { try { clearInterval(that._cloudPrintPoller); } catch(e6) {} delete that._cloudPrintPoller; }
+                    that._cloudPrintPoller = setInterval(function() {
+                        if (isStreaming || inCooldown) return;
+                        try {
+                            if (!fs.existsSync(spoolFile)) { lastKnownSize = -1; stableCount = 0; return; }
+                            var st = fs.statSync(spoolFile);
+                            var sz = st.size;
+                            var mt = st.mtime;
+                            if (mt && mt.getTime) mt = mt.getTime(); // Ensure primitive
+
+                            if (sz === 0) { 
+                                lastKnownSize = 0; 
+                                stableCount = 0; 
+                                return; 
+                            }
+
+                            // Skip if this is the same file we already processed (dedup)
+                            if (sz === lastProcessedSize && mt === lastProcessedMtime) { 
+                                stableCount = 0;
+                                staleCountTotal++;
+                                if (staleCountTotal > 40) { // If it sits here for 20s, just clear queue if stuck
+                                    staleCountTotal = 0;
+                                    clearWindowsPrintQueue();
+                                    try { fs.unlinkSync(spoolFile); } catch(e5) {}
+                                }
+                                return; 
+                            }
+                            staleCountTotal = 0;
+
+                            if (sz === lastKnownSize) {
+                                stableCount++;
+                                if (stableCount >= 3) {        // Stable for 3 ticks (1.5s) — safe to stream
+                                    stableCount = 999;           // Prevent re-trigger on next tick before cpStream starts
+                                    
+                                    // Robust check: Try to open the file for read.
+                                    // If we can open it 'r+', the spooler is 100% finished and has released its lock.
+                                    var fd = -1;
+                                    try {
+                                        fd = fs.openSync(spoolFile, 'r+');
+                                        lockCount = 0; // Reset lock counter
+                                    } catch(eLock) {
+                                        lockCount++;
+                                        if (lockCount > 20) { // Locked for 10 seconds
+                                            sendConsoleText('Cloud Print: [ERR] Spooler lock timeout. Forcing queue clear to recover...', sid);
+                                            clearWindowsPrintQueue();
+                                            lockCount = 0;
+                                            stableCount = 0;
+                                            return;
+                                        }
+                                        if (lockCount % 4 === 1) { // Log every 2 seconds to reduce spam
+                                            sendConsoleText('Cloud Print: [WAIT] Spooler is still rendering and locking the file...', sid);
+                                        }
+                                        stableCount = 2; // Reset to 2 so next tick checks again
+                                        return;
+                                    }
+                                    if (fd !== -1) { fs.closeSync(fd); }
+                                    
+                                    sendConsoleText('Cloud Print: Job acquired successfully.', sid);
+                                    cpStream(spoolFile, sz);
+                                }
+                            } else {
+                                if (lastKnownSize > 0) sendConsoleText('Cloud Print: [2] File growing... (' + sz + ' bytes)', sid);
+                                // If the size or mtime changed from what we last processed, reset the processed guard
+                                if (sz !== lastProcessedSize || mt !== lastProcessedMtime) { 
+                                    lastProcessedSize = -1; 
+                                    lastProcessedMtime = 0;
+                                }
+                                lastKnownSize = sz;
+                                stableCount = 0;
+                            }
+                        } catch(e7) {}
+                    }, 500);
+                    sendConsoleText('Cloud Print: Polling for print jobs every 500ms...', sid);
                 }
             });
           } else {

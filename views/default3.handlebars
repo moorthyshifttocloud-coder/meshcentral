@@ -15281,13 +15281,34 @@
             } else if (cmd.action === 'cloudprintjob') {
                 if (cmd.error) { messagebox('Cloud Print', 'Print job error: ' + cmd.error); return; }
                 // Start collecting chunks for this reqid
-                _cloudPrintChunks[cmd.reqid] = { chunks: [], mimetype: cmd.mimetype, name: cmd.name, size: cmd.size };
+                _cloudPrintChunks[cmd.reqid] = { chunks: [], mimetype: cmd.mimetype, name: cmd.name, size: cmd.size, received: 0 };
+                
+                if (!document.getElementById('cpLoadingCorner')) {
+                    var loader = document.createElement('div');
+                    loader.id = 'cpLoadingCorner';
+                    loader.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e293b;color:#f8fafc;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:bold;z-index:999999;box-shadow:0 4px 12px rgba(0,0,0,0.4);border:1px solid #334155;font-family:sans-serif;';
+                    loader.innerHTML = 'Loading Print... <span id="cpLoadPct" style="color:#3b82f6;">0%</span>';
+                    document.body.appendChild(loader);
+                }
             } else if (cmd.action === 'cloudprintdata') {
                 var job = _cloudPrintChunks[cmd.reqid];
                 if (!job) return;
-                if (cmd.chunk) job.chunks.push(Uint8Array.from(atob(cmd.chunk), function(c) { return c.charCodeAt(0); }));
+                if (cmd.chunk) {
+                    var data = atob(cmd.chunk);
+                    job.chunks.push(Uint8Array.from(data, function(c) { return c.charCodeAt(0); }));
+                    job.received += data.length;
+                    
+                    if (Q('cpLoadPct')) {
+                        var pct = Math.floor((job.received / job.size) * 100);
+                        if (pct > 100) pct = 100;
+                        QH('cpLoadPct', pct + '%');
+                    }
+                }
                 if (cmd.last) {
                     delete _cloudPrintChunks[cmd.reqid];
+                    var loader = document.getElementById('cpLoadingCorner');
+                    if (loader) { loader.parentNode.removeChild(loader); }
+                    
                     var blob = new Blob(job.chunks, { type: job.mimetype });
                     var ext2 = (job.name || '').split('.').pop().toLowerCase();
                     p13openBlobForPrint(blob, job.name, ext2);
@@ -15296,77 +15317,31 @@
         }
 
         function p13openBlobForPrint(blob, filename, ext) {
-            var blobUrl = URL.createObjectURL(blob);
-            var safeName = filename || 'CloudPrint.pdf';
-            var sizeKb = Math.round(blob.size / 1024);
-
-            // Remove any previous notification
-            var existing = document.getElementById('cpPrintNotification');
-            if (existing) { existing.parentNode.removeChild(existing); }
-
-            // Inject slide-in animation style once
-            if (!document.getElementById('cpPrintStyles')) {
-                var s = document.createElement('style');
-                s.id = 'cpPrintStyles';
-                s.textContent = '@keyframes cpSlideIn{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}';
-                document.head.appendChild(s);
+            var pdfBlobUrl = URL.createObjectURL(blob);
+            var safeName = filename || 'Cloud Print Job';
+            
+            // Build a dynamic HTML page wrapped in its own Blob.
+            // This prevents the 404 Cross-Origin error that happens when using document.write on about:blank.
+            var html = '<!DOCTYPE html><html><head><title>' + safeName + '</title></head>' +
+                       '<body style="margin:0;padding:0;overflow:hidden;background:#525659;">' +
+                       '<iframe id="pdfFrame" src="' + pdfBlobUrl + '" style="width:100vw;height:100vh;border:none;"></iframe>' +
+                       '<script>' +
+                       '  var f = document.getElementById("pdfFrame");' +
+                       '  f.onload = function() {' +
+                       '    setTimeout(function() {' +
+                       '      try { f.contentWindow.focus(); f.contentWindow.print(); } catch(e) {}' +
+                       '    }, 2000);' +
+                       '  };' +
+                       '<\\/script></body></html>';
+            
+            var htmlBlob = new Blob([html], { type: 'text/html' });
+            var htmlBlobUrl = URL.createObjectURL(htmlBlob);
+            
+            var newWin = window.open(htmlBlobUrl, '_blank');
+            if (!newWin) {
+                // Fallback if popup blocker prevented the new tab
+                window.open(pdfBlobUrl, '_blank');
             }
-
-            // Build toast notification
-            var toast = document.createElement('div');
-            toast.id = 'cpPrintNotification';
-            toast.style.cssText = 'position:fixed;bottom:20px;right:20px;width:320px;background:#0f172a;color:#f1f5f9;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.5);z-index:2147483647;font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;animation:cpSlideIn 0.35s cubic-bezier(0.34,1.56,0.64,1);';
-
-            toast.innerHTML =
-                '<div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:14px 16px;display:flex;align-items:center;gap:12px;">' +
-                    '<span style="font-size:22px;line-height:1;">🖨</span>' +
-                    '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-weight:700;font-size:14px;letter-spacing:0.2px;">Cloud Print Job Ready</div>' +
-                        '<div style="font-size:11px;color:#bfdbfe;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + safeName + '">' + safeName + ' &nbsp;·&nbsp; ' + sizeKb + ' KB</div>' +
-                    '</div>' +
-                    '<button id="cpToastClose" style="background:none;border:none;color:#93c5fd;font-size:16px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">✕</button>' +
-                '</div>' +
-                '<div style="padding:14px 16px;display:flex;gap:8px;">' +
-                    '<button id="cpToastPrint" style="flex:1;padding:9px 0;background:#2563eb;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.3px;">🖨&nbsp; Print Now</button>' +
-                    '<button id="cpToastDownload" style="padding:9px 14px;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:7px;font-size:13px;cursor:pointer;" title="Download PDF">⬇</button>' +
-                '</div>';
-
-            document.body.appendChild(toast);
-
-            function dismiss() {
-                var t = document.getElementById('cpPrintNotification');
-                if (t) t.parentNode.removeChild(t);
-            }
-
-            // Print Now: open PDF in new tab, auto-trigger print dialog
-            document.getElementById('cpToastPrint').onclick = function() {
-                var a = document.createElement('a');
-                a.href = blobUrl;
-                a.target = '_blank';
-                a.rel = 'noopener';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                dismiss();
-                // Note: browser's PDF viewer will load; user uses Ctrl+P or toolbar print button
-            };
-
-            // Download fallback
-            document.getElementById('cpToastDownload').onclick = function() {
-                var a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = safeName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                dismiss();
-            };
-
-            // Dismiss
-            document.getElementById('cpToastClose').onclick = function() {
-                URL.revokeObjectURL(blobUrl);
-                dismiss();
-            };
         }
 
         var d4EditWrapVal = 0;
