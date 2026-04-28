@@ -14271,7 +14271,11 @@ function onTunnelData(data) {
           } else {
             // Condition 1 / 3: Single connection — keep printer only if Cloud Print is ON.
             var _cpAnyActive = false;
-            for (var _ti in tunnels) { if (tunnels[_ti] && tunnels[_ti]._cloudPrintActive) { _cpAnyActive = true; break; } }
+            for (var _ti in tunnels) { 
+                if (tunnels[_ti] && (tunnels[_ti]._cloudPrintActive === true || (tunnels[_ti].httprequest && tunnels[_ti].httprequest._cloudPrintActive === true))) { 
+                    _cpAnyActive = true; break; 
+                } 
+            }
             if (_cpAnyActive) {
               sendConsoleText('Cloud Print: Condition 1/3 — Desktop connected, Cloud Print is ON. Printer kept.', _cpSid);
             } else {
@@ -14427,6 +14431,10 @@ function onTunnelData(data) {
         }
 
         this.end = function () {
+          // ── Cloud Print: Cleanup on tunnel close ────────────────────────────
+          if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e) {} delete this._cloudPrintPoller; }
+          if (this._cloudPrintSpoolFile) { removeCloudPrintPrinter(this._cloudPrintSpoolFile, this.httprequest ? this.httprequest.sessionid : null); }
+          // ───────────────────────────────────────────────────────────────────
           // Remove the files session from the count to update the server
           if (this.httprequest.userid != null) {
             var userid = getUserIdAndGuestNameFromHttpRequest(this.httprequest);
@@ -15093,7 +15101,8 @@ function onTunnelData(data) {
                     that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Printer setup failed. ' + errMsg })));
                 } else {
                     sendConsoleText('Cloud Print: Printer setup successful.', sid);
-                    that._cloudPrintActive = true; // Mark tunnel as owning the printer
+                    that._cloudPrintActive = true; 
+                    if (that.httprequest) that.httprequest._cloudPrintActive = true;
                     that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
 
                     // Start the poller ONLY after successful setup
@@ -15188,6 +15197,8 @@ function onTunnelData(data) {
                 }
             });
           } else {
+            this._cloudPrintActive = true;
+            if (this.httprequest) this.httprequest._cloudPrintActive = true;
             this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
           }
           break;
