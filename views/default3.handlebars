@@ -15261,7 +15261,7 @@
             }
         }
 
-        function p13handleCloudPrintMsg(cmd) {
+            function p13handleCloudPrintMsg(cmd) {
             console.log('Cloud Print: Received message:', cmd);
             if (cmd.action === 'cloudprintstatus') {
                 if (cmd.status === 'active') {
@@ -15269,6 +15269,8 @@
                     if (Q('p13CloudPrintButton')) {
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: ON';
                         Q('p13CloudPrintButton').className = 'btn btn-success me-1 btn-sm';
+                        Q('p13CloudPrintButton').disabled = false;
+                        Q('p13CloudPrintButton').title = '';
                     }
                     console.log('Cloud Print is now active. Spool Dir: ' + cmd.spooldir + ', Printer: ' + cmd.printer);
                 } else if (cmd.status === 'stopped') {
@@ -15277,14 +15279,40 @@
                     if (Q('p13CloudPrintButton')) {
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
                         Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+                        Q('p13CloudPrintButton').disabled = false;
+                        Q('p13CloudPrintButton').title = '';
                     }
                 } else if (cmd.status === 'error') {
                     _cloudPrintActive = false;
                     console.error('Cloud Print Error:', cmd.message || 'Unknown error');
+                    if (cmd.message) messagebox('Cloud Print', cmd.message);
                     if (Q('p13CloudPrintButton')) {
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
                         Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+                        Q('p13CloudPrintButton').disabled = false;
+                        Q('p13CloudPrintButton').title = '';
                     }
+                } else if (cmd.status === 'hidden') {
+                    // Multiple users connected — disable and hide the Cloud Print button
+                    _cloudPrintActive = false;
+                    _cloudPrintChunks = {};
+                    if (Q('p13CloudPrintButton')) {
+                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Unavailable';
+                        Q('p13CloudPrintButton').className = 'btn btn-secondary me-1 btn-sm';
+                        Q('p13CloudPrintButton').disabled = true;
+                        Q('p13CloudPrintButton').title = cmd.message || 'Cloud Print disabled: multiple users connected.';
+                    }
+                    console.warn('Cloud Print hidden:', cmd.message);
+                } else if (cmd.status === 'available') {
+                    // Back to single user — re-enable the button
+                    _cloudPrintActive = false;
+                    if (Q('p13CloudPrintButton')) {
+                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
+                        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+                        Q('p13CloudPrintButton').disabled = false;
+                        Q('p13CloudPrintButton').title = '';
+                    }
+                    console.log('Cloud Print is now available again (single user).');
                 }
             } else if (cmd.action === 'cloudprintjob') {
                 if (cmd.error) { messagebox('Cloud Print', 'Print job error: ' + cmd.error); return; }

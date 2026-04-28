@@ -145,6 +145,65 @@ function getDomainInfo() {
   return ret;
 }
 
+// ─── Cloud Print global helpers ───────────────────────────────────────────────
+var _cloudPrintPoller = null; // Global sentinel (not used for logic, kept for reference)
+
+function getTotalSessionCount() {
+  // Count unique users across all tunnel types (Desktop, Terminal, Files, etc.)
+  var users = {};
+  var count = 0;
+  try {
+    if (typeof tunnelUserCount !== 'undefined') {
+      ['desktop', 'terminal', 'files', 'tcp', 'udp'].forEach(function(type) {
+        if (tunnelUserCount[type]) {
+          for (var u in tunnelUserCount[type]) { 
+            if (!users[u]) { users[u] = true; count++; }
+          }
+        }
+      });
+    }
+  } catch(e) {}
+  return count;
+}
+
+function removeCloudPrintPrinter(spoolFilePath, consoleSid) {
+  if (process.platform != 'win32') return;
+  var sf = spoolFilePath || 'C:\\MeshCentralPrint\\CloudPrint.pdf';
+  if (consoleSid) sendConsoleText('Cloud Print: Removing printer from system...', consoleSid);
+  
+  // Use a temporary batch file to find and run the printing admin scripts
+  var tempDir = process.env['TEMP'] || process.env['TMP'] || 'C:\\Windows\\Temp';
+  var batchFile = tempDir + '\\mc_rm_print.bat';
+  
+  var cmd = '@echo off\r\n';
+  cmd += 'rem Clear the queue using PowerShell first\r\n';
+  cmd += 'powershell -NoProfile -Command "$ErrorActionPreference=\'SilentlyContinue\'; $j=Get-PrintJob -PrinterName \'MeshCentral Cloud Print\'; if($j){$j|Remove-PrintJob}"\r\n';
+  cmd += 'rem Find the printing admin scripts (locales vary)\r\n';
+  cmd += 'set PRN_PATH=\r\n';
+  cmd += 'for /d %%d in ("%SystemRoot%\\System32\\Printing_Admin_Scripts\\*") do if exist "%%d\\prnmngr.vbs" set PRN_PATH=%%d\r\n';
+  cmd += 'if "%PRN_PATH%"=="" exit /b 1\r\n';
+  cmd += 'cscript //nologo "%PRN_PATH%\\prnmngr.vbs" -d -p "MeshCentral Cloud Print" >nul 2>&1\r\n';
+  cmd += 'cscript //nologo "%PRN_PATH%\\prnport.vbs" -d -r "' + sf + '" >nul 2>&1\r\n';
+  cmd += 'exit /b 0\r\n';
+
+  try {
+    fs.writeFileSync(batchFile, cmd);
+    var comspec = 'cmd.exe';
+    if (process.env['SystemRoot']) comspec = process.env['SystemRoot'] + '\\System32\\cmd.exe';
+    require('child_process').execFile(comspec, ['/c', batchFile], function(err) {
+      try { fs.unlinkSync(batchFile); } catch(e2) {}
+      if (err) {
+        if (consoleSid) sendConsoleText('Cloud Print: Printer removal reported code ' + (err.code || 1) + '. System may be clean or locked.', consoleSid);
+      } else {
+        if (consoleSid) sendConsoleText('Cloud Print: Printer removal OK.', consoleSid);
+      }
+    });
+  } catch(e) { 
+    if (consoleSid) sendConsoleText('Cloud Print: removeCloudPrintPrinter exception: ' + e, consoleSid); 
+  }
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 function getLoggedOnUserBySessionId(sessionId) {
   try {
     const result = require('win-registry').QueryKey(
@@ -3143,6 +3202,41 @@ function onTunnelUpgrade(response, s, head) {
     s.on('timeout', tunnel_onIdleTimeout);
   }
 
+  // ── Cloud Print: Global connection-time enforcement ───────────────────────
+  var cpThat = this;
+  setTimeout(function() {
+    var totalSessions = getTotalSessionCount();
+    if (totalSessions > 1) {
+      // 2+ users connected globally → stop any active cloud print and remove the printer
+      var cpSid = cpThat.httprequest ? cpThat.httprequest.sessionid : null;
+      sendConsoleText('Cloud Print: ' + totalSessions + ' total users connected to device. Disabling Cloud Print.', cpSid);
+      for (var ti in tunnels) {
+        var t = tunnels[ti];
+        if (t && t.httprequest && t.httprequest.protocol == 5 && t._cloudPrintActive) {
+          if (t._cloudPrintPoller) { try { clearInterval(t._cloudPrintPoller); } catch(e){} delete t._cloudPrintPoller; }
+          t._cloudPrintActive = false;
+          try { t.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'hidden', message: 'Cloud Print disabled: multiple users connected.' }))); } catch(e){}
+        }
+      }
+      try { cpThat.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'hidden', message: 'Cloud Print disabled: multiple users connected.' }))); } catch(e){}
+      removeCloudPrintPrinter(null, cpSid);
+    } else if (totalSessions === 1) {
+      // First (only) user connected globally — check if Cloud Print is currently ON
+      var anyActive = false;
+      for (var ti in tunnels) {
+        var t = tunnels[ti];
+        if (t && t.httprequest && t.httprequest.protocol == 5 && t._cloudPrintActive) { anyActive = true; break; }
+      }
+      if (!anyActive) {
+        // Cloud Print is OFF → remove any leftover printer
+        var cpSid2 = cpThat.httprequest ? cpThat.httprequest.sessionid : null;
+        sendConsoleText('Cloud Print: First connection, Cloud Print is OFF. Cleaning up any leftover printer.', cpSid2);
+        removeCloudPrintPrinter(null, null);
+      }
+    }
+  }, 100); // short delay to let tunnelUserCount settle
+  // ────────────────────────────────────────────────────────────────────────
+
   //sendConsoleText('onTunnelUpgrade - ' + this.tcpport + ' - ' + this.udpport);
 
   if (this.tcpport != null) {
@@ -3348,7 +3442,30 @@ function onTunnelClosed() {
     delete this.httprequest.downloadFile;
   }
 
-  // Clean up WebRTC
+  // Cloud Print: clean up if this tunnel owned the print session
+  if (this.httprequest && this.httprequest.protocol == 5) {
+    if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e){} delete this._cloudPrintPoller; }
+    if (_cloudPrintPoller === this._cloudPrintPoller) { _cloudPrintPoller = null; }
+    
+    // REQUIREMENT 1: ALWAYS remove printer on session disconnect
+    var closeSid = this.httprequest ? this.httprequest.sessionid : null;
+    removeCloudPrintPrinter(this._cloudPrintSpoolFile, closeSid);
+    this._cloudPrintActive = false;
+
+    // Notify any other file tunnel that cloud print is now available again
+    var globalSessions = getTotalSessionCount();
+    if (globalSessions <= 1) {
+      // Broadcast available status to remaining tunnel if any
+      for (var ti in tunnels) {
+        var t = tunnels[ti];
+        if (t && t !== this && t.httprequest && t.httprequest.protocol == 5) {
+          try { t.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'available' }))); } catch(e){}
+        }
+      }
+    }
+  }
+
+
   if (this.webrtc != null) {
     if (this.webrtc.rtcchannel) {
       try {
@@ -5364,6 +5481,14 @@ function onTunnelData(data) {
           // Stop any existing poller
           if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e) {} delete this._cloudPrintPoller; }
 
+          // REQUIREMENT 2: Block if multiple users are connected globally
+          var activeSessions = getTotalSessionCount();
+          if (activeSessions > 1) {
+              sendConsoleText('Cloud Print: Blocked — ' + activeSessions + ' users connected to device.', sid);
+              this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'hidden', message: 'Cloud Print disabled: ' + activeSessions + ' users connected to device.' })));
+              break;
+          }
+
           var lastKnownSize = -1;
           var stableCount = 0;
           var isStreaming = false;
@@ -5522,12 +5647,23 @@ function onTunnelData(data) {
                     that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'error', message: 'Printer setup failed. ' + errMsg })));
                 } else {
                     sendConsoleText('Cloud Print: Printer setup successful.', sid);
+                    that._cloudPrintActive = true; // Mark tunnel as owning the printer
                     that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'active', spooldir: spoolDir, printer: 'MeshCentral Cloud Print' })));
 
                     // Start the poller ONLY after successful setup
                     if (that._cloudPrintPoller) { try { clearInterval(that._cloudPrintPoller); } catch(e6) {} delete that._cloudPrintPoller; }
                     that._cloudPrintPoller = setInterval(function() {
+                        // REQUIREMENT 2: Mid-session global multi-user guard
+                        if (getTotalSessionCount() > 1) {
+                            clearInterval(that._cloudPrintPoller); delete that._cloudPrintPoller;
+                            that._cloudPrintActive = false;
+                            sendConsoleText('Cloud Print: Stopped — additional user connected to device.', sid);
+                            removeCloudPrintPrinter(that._cloudPrintSpoolFile, sid);
+                            try { that.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'hidden', message: 'Cloud Print disabled: multiple users connected to device.' }))); } catch(e){}
+                            return;
+                        }
                         if (cooldownTicks > 0) { cooldownTicks--; return; }
+
                         if (isStreaming) return;
                         try {
                             if (!fs.existsSync(spoolFile)) { lastKnownSize = -1; stableCount = 0; return; }
@@ -5610,8 +5746,13 @@ function onTunnelData(data) {
           break;
         }
         case 'stopcloudprint': {
+          var stopSid = this.httprequest ? this.httprequest.sessionid : null;
           if (this._cloudPrintPoller) { try { clearInterval(this._cloudPrintPoller); } catch(e) {} delete this._cloudPrintPoller; }
+          this._cloudPrintActive = false;
           this.write(Buffer.from(JSON.stringify({ action: 'cloudprintstatus', status: 'stopped' })));
+          // REQUIREMENT 1: Remove printer on explicit stop
+          removeCloudPrintPrinter(this._cloudPrintSpoolFile, stopSid);
+          sendConsoleText('Cloud Print: Stopped by user. Printer removed.', stopSid);
           break;
         }
         case 'cloudprintchunkack': {
@@ -9263,3 +9404,6 @@ function onWebSocketUpgrade(response, s, head) {
 
 mesh.AddCommandHandler(handleServerCommand);
 mesh.AddConnectHandler(handleServerConnection);
+
+// REQUIREMENT 1: Startup cleanup — remove any leftover Cloud Print printer
+if (process.platform == 'win32') { removeCloudPrintPrinter('C:\\MeshCentralPrint\\CloudPrint.pdf', null); }

@@ -80,8 +80,5 @@
     "type": "git",
     "url": "https://github.com/Ylianst/MeshCentral.git"
   },
-  "readme": "readme.md",
-  "devDependencies": {
-    "prettier": "^3.8.3"
-  }
+  "readme": "readme.md"
 }
