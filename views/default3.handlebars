@@ -2671,6 +2671,7 @@
                                     onclick="p13remotePrintButton()" />
                                 <input type=button id=p13CloudPrintButton
                                     class="btn btn-danger me-1 btn-sm" value="&#9729; Cloud Print: OFF"
+                                    style="display:none"
                                     onclick="p13toggleCloudPrint()" />
                                 <input type=button disabled="disabled" id=p13CutButton
                                     class="btn btn-primary me-1 btn-sm" value="Cut" onclick="p13copyFile(1)" />
@@ -14409,10 +14410,14 @@
                     if (xxdialogTag == 'fileMsgDialog') { setDialogMode(0); }
                     if (uploadFile != null) { p13uploadFileTransferDone(); uploadFile = null; }
                     _cloudPrintActive = false; // Reset Cloud Print state
-                    _stopCloudPrintPoll(); // Stop any running availability poll
+                    _cpWasUnavailable = false;
+                    if (_cpFilePoller) { clearInterval(_cpFilePoller); _cpFilePoller = null; }
                     if (Q('p13CloudPrintButton')) { 
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF'; 
-                        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm'; 
+                        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+                        Q('p13CloudPrintButton').disabled = false;
+                        Q('p13CloudPrintButton').title = '';
+                        Q('p13CloudPrintButton').style.display = 'none';
                     }
                     break;
                 case 3:
@@ -14425,29 +14430,13 @@
                         p13filetreelocation = p13targetpath.split('/');
                         files.sendText({ action: 'ls', reqid: 1, path: p13targetpath });
                         if (files.serverIsRecording == true) { QV('filesRecordIcon', true); }
-                        // Auto-start Cloud Print
-// AFTER — only auto-start if this is the only file tunnel connection:
-setTimeout(function() {
-    if (!_cloudPrintActive) {
-        // Count total file tunnel connections across all users
-        var _cpFileSessions = 0;
-        if (currentNode && currentNode.sessions && currentNode.sessions.files) {
-            for (var _uid in currentNode.sessions.files) { _cpFileSessions += currentNode.sessions.files[_uid]; }
-        }
-        if (_cpFileSessions >= 2) {
-            // Another file tunnel is already connected — reject Cloud Print
-            console.log('Cloud Print: Blocked — ' + _cpFileSessions + ' file tunnel connections active.');
-            if (Q('p13CloudPrintButton')) {
-                Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Unavailable';
-                Q('p13CloudPrintButton').className = 'btn btn-secondary me-1 btn-sm';
-                Q('p13CloudPrintButton').disabled = true;
-                Q('p13CloudPrintButton').title = 'Cloud Print disabled: another file session is already connected.';
-            }
-        } else {
-            p13toggleCloudPrint();
-        }
-    }
-}, 500);                    }
+                        // ── Cloud Print: start or block based on current file tunnel count ──
+                        // Also launch a persistent poller to react to session count changes mid-session.
+                        setTimeout(function() { p13cloudPrintSessionCheck(true); }, 500);
+                        if (!_cpFilePoller) {
+                            _cpFilePoller = setInterval(function() { p13cloudPrintSessionCheck(false); }, 2000);
+                        }
+                    }
                     break;
                 default:
                     //console.log('Unknown onFilesStateChange state', state);
@@ -15266,37 +15255,72 @@ setTimeout(function() {
         // ---- Cloud Print state ----
         var _cloudPrintActive = false;
         var _cloudPrintChunks = {}; // reqid -> { chunks: [], mimetype, name }
-        var _cloudPrintPollTimer = null; // Interval timer that watches for multi-user conflicts
+        var _cpFilePoller = null;   // interval that watches desktop (kvm) session count
+        var _cpWasUnavailable = false; // true when we went Unavailable due to 2+ desktop users
 
-        // Poll every 3 seconds while Cloud Print is active.
-        // If another file-tunnel user joins, automatically disable Cloud Print on THIS client.
-        function _startCloudPrintPoll() {
-            if (_cloudPrintPollTimer) return; // already running
-            _cloudPrintPollTimer = setInterval(function () {
-                if (!_cloudPrintActive) { _stopCloudPrintPoll(); return; }
-                var _cpFileSessions = 0;
-                if (currentNode && currentNode.sessions && currentNode.sessions.files) {
-                    for (var _uid in currentNode.sessions.files) { _cpFileSessions += currentNode.sessions.files[_uid]; }
+        // Called at file-connect-time and every 2s by the poller.
+        // Watches desktop (kvm) session count — NOT file tunnel count.
+        // 2+ desktop users → Cloud Print Unavailable.
+        // Back to 1 desktop user + file tunnel still open → auto-reinit Cloud Print.
+        function p13cloudPrintSessionCheck(onConnect) {
+            if (!files) return; // file tunnel gone, poller cleared by state-0 handler
+
+            // Sum total desktop (kvm) connections
+            var kvmTotal = 0;
+            if (currentNode && currentNode.sessions && currentNode.sessions.kvm) {
+                for (var uid in currentNode.sessions.kvm) { kvmTotal += currentNode.sessions.kvm[uid]; }
+            }
+            // Sum total file tunnel connections
+            var fileTotal = 0;
+            if (currentNode && currentNode.sessions && currentNode.sessions.files) {
+                for (var fuid in currentNode.sessions.files) { fileTotal += currentNode.sessions.files[fuid]; }
+            }
+
+            if (kvmTotal >= 2 || fileTotal >= 2) {
+                // ── 2+ desktop OR 2+ file tunnel connections ──────────────────────
+                if (_cloudPrintActive) {
+                    console.log('Cloud Print: Poller — 2nd desktop/file user detected. Stopping Cloud Print.');
+                    files.sendText({ action: 'stopcloudprint' });
                 }
-                if (_cpFileSessions >= 2) {
-                    console.log('Cloud Print Poll: ' + _cpFileSessions + ' file sessions detected — disabling Cloud Print.');
-                    _stopCloudPrintPoll();
-                    _cloudPrintActive = false;
-                    _cloudPrintChunks = {};
-                    // Tell the agent to stop
-                    try { if (files) { files.sendText({ action: 'stopcloudprint' }); } } catch(eP) {}
-                    if (Q('p13CloudPrintButton')) {
-                        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Unavailable';
-                        Q('p13CloudPrintButton').className = 'btn btn-secondary me-1 btn-sm';
-                        Q('p13CloudPrintButton').disabled = true;
-                        Q('p13CloudPrintButton').title = 'Cloud Print disabled: another user connected.';
+                _cloudPrintActive = false;
+                _cpWasUnavailable = true;
+                if (Q('p13CloudPrintButton')) {
+                    Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Unavailable';
+                    Q('p13CloudPrintButton').className = 'btn btn-secondary me-1 btn-sm';
+                    Q('p13CloudPrintButton').disabled = true;
+                    Q('p13CloudPrintButton').title = 'Cloud Print disabled: another desktop or file session is connected.';
+                }
+
+            } else {
+                // ── Single desktop user (or none) ─────────────────────────────────
+                if (_cpWasUnavailable) {
+                    // Both kvm and file counts are back to 1 — if file tunnel open, reinit
+                    if (fileTotal >= 1 && files) {
+                        console.log('Cloud Print: Poller — 2nd desktop gone, file tunnel open. Re-initiating Cloud Print.');
+                        _cpWasUnavailable = false;
+                        _cloudPrintActive = false;
+                        if (Q('p13CloudPrintButton')) {
+                            Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Connecting...';
+                            Q('p13CloudPrintButton').className = 'btn btn-warning me-1 btn-sm';
+                            Q('p13CloudPrintButton').disabled = false;
+                            Q('p13CloudPrintButton').title = '';
+                            Q('p13CloudPrintButton').style.display = '';
+                        }
+                        files.sendText({ action: 'startcloudprint' });
+                        setTimeout(function() {
+    if (!_cloudPrintActive && Q('p13CloudPrintButton') && Q('p13CloudPrintButton').value.indexOf('Connecting') !== -1) {
+        Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
+        Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
+    }
+}, 10000); 
                     }
+                } else if (onConnect && !_cloudPrintActive) {
+                    // File tunnel just connected, single desktop user — auto-start Cloud Print
+                    console.log('Cloud Print: File tunnel connected, single desktop user. Auto-starting.');
+                    p13toggleCloudPrint();
                 }
-            }, 3000);
-        }
-
-        function _stopCloudPrintPoll() {
-            if (_cloudPrintPollTimer) { clearInterval(_cloudPrintPollTimer); _cloudPrintPollTimer = null; }
+                // Already active and still single desktop user — nothing to do
+            }
         }
 
         function p13toggleCloudPrint() {
@@ -15309,6 +15333,7 @@ setTimeout(function() {
                 if (Q('p13CloudPrintButton')) {
                     Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Connecting...';
                     Q('p13CloudPrintButton').className = 'btn btn-warning me-1 btn-sm';
+                    Q('p13CloudPrintButton').style.display = '';
                 }
                 files.sendText({ action: 'startcloudprint' });
             }
@@ -15319,7 +15344,6 @@ setTimeout(function() {
             if (cmd.action === 'cloudprintstatus') {
                 if (cmd.status === 'active') {
                     _cloudPrintActive = true;
-                    _startCloudPrintPoll(); // Begin watching for multi-user conflicts
                     if (Q('p13CloudPrintButton')) {
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: ON';
                         Q('p13CloudPrintButton').className = 'btn btn-success me-1 btn-sm';
@@ -15330,16 +15354,15 @@ setTimeout(function() {
                 } else if (cmd.status === 'stopped') {
                     _cloudPrintActive = false;
                     _cloudPrintChunks = {};
-                    _stopCloudPrintPoll();
                     if (Q('p13CloudPrintButton')) {
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: OFF';
                         Q('p13CloudPrintButton').className = 'btn btn-danger me-1 btn-sm';
                         Q('p13CloudPrintButton').disabled = false;
                         Q('p13CloudPrintButton').title = '';
+                        
                     }
                 } else if (cmd.status === 'error') {
                     _cloudPrintActive = false;
-                    _stopCloudPrintPoll();
                     console.error('Cloud Print Error:', cmd.message || 'Unknown error');
                     if (cmd.message) messagebox('Cloud Print', cmd.message);
                     if (Q('p13CloudPrintButton')) {
@@ -15352,7 +15375,6 @@ setTimeout(function() {
                     // Multiple users connected — disable and hide the Cloud Print button
                     _cloudPrintActive = false;
                     _cloudPrintChunks = {};
-                    _stopCloudPrintPoll();
                     if (Q('p13CloudPrintButton')) {
                         Q('p13CloudPrintButton').value = '\u2601 Cloud Print: Unavailable';
                         Q('p13CloudPrintButton').className = 'btn btn-secondary me-1 btn-sm';
