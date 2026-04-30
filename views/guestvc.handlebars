@@ -679,14 +679,24 @@ function pinParticipant(id) {
 
     if (id === 'local') {
         mainLblText.innerText = 'You';
-        if (camEnabled && room && room.localParticipant) {
+        if (room && room.localParticipant) {
             var vTracks = [];
-            room.localParticipant.videoTracks.forEach(function(pub){ if (pub.track) vTracks.push(pub.track); });
-            if (vTracks.length > 0) {
+            if (room.localParticipant.videoTracks) {
+                room.localParticipant.videoTracks.forEach(function(publication) {
+                    if (publication && publication.track) { vTracks.push(publication.track); }
+                });
+            }
+            if (vTracks.length > 0 && camEnabled) {
                 vTracks[0].attach(mainVideo);
                 mainVideo.style.display = 'block';
-            } else { mainAvatar.style.display = 'flex'; }
-        } else { mainAvatar.style.display = 'flex'; }
+                mainAvatar.style.display = 'none';
+            } else {
+                mainVideo.style.display = 'none';
+                mainAvatar.style.display = 'flex';
+            }
+        } else {
+            mainAvatar.style.display = 'flex';
+        }
         if (!micEnabled) mainMuted.classList.add('show');
 
         var lt = document.getElementById('s_local');
@@ -701,6 +711,11 @@ function pinParticipant(id) {
             mainVideo.srcObject = data.stream;
             mainVideo.style.display = 'block';
         } else {
+            if (!data || !data.track || typeof data.track.attach !== 'function') {
+                console.error('[PIN] track missing for sid:', id, 'falling back to local');
+                pinParticipant('local');
+                return;
+            }
             data.track.attach(mainVideo);
             mainVideo.style.display = 'block';
         }
@@ -933,6 +948,41 @@ document.addEventListener('keydown', function(e) {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
         #roomLabel { font-size: 12px; font-weight: 500; color: var(--text-dim); }
+
+        /* ── RECORDING BUTTON ── */
+        #recordBtn {
+            display: flex; align-items: center; gap: 6px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 4px 10px 4px 8px;
+            font-size: 12px; font-weight: 500;
+            color: var(--text-mid);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        #recordBtn:hover:not(:disabled) {
+            background: var(--surface3); border-color: var(--border); color: var(--text);
+        }
+        #recordBtn:disabled {
+            opacity: 0.5; cursor: not-allowed;
+        }
+        #recordDot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--text-dim); flex-shrink: 0;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        #recordBtn.recording {
+            background: var(--red-dim);
+            border-color: rgba(239,68,68,0.35);
+            color: var(--red);
+        }
+        #recordBtn.recording #recordDot {
+            background: var(--red);
+            box-shadow: 0 0 6px var(--red);
+            animation: blink 1.4s ease-in-out infinite;
+        }
 
         /* ── TOP-RIGHT: timer + participant badge ── */
         #topRight { display: flex; align-items: center; gap: 8px; }
@@ -1378,6 +1428,10 @@ document.addEventListener('keydown', function(e) {
         <span id="roomLabel"></span>
     </div>
     <div id="topRight">
+        <button id="recordBtn" onclick="toggleRecording()" title="Recording">
+            <div id="recordDot"></div>
+            <span id="recordText">REC</span>
+        </button>
         <span id="callTimer">0:00</span>
         <button id="participantPill" onclick="toggleDrawer()" title="Participants">
             <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
@@ -1495,10 +1549,91 @@ var pinnedId      = 'local';
 var remoteTracks  = {};
 var remoteParticipants = {}; // identity → { name, micMuted }
 
+var recordState = 'idle';
+var currentEgressId = null;
+
 var urlParams = new URLSearchParams(window.location.search);
 var roomId    = urlParams.get('room');
 var token     = urlParams.get('token');
 var isHost    = urlParams.get('role') === 'host' || urlParams.get('host') === '1' || urlParams.get('host') === 'true';
+
+// ── Recording ───────────────────────────────────────────────────────────────
+async function toggleRecording() {
+    if (recordState === 'idle') {
+        recordState = 'recording';
+        updateRecordUI();
+        try {
+            var res = await fetch('/api/startrecording', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roomId: roomId })
+            });
+            if (!res.ok) throw new Error('Status ' + res.status);
+            var data = await res.json();
+            if (data.egressId) {
+                currentEgressId = data.egressId;
+                showToast("Recording started");
+            } else {
+                throw new Error("No egressId returned");
+            }
+        } catch(e) {
+            recordState = 'idle';
+            updateRecordUI();
+            showToast("Recording failed: " + e.message);
+        }
+    } else if (recordState === 'recording') {
+        if (!currentEgressId) return;
+        recordState = 'stopping';
+        updateRecordUI();
+        try {
+            var res = await fetch('/api/stoprecording', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ egressId: currentEgressId })
+            });
+            if (!res.ok) throw new Error('Status ' + res.status);
+            currentEgressId = null;
+            recordState = 'idle';
+            updateRecordUI();
+            showToast("Recording stopped");
+        } catch(e) {
+            recordState = 'recording';
+            updateRecordUI();
+            showToast("Could not stop recording: " + e.message);
+        }
+    }
+}
+
+function updateRecordUI() {
+    var btn = document.getElementById('recordBtn');
+    var txt = document.getElementById('recordText');
+    if (!btn) return;
+    if (recordState === 'idle') {
+        btn.className = '';
+        btn.disabled = false;
+        txt.innerText = 'REC';
+    } else if (recordState === 'recording') {
+        btn.className = 'recording';
+        btn.disabled = false;
+        txt.innerText = 'Recording';
+    } else if (recordState === 'stopping') {
+        btn.className = '';
+        btn.disabled = true;
+        txt.innerText = 'Stopping…';
+    }
+}
+
+function stopRecordingIfNeeded() {
+    if (recordState === 'recording' && currentEgressId) {
+        fetch('/api/stoprecording', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ egressId: currentEgressId })
+        }).catch(function(){});
+        recordState = 'stopping';
+        updateRecordUI();
+    }
+}
 
 // ── Timer ───────────────────────────────────────────────────────────────────
 function startTimer() {
@@ -1552,13 +1687,33 @@ function doJoin() {
 
 // ── Main connect ─────────────────────────────────────────────────────────────
 async function start() {
+    if (room !== null) {
+        console.log('[CONNECT] WARNING: room already exists, state:', room.state);
+        try { await room.disconnect(); } catch(e){}
+        await new Promise(r => setTimeout(r, 500));
+        room = null;
+    }
+
+    console.log('[CONNECT] start() called, roomId:', roomId, 'token length:', token ? token.length : 0);
     if (!roomId || !token) { setStatus('error'); return; }
     sdk = window.LiveKitClient || window.LivekitClient;
+    console.log('[CONNECT] SDK found:', !!sdk, 'SDK version:', sdk.version || 'unknown');
     if (!sdk) { setStatus('error'); return; }
     setStatus('connecting');
 
     try {
         room = new sdk.Room();
+        console.log('[CONNECT] room object created');
+
+        room.on(sdk.RoomEvent.MediaDevicesError, function(error) {
+            console.log('[CONNECT] MediaDevicesError', error.name, error.message);
+        });
+        room.on(sdk.RoomEvent.SignalConnected, function() {
+            console.log('[CONNECT] SignalConnected fired');
+        });
+        room.on(sdk.RoomEvent.Connected, function() {
+            console.log('[CONNECT] Connected event fired, room.state:', room.state);
+        });
 
         room.on(sdk.RoomEvent.TrackSubscribed, function(track, pub, participant) {
             if (participant) {
@@ -1601,20 +1756,40 @@ async function start() {
         });
 
         room.on(sdk.RoomEvent.TrackMuted, function(pub, participant) {
-            if (pub.kind === 'audio' && participant) {
-                if (remoteParticipants[participant.identity]) {
-                    remoteParticipants[participant.identity].micMuted = true;
+            if (pub.kind === 'audio') {
+                console.log('[MIC] TrackMuted event:', participant ? participant.identity : 'unknown', 'sid:', pub.trackSid, 'isMuted:', pub.isMuted);
+                if (participant) {
+                    var smuteEl = document.getElementById('smute_' + participant.identity);
+                    console.log('[MIC] smute_ element exists for', participant.identity, ':', !!smuteEl);
+                    if (smuteEl) smuteEl.classList.add('show');
+                    if (pinnedId === participant.identity) {
+                        var mainMutedBadge = document.getElementById('mainMutedBadge');
+                        if (mainMutedBadge) mainMutedBadge.classList.add('show');
+                    }
+                    if (remoteParticipants[participant.identity]) {
+                        remoteParticipants[participant.identity].micMuted = true;
+                    }
+                    renderParticipantList();
                 }
-                renderParticipantList();
             }
         });
 
         room.on(sdk.RoomEvent.TrackUnmuted, function(pub, participant) {
-            if (pub.kind === 'audio' && participant) {
-                if (remoteParticipants[participant.identity]) {
-                    remoteParticipants[participant.identity].micMuted = false;
+            if (pub.kind === 'audio') {
+                console.log('[MIC] TrackUnmuted event:', participant ? participant.identity : 'unknown', 'sid:', pub.trackSid, 'isMuted:', pub.isMuted);
+                if (participant) {
+                    var smuteEl = document.getElementById('smute_' + participant.identity);
+                    console.log('[MIC] smute_ element exists for', participant.identity, ':', !!smuteEl);
+                    if (smuteEl) smuteEl.classList.remove('show');
+                    if (pinnedId === participant.identity) {
+                        var mainMutedBadge = document.getElementById('mainMutedBadge');
+                        if (mainMutedBadge) mainMutedBadge.classList.remove('show');
+                    }
+                    if (remoteParticipants[participant.identity]) {
+                        remoteParticipants[participant.identity].micMuted = false;
+                    }
+                    renderParticipantList();
                 }
-                renderParticipantList();
             }
         });
 
@@ -1631,14 +1806,18 @@ async function start() {
             } catch(e) {}
         });
 
-        room.on(sdk.RoomEvent.Disconnected, function() {
+        room.on(sdk.RoomEvent.Disconnected, function(reason) {
+            console.log('[CONNECT] Disconnected reason:', reason, 'room.state:', room ? room.state : 'null');
             setStatus('error'); clearInterval(timerInterval);
             showToast('Disconnected. Reconnecting…', 4000);
             setTimeout(function(){ window.location.reload(); }, 3000);
         });
 
         var proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        await room.connect(proto + '//' + window.location.host, token, { autoSubscribe: true });
+        var connectUrl = proto + '//' + window.location.host;
+        console.log('[CONNECT] Before room.connect, url:', connectUrl);
+        await room.connect(connectUrl, token, { autoSubscribe: true });
+        console.log('[CONNECT] After room.connect resolves, room.state:', room.state, 'room.sid:', room.sid, 'room.name:', room.name);
         setStatus('connected'); startTimer();
 
         // Populate existing remote participants
@@ -1661,15 +1840,25 @@ async function start() {
 
         // Try media
         var tracks = [];
+        console.log('[CONNECT] media capture starting');
         try {
             tracks = await sdk.createLocalTracks({ audio:true, video:true });
+            console.log('[CONNECT] media capture success (audio+video)');
             micAvailable = true; camAvailable = true;
         } catch(e) {
+            console.log('[CONNECT] media capture failure (audio+video):', e.name, e.message);
             try {
                 tracks = await sdk.createLocalTracks({ audio:true, video:false });
+                console.log('[CONNECT] media capture success (audio only)');
                 micAvailable = true; camAvailable = false; showToast('Camera unavailable');
             } catch(e2) {
-                try { tracks = await sdk.createLocalTracks({ audio:false, video:false }); } catch(e3){}
+                console.log('[CONNECT] media capture failure (audio only):', e2.name, e2.message);
+                try { 
+                    tracks = await sdk.createLocalTracks({ audio:false, video:false }); 
+                    console.log('[CONNECT] media capture success (none)');
+                } catch(e3){
+                    console.log('[CONNECT] media capture failure (none):', e3.name, e3.message);
+                }
                 micAvailable = false; camAvailable = false; showToast('Mic and camera unavailable');
             }
         }
@@ -1690,6 +1879,7 @@ async function start() {
         for (var i = 0; i < tracks.length; i++) {
             var t = tracks[i];
             await room.localParticipant.publishTrack(t);
+            console.log('[CONNECT] published track:', t.sid, t.kind, t.mediaStreamTrack ? t.mediaStreamTrack.readyState : 'unknown');
             if (t.kind === 'video') {
                 t.attach(document.getElementById('mainVideo'));
                 document.getElementById('mainVideo').style.display = 'block';
@@ -1699,7 +1889,10 @@ async function start() {
 
         buildLocalSidebarTile();
 
+        console.log('[CONNECT] start() completed successfully');
+
     } catch(err) {
+        console.log('[CONNECT] start() catch:', err.name, err.message, err.stack);
         setStatus('error');
         showToast('Error: ' + err.message, 5000);
         console.error('VC:', err);
@@ -1819,6 +2012,8 @@ function removeParticipantTile(id) {
 }
 
 function updateParticipantVideo(p, track) {
+    console.log('[PIN] incoming track - sid:', track.sid, 'identity:', p.identity, 'source:', track.source, 'kind:', track.kind);
+    console.log('[PIN] track object keys:', Object.keys(track));
     var id = p.identity;
     var data = remoteTracks[id];
     if (!data) { addParticipantTile(p); data = remoteTracks[id]; }
@@ -1888,6 +2083,7 @@ function buildLocalSidebarTile() {
         v.autoplay = true; v.muted = true; v.playsinline = true;
         v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
         var mainV = document.getElementById('mainVideo');
+        console.log('[PIN] buildLocalSidebarTile - mainVideo.srcObject exists:', !!mainV.srcObject);
         if (mainV.srcObject) { v.srcObject = mainV.srcObject; tile.classList.add('has-video'); }
         tile.insertBefore(v, tile.firstChild);
     }
@@ -1917,6 +2113,7 @@ function makeSidebarTile(id, name, isScreen) {
 
 // ── Pin ──────────────────────────────────────────────────────────────────────
 function pinParticipant(id) {
+    console.log('[PIN] pinParticipant called with id:', id, 'current pinnedId:', pinnedId);
     pinnedId = id;
     document.querySelectorAll('.s-tile').forEach(function(t){ t.classList.remove('pinned'); });
 
@@ -1932,29 +2129,61 @@ function pinParticipant(id) {
     mainMuted.classList.remove('show');
 
     if (id === 'local') {
+        console.log('[PIN] Branch: local');
         mainLblText.innerText = 'You';
-        if (camEnabled && room && room.localParticipant) {
+        if (room && room.localParticipant) {
             var vTracks = [];
-            room.localParticipant.videoTracks.forEach(function(pub){ if (pub.track) vTracks.push(pub.track); });
-            if (vTracks.length > 0) {
+            if (room.localParticipant.videoTracks) {
+                room.localParticipant.videoTracks.forEach(function(publication) {
+                    if (publication && publication.track) { vTracks.push(publication.track); }
+                });
+            }
+            if (vTracks.length > 0 && camEnabled) {
                 vTracks[0].attach(mainVideo);
+                console.log('[PIN] mainVideo.srcObject after attach (local):', mainVideo.srcObject);
                 mainVideo.style.display = 'block';
-            } else { mainAvatar.style.display = 'flex'; }
-        } else { mainAvatar.style.display = 'flex'; }
+                mainAvatar.style.display = 'none';
+            } else {
+                mainVideo.style.display = 'none';
+                mainAvatar.style.display = 'flex';
+            }
+        } else {
+            mainAvatar.style.display = 'flex';
+        }
         if (!micEnabled) mainMuted.classList.add('show');
 
         var lt = document.getElementById('s_local');
         if (lt) lt.classList.add('pinned');
 
     } else {
+        console.log('[PIN] Branch: remote');
         var data = remoteTracks[id];
+        console.log('[PIN] remoteTracks['+id+']:', data);
         if (!data) { pinParticipant('local'); return; }
+
+        console.log('[PIN] isScreenLocal:', !!data.isScreenLocal);
 
         mainLblText.innerText = data.name + (data.isScreen ? ' · Screen' : '');
         if (data.isScreen) screenBadge.style.display = 'block';
 
+        console.log('[PIN] data.track exists:', !!data.track, 'type:', data.track ? typeof data.track : 'undefined');
+        if (!data || !data.track || typeof data.track.attach !== 'function') {
+            console.error('[PIN] track missing for sid:', id, 'falling back to local');
+            pinParticipant('local');
+            return;
+        }
         if (data.track) {
-            data.track.attach(mainVideo);
+            console.log('[PIN] data.track.attach is function:', typeof data.track.attach === 'function');
+            try {
+                data.track.attach(mainVideo);
+            } catch (err) {
+                console.log('[PIN] Error attaching data.track:', err);
+            }
+            console.log('[PIN] mainVideo.srcObject after attach (remote track):', mainVideo.srcObject ? 'MediaStream' : 'null');
+            setTimeout(function() {
+                console.log('[PIN] mainVideo.readyState:', mainVideo.readyState, 'mainVideo.videoWidth:', mainVideo.videoWidth);
+            }, 500);
+
             mainVideo.style.display = 'block';
             mainVideo.play().catch(function(){});
         } else if (data.isScreenLocal && data.stream) {
@@ -1972,15 +2201,22 @@ function pinParticipant(id) {
 
 // ── Mic ──────────────────────────────────────────────────────────────────────
 function setMicUI(on) {
+    console.log('[MIC] setMicUI called, on:', on, 'micAvailable:', micAvailable);
+    if (room && room.localParticipant) {
+        console.log('[MIC] current localParticipant.isMicrophoneEnabled:', room.localParticipant.isMicrophoneEnabled);
+    }
     document.getElementById('micOnIcon').style.display  = on ? 'block' : 'none';
     document.getElementById('micOffIcon').style.display = on ? 'none'  : 'block';
     document.getElementById('micLabel').innerText = on ? 'Mute' : 'Unmute';
     document.getElementById('micBtn').classList.toggle('off', !on);
 
     var sm = document.getElementById('s_local_muted');
+    console.log('[MIC] sidebar local muted icon exists:', !!sm);
     if (sm) sm.classList.toggle('show', !on);
     if (pinnedId === 'local') {
-        document.getElementById('mainMutedBadge').classList.toggle('show', !on);
+        var mainMutedBadge = document.getElementById('mainMutedBadge');
+        console.log('[MIC] pinnedId is local. mainMutedBadge classList:', mainMutedBadge ? mainMutedBadge.classList.toString() : 'null');
+        if (mainMutedBadge) mainMutedBadge.classList.toggle('show', !on);
     }
     // Update participant list mic status
     renderParticipantList();
@@ -1988,12 +2224,18 @@ function setMicUI(on) {
 
 async function toggleMic() {
     if (!room || !room.localParticipant || !micAvailable) return;
+    console.log('[MIC] toggleMic called, micEnabled before toggle:', micEnabled);
     micEnabled = !micEnabled;
+    console.log('[MIC] calling setMicrophoneEnabled with:', micEnabled);
     try {
         await room.localParticipant.setMicrophoneEnabled(micEnabled);
+        console.log('[MIC] setMicrophoneEnabled resolved, actual isMicrophoneEnabled:', room.localParticipant.isMicrophoneEnabled);
         setMicUI(micEnabled);
         showToast(micEnabled ? 'Mic on' : 'Mic muted');
-    } catch(e) { micEnabled = !micEnabled; console.error(e); }
+    } catch(e) { 
+        console.log('[MIC] Error in toggleMic:', e);
+        micEnabled = !micEnabled; console.error(e); 
+    }
 }
 
 // ── Camera ───────────────────────────────────────────────────────────────────
@@ -2019,9 +2261,15 @@ function setCamUI(on) {
         mainVideo.style.display  = on ? 'block' : 'none';
         mainAvatar.style.display = on ? 'none'  : 'flex';
         if (on && room && room.localParticipant) {
-            room.localParticipant.videoTracks.forEach(function(pub){
-                if (pub.track) { pub.track.attach(mainVideo); mainVideo.play().catch(function(){}); }
-            });
+            var vTracks = [];
+            if (room.localParticipant.videoTracks) {
+                room.localParticipant.videoTracks.forEach(function(publication) {
+                    if (publication && publication.track) { vTracks.push(publication.track); }
+                });
+            }
+            if (vTracks.length > 0) {
+                vTracks[0].attach(mainVideo); mainVideo.play().catch(function(){});
+            }
         }
     }
 }
@@ -2124,6 +2372,7 @@ function closeEndModal() {
 // Host: leave only (others stay)
 async function doLeaveCall() {
     closeEndModal();
+    stopRecordingIfNeeded();
     if (screenTrack) {
         try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){}
     }
@@ -2135,6 +2384,7 @@ async function doLeaveCall() {
 // Host: end for all
 async function doEndForAll() {
     closeEndModal();
+    stopRecordingIfNeeded();
     if (room && room.localParticipant) {
         try {
             var msg = JSON.stringify({ action: 'endForAll' });
@@ -2154,6 +2404,7 @@ async function doEndForAll() {
 
 // ── End call (guest / common) ─────────────────────────────────────────────────
 async function endCall() {
+    stopRecordingIfNeeded();
     if (screenTrack) {
         try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){}
     }

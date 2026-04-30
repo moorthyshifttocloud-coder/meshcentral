@@ -25028,7 +25028,16 @@
         var _vcIdentity = 'admin_' + Math.random().toString(36).substring(7);
         function _vcStartCall() {
             if (!files || !currentNode) return;
-            var roomId = 'room_' + currentNode._id.split('/')[2].replace(/[^a-zA-Z0-9]/g, '');
+            // Create unique room ID so new meeting invalidates previous meeting
+            var roomId = 'room_' + currentNode._id.split('/')[2].replace(/[^a-zA-Z0-9]/g, '') + '_' + Date.now();
+            
+            // Change button to Video Connected
+            var btn = document.getElementById('p13VCButton');
+            if (btn) {
+                btn.value = '\uD83D\uDFE2 Video Connected';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-success');
+            }
             
             (async () => {
                 try {
