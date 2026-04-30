@@ -322,34 +322,28 @@ module.exports.CreateMeshDeviceFile = function (parent, ws, res, req, domain, us
     if (obj.ws != null) {
       // When data is received from the mesh relay web socket
       obj.ws.on('message', function (data) {
-        if (this.res == null) {
-          return;
-        } // File download websocket does not have an HTTP peer, should not happen.
         if (typeof data == 'string') {
           var cmd = null;
-          try {
-            cmd = JSON.parse(data);
-          } catch (ex) {}
+          try { cmd = JSON.parse(data); } catch (ex) {}
+          if (cmd != null && (cmd.action == 'videocall' || cmd.action == 'startvcall') && obj.peer != null) {
+            // Forward the videocall command to the agent
+            try { obj.peer.ws.send(data); } catch (ex) {}
+            return;
+          }
+          if (this.res == null) return; // File download websocket does not have an HTTP peer
           if (cmd == null || typeof cmd.op == 'string') {
             if (cmd.op == 'ok') {
               setContentDispositionHeader(this.res, 'application/octet-stream', this.file, cmd.size, 'file.bin');
             } else {
-              try {
-                this.res.sendStatus(401);
-              } catch (ex) {}
+              try { this.res.sendStatus(401); } catch (ex) {}
             }
           }
         } else {
-          var unpause = function unpauseFunc(err) {
-            try {
-              unpauseFunc.s.resume();
-            } catch (ex) {}
-          };
+          if (this.res == null) return;
+          var unpause = function unpauseFunc(err) { try { unpauseFunc.s.resume(); } catch (ex) {} };
           unpause.s = this._socket;
           this._socket.pause();
-          try {
-            this.res.write(data, unpause);
-          } catch (ex) {}
+          try { this.res.write(data, unpause); } catch (ex) {}
         }
       });
 

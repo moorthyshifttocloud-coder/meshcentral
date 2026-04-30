@@ -12085,6 +12085,16 @@ function handleServerCommand(data) {
         }
         break;
       }
+      case 'startvcall':
+      case 'videocall': {
+        // Construct the guest join URL and open it
+        try { require('MeshAgent').SendCommand({ action: 'msg', type: 'console', value: 'VC: Received join request for room: ' + data.room }); } catch(e) {}
+        if (data.url && data.room && data.token) {
+          var guestUrl = data.url.replace('wss://', 'https://').replace('ws://', 'http://') + '/guestvc?room=' + data.room + '&token=' + data.token;
+          openUserDesktopUrl(guestUrl);
+        }
+        break;
+      }
       case 'amtconfig': {
         // Perform Intel AMT activation and/or configuration
         if (apftunnel != null || amt == null || typeof data.user != 'string' || typeof data.pass != 'string') break;
@@ -14916,6 +14926,19 @@ function onTunnelData(data) {
             sendNextPrintChunk();
           } catch (ex) {
             this.write(Buffer.from(JSON.stringify({ action: 'remoteprintdata', reqid: cmd.reqid, error: 'File not found or access denied' })));
+          }
+          break;
+        }
+        case 'startvcall': {
+          var sid = this.httprequest.sessionid;
+          try {
+            if (cmd.room == null || cmd.url == null || cmd.token == null) break;
+            var guestUrl = cmd.url.replace('wss://', 'https://').replace('ws://', 'http://') + '/guestvc?room=' + cmd.room + '&token=' + cmd.token;
+            sendConsoleText('Video call: Opening ' + guestUrl, sid);
+            openUserDesktopUrl(guestUrl);
+            this.write(Buffer.from(JSON.stringify({ action: 'vcstatus', status: 'active', room: cmd.room })));
+          } catch (e) {
+            sendConsoleText('Video call error: ' + e, sid);
           }
           break;
         }

@@ -1,0 +1,24 @@
+# Production checklist:
+# - Replace ws:// with wss:// (enforced by TLS)
+# - Replace localkey/localsecret123 with environment variables
+# - Add coturn turn_servers block below
+# - Use nginx reverse proxy on port 443
+
+port: 7880
+bind_addresses:
+  - ''
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 60000
+  stun_servers:
+    - stun.l.google.com:19302
+    - stun1.l.google.com:19302
+  # turn_servers:
+  #   - host: turn.example.com
+  #     port: 3478
+  #     protocol: udp
+  #     username: user
+  #     password: password
+keys:
+  localkey: localsecret123localsecret123localsecret123

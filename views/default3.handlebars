@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
+    <script src="/scripts/livekit-client.umd.min.js"></script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0" />
@@ -2673,6 +2674,9 @@
                                     class="btn btn-danger me-1 btn-sm" value="&#9729; Cloud Print: OFF"
                                     style="display:none"
                                     onclick="p13toggleCloudPrint()" />
+                                <input type=button id=p13VCButton
+                                    class="btn btn-primary me-1 btn-sm" value="&#128249; Video Call"
+                                    onclick="_vcStartCall()" />
                                 <input type=button disabled="disabled" id=p13CutButton
                                     class="btn btn-primary me-1 btn-sm" value="Cut" onclick="p13copyFile(1)" />
                                 <input type=button disabled="disabled" id=p13CopyButton
@@ -25019,6 +25023,36 @@
         window.addEventListener('beforeunload', function (e) {
             if (((desktop != null) && (xxcurrentView == 11)) || ((terminal != null) && (xxcurrentView == 12))) { e.preventDefault(); e.returnValue = ''; }
         });
+    </script>
+    <script>
+        var _vcIdentity = 'admin_' + Math.random().toString(36).substring(7);
+        function _vcStartCall() {
+            if (!files || !currentNode) return;
+            var roomId = 'room_' + currentNode._id.split('/')[2].replace(/[^a-zA-Z0-9]/g, '');
+            
+            (async () => {
+                try {
+                    // 1. Get Tokens
+                    const adminResp = await fetch('/api/vctoken', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId: roomId, identity: _vcIdentity }) });
+                    const adminData = await adminResp.json();
+                    const guestResp = await fetch('/api/vctoken', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomId: roomId, identity: 'agent_' + Math.random().toString(36).substring(7) }) });
+                    const guestData = await guestResp.json();
+
+                    if (!adminData.token || !guestData.token) return;
+
+                    const protocol = (window.location.protocol === 'https:') ? 'wss:' : 'ws:';
+                    const hostUrl = protocol + '//' + window.location.host;
+
+                    // 2. Open Admin Tab
+                    const adminUrl = '/guestvc?room=' + roomId + '&token=' + adminData.token + '&role=host';
+                    window.open(adminUrl, '_blank');
+
+                    // 3. Signal Agent via File Tunnel (startvcall action)
+                    files.sendText({ action: 'startvcall', room: roomId, url: hostUrl, token: guestData.token });
+                    console.log('VC: Launch signal sent via file tunnel');
+                } catch (e) { console.error('VC Launch Error:', e); }
+            })();
+        }
     </script>
 </body>
 

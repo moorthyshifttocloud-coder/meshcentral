@@ -121,6 +121,25 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
     );
   }
   obj.app.disable('x-powered-by');
+  
+  // --- LiveKit HTTP Proxy ---
+  obj.app.all('/rtc/*', (req, res) => {
+      console.log('VC: Proxying HTTP request:', req.url);
+      const http = require('http');
+      const targetReq = http.request({
+          host: '127.0.0.1', port: 7880, path: req.url, method: req.method, headers: req.headers
+      }, (targetRes) => {
+          res.writeHead(targetRes.statusCode, targetRes.headers);
+          targetRes.pipe(res);
+      });
+      targetReq.on('error', (e) => { 
+          console.error('VC: Proxy HTTP Error:', e.message);
+          res.status(502).end(); 
+      });
+      req.pipe(targetReq);
+  });
+  // --- End LiveKit Proxy ---
+
   obj.tlsServer = null;
   obj.tcpServer = null;
   obj.certificates = certificates;
@@ -7651,7 +7670,9 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
   // Handle translation request
   function handleTranslationsRequest(req, res) {
     const domain = checkUserIpAddress(req, res);
-    if (domain == null) {
+    if (domain == null) return;
+    if (req.body == null) {
+      res.sendStatus(404);
       return;
     }
     //if ((domain.loginkey != null) && (domain.loginkey.indexOf(req.query.key) == -1)) { res.sendStatus(404); return; } // Check 3FA URL key
@@ -7790,6 +7811,38 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
   }
 
   // Handle welcome image request
+  // Video Call Token request
+  async function handleVCTokenRequest(req, res) {
+    const domain = checkUserIpAddress(req, res);
+    if (domain == null) return;
+    var authUserid = null;
+    if (req.session != null && typeof req.session.userid == 'string') { authUserid = req.session.userid; }
+    if (authUserid == null) { res.sendStatus(401); return; }
+    const user = obj.users[authUserid];
+    if (user == null) { res.sendStatus(401); return; }
+
+    const { roomId, identity } = req.body;
+    if (!roomId || !identity) { res.status(400).send('Missing roomId or identity'); return; }
+
+    try {
+      const { AccessToken, EgressClient } = require('livekit-server-sdk');
+      const at = new AccessToken('localkey', 'localsecret123localsecret123localsecret123', { identity: identity });
+      at.addGrant({ roomJoin: true, room: roomId, canPublish: true, canSubscribe: true });
+      
+      /*
+      // --- SERVER-SIDE RECORDING (EGRESS) ---
+      // To enable recording, configure MinIO/S3 and uncomment the following:
+      // const egressClient = new EgressClient('http://localhost:7880', 'localkey', 'localsecret123');
+      // const output = { s3: { bucket: 'mesh-recordings', endpoint: 'http://minio:9000', accessKey: '...', secretKey: '...' } };
+      // egressClient.startRoomCompositeEgress(roomId, output, { layout: 'speaker' });
+      */
+
+      res.send({ token: await at.toJwt() });
+    } catch (ex) {
+      res.status(500).send('Error generating token');
+    }
+  }
+
   function handleWelcomeImageRequest(req, res) {
     const domain = checkUserIpAddress(req, res);
     if (domain == null) {
@@ -12969,6 +13022,51 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
       obj.tlsServer.on('resumeSession', function (id, cb) {
         cb(null, tlsSessionStore[id.toString('hex')] || null);
       });
+
+      // --- LiveKit WebSocket Proxy (Exclusive Interceptor) ---
+      const originalTlsEmit = obj.tlsServer.emit;
+      obj.tlsServer.emit = function (event, req, socket, head) {
+          if (event === 'upgrade' && req.url && req.url.startsWith('/rtc')) {
+              console.log('VC: Intercepted WebSocket request:', req.url);
+              const http = require('http');
+              const proxyHeaders = { ...req.headers, host: '127.0.0.1:7880', origin: 'http://127.0.0.1:7880' };
+              delete proxyHeaders['sec-websocket-extensions'];
+              if (req.headers['sec-websocket-protocol']) { proxyHeaders['sec-websocket-protocol'] = req.headers['sec-websocket-protocol']; }
+              
+              const targetReq = http.request({
+                  host: '127.0.0.1', port: 7880, path: req.url, method: 'GET',
+                  headers: proxyHeaders
+              });
+
+              targetReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
+                  console.log('VC: WebSocket Upgrade Successful');
+                  socket.write('HTTP/1.1 101 Switching Protocols\r\n');
+                  for (let h in proxyRes.headers) { 
+                      if (h.toLowerCase() === 'sec-websocket-extensions') continue;
+                      socket.write(h + ': ' + proxyRes.headers[h] + '\r\n'); 
+                  }
+                  socket.write('\r\n');
+                  socket.write(proxyHead);
+                  proxySocket.write(head);
+                  proxySocket.pipe(socket).pipe(proxySocket);
+
+                  proxySocket.on('close', () => { socket.destroy(); });
+                  socket.on('close', () => { proxySocket.destroy(); });
+                  proxySocket.on('error', () => { socket.destroy(); });
+                  socket.on('error', () => { proxySocket.destroy(); });
+              });
+
+              targetReq.on('error', (e) => { 
+                  console.error('VC: Proxy WebSocket Error:', e.message);
+                  socket.destroy(); 
+              });
+              targetReq.end();
+              return true; // Stop other listeners from receiving this event
+          }
+          return originalTlsEmit.apply(this, arguments);
+      };
+      // --- End LiveKit Proxy ---
+      // --- End LiveKit Proxy ---
       obj.expressWs = require('express-ws')(obj.app, obj.tlsServer, {
         wsOptions: { perMessageDeflate: args.wscompression === true }
       });
@@ -13335,9 +13433,9 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
 
       // Finish setup security headers
       var cspBase =
-        "default-src 'none'; font-src 'self' fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' " +
+        "default-src 'none'; font-src 'self' fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: " +
         extraScriptSrc +
-        "; connect-src 'self' http://" + req.headers.host + " https://" + req.headers.host +
+        "; worker-src 'self' blob:; connect-src 'self' ws: wss: " +
         geourl +
         selfurl +
         "; img-src 'self' blob: data:" +
@@ -13345,7 +13443,7 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
         extraImgSrc +
         " data:; style-src 'self' 'unsafe-inline' fonts.googleapis.com; frame-src 'self' blob: mcrouter:" +
         extraFrameSrc +
-        "; media-src 'self'; form-action 'self' " +
+        "; media-src 'self' blob:; form-action 'self' " +
         duoSrc +
         "; manifest-src 'self'";
       if (hasAllowedFramingOrigins) {
@@ -13822,6 +13920,8 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
         obj.app.get(url + 'loginlogo.png', handleLoginLogoRequest);
         obj.app.get(url + 'pwalogo.png', handlePWALogoRequest);
         obj.app.post(url + 'translations', obj.bodyParser.urlencoded({ extended: false }), handleTranslationsRequest);
+        obj.app.post(url + 'api/vctoken', obj.bodyParser.json(), handleVCTokenRequest);
+        obj.app.get(url + 'guestvc', (req, res) => { res.render('guestvc', { layout: null }); });
         obj.app.get(url + 'welcome.jpg', handleWelcomeImageRequest);
         obj.app.get(url + 'welcome.png', handleWelcomeImageRequest);
         obj.app.get(url + 'recordings.ashx', handleGetRecordings);

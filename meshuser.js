@@ -1294,6 +1294,25 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
     // pass through to switch statement until refactoring complete
 
     switch (command.action) {
+      case 'videocall': {
+        console.log('VC: Received videocall command for ' + command.nodeid);
+        if (common.validateString(command.nodeid, 1, 1024) == false) break;
+        if (command.nodeid.indexOf('/') == -1) { command.nodeid = 'node/' + domain.id + '/' + command.nodeid; }
+        parent.GetNodeWithRights(domain, user, command.nodeid, function (node, rights, visible) {
+          if (node != null && (rights & MESHRIGHT_REMOTECONTROL)) {
+            var agent = parent.wsagents[command.nodeid];
+            if (agent != null) {
+              console.log('VC: Forwarding signal to agent...');
+              agent.send(JSON.stringify({ action: 'videocall', url: command.url, room: command.room, token: command.token }));
+            } else {
+              console.log('VC: Agent not found or offline.');
+            }
+          } else {
+            console.log('VC: Permission denied or node not found.');
+          }
+        });
+        break;
+      }
       case 'nodes': {
         // If in paging mode, look to set the skip and limit values
         if (domain.maxdeviceview != null) {
