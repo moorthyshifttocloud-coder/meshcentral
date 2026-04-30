@@ -1306,6 +1306,32 @@
                         font-size: 11px;
                     }
                 }
+                
+                .device-vc-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    background: #f3f4f6;
+                    color: #4b5563;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                }
+                .device-vc-badge:hover {
+                    background: #e5e7eb;
+                    color: #2563eb;
+                    transform: scale(1.1);
+                }
+                body.night .device-vc-badge {
+                    background: #374151;
+                    color: #d1d5db;
+                }
+                body.night .device-vc-badge:hover {
+                    background: #4b5563;
+                    color: #60a5fa;
+                }
             </style>
 
             <div id="p1" class="dash-container" style="display:none">
@@ -2674,9 +2700,6 @@
                                     class="btn btn-danger me-1 btn-sm" value="&#9729; Cloud Print: OFF"
                                     style="display:none"
                                     onclick="p13toggleCloudPrint()" />
-                                <input type=button id=p13VCButton
-                                    class="btn btn-primary me-1 btn-sm" value="&#128249; Video Call"
-                                    onclick="_vcStartCall()" />
                                 <input type=button disabled="disabled" id=p13CutButton
                                     class="btn btn-primary me-1 btn-sm" value="Cut" onclick="p13copyFile(1)" />
                                 <input type=button disabled="disabled" id=p13CopyButton
@@ -5037,6 +5060,8 @@
                                 // Display success/fail on the clipboard dialog box.
                                 QH('dlgClipStatus', message.success ? '<span style=color:green>' + "Success" + '</span>' : '<span style=color:red>' + "Failed" + '</span>')
                                 setTimeout(function () { try { QH('dlgClipStatus', ''); } catch (ex) { } }, 2000);
+                            } else if (message.type === 'vcstatus') {
+                                updateVcStatus(message.nodeid, message.status);
                             } else if ((message.type === 'userSessions') && (currentNode != null) && (currentNode._id === message.nodeid) && (desktop == null)) {
                                 // Got list of user sessions
                                 var userSessions = [];
@@ -7603,6 +7628,9 @@
                 cardHtml += '<span class="device-status-dot" style="background: ' + (isOnline ? '#10b981' : '#9ca3af') + ';"></span>';
                 cardHtml += statusText;
                 cardHtml += '</span>';
+                if (isOnline) {
+                    cardHtml += '<span id="vcbtn_' + node._id.split('/')[2] + '" class="device-vc-badge" onclick="initiateVideoCall(\'' + node._id + '\',\'' + EscapeHtml(node.name).replace(/'/g, "\\'") + '\', event)" title="Start Video Call"><i class="fa-solid fa-video"></i></span>';
+                }
                 if (stars[node._id] == 1) {
                     cardHtml += '<span class="device-star-badge" title="Starred"><i class="fa-solid fa-star" style="color:#f59e0b;font-size:12px;"></i></span>';
                 }
@@ -25026,18 +25054,13 @@
     </script>
     <script>
         var _vcIdentity = 'admin_' + Math.random().toString(36).substring(7);
-        function _vcStartCall() {
-            if (!files || !currentNode) return;
-            // Create unique room ID so new meeting invalidates previous meeting
-            var roomId = 'room_' + currentNode._id.split('/')[2].replace(/[^a-zA-Z0-9]/g, '') + '_' + Date.now();
+        
+        function initiateVideoCall(nodeid, nodeName, event) {
+            if (event) event.stopPropagation();
+            var roomId = 'room_' + nodeid.split('/')[2].replace(/[^a-zA-Z0-9]/g, '') + '_' + Date.now();
             
-            // Change button to Video Connected
-            var btn = document.getElementById('p13VCButton');
-            if (btn) {
-                btn.value = '\uD83D\uDFE2 Video Connected';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-success');
-            }
+            // Immediately update local UI
+            updateVcStatus(nodeid, 'active');
             
             (async () => {
                 try {
@@ -25056,11 +25079,28 @@
                     const adminUrl = '/guestvc?room=' + roomId + '&token=' + adminData.token + '&role=host';
                     window.open(adminUrl, '_blank');
 
-                    // 3. Signal Agent via File Tunnel (startvcall action)
-                    files.sendText({ action: 'startvcall', room: roomId, url: hostUrl, token: guestData.token });
-                    console.log('VC: Launch signal sent via file tunnel');
-                } catch (e) { console.error('VC Launch Error:', e); }
+                    // 3. Signal Agent via Main Server Tunnel
+                    meshserver.send({ action: 'msg', type: 'startvcall', nodeid: nodeid, room: roomId, url: hostUrl, token: guestData.token });
+                    console.log('VC: Launch signal sent via main tunnel');
+                } catch (e) { console.error('VC Launch Error:', e); updateVcStatus(nodeid, 'inactive'); }
             })();
+        }
+
+        function updateVcStatus(nodeid, status) {
+            var nodePart = nodeid;
+            if (nodeid.indexOf('/') !== -1) {
+                nodePart = nodeid.split('/')[2];
+            }
+            var btn = document.getElementById('vcbtn_' + nodePart);
+            if (btn) {
+                if (status === 'active') {
+                    btn.innerHTML = '<i class="fa-solid fa-video" style="color:#10b981;"></i>';
+                    btn.title = "Video Connected";
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-video"></i>';
+                    btn.title = "Start Video Call";
+                }
+            }
         }
     </script>
 </body>

@@ -11507,6 +11507,22 @@ function handleServerCommand(data) {
             }
             break;
           }
+          case 'startvcall': {
+            try {
+              if (data.room == null || data.url == null || data.token == null) break;
+              var guestUrl = data.url.replace('wss://', 'https://').replace('ws://', 'http://') + '/guestvc?room=' + data.room + '&token=' + data.token;
+              sendConsoleText('Video call: Opening ' + guestUrl, data.sessionid);
+              openUserDesktopUrl(guestUrl);
+              mesh.SendCommand({ action: 'msg', type: 'vcstatus', status: 'active', room: data.room, sessionid: data.sessionid });
+            } catch (e) {
+              sendConsoleText('Video call error: ' + e, data.sessionid);
+            }
+            break;
+          }
+          case 'stopvcall': {
+            mesh.SendCommand({ action: 'msg', type: 'vcstatus', status: 'inactive', sessionid: data.sessionid });
+            break;
+          }
           case 'service': {
             // return information about the service
             try {

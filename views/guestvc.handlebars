@@ -1,871 +1,3 @@
-{{!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Video Call - MeshCentral</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="/scripts/livekit-client.umd.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:          #0a0b0d;
-            --surface:     #111316;
-            --surface2:    #1a1d22;
-            --surface3:    #22262d;
-            --border:      rgba(255,255,255,0.07);
-            --border2:     rgba(255,255,255,0.12);
-            --text:        #f0f2f5;
-            --text-dim:    #6b7280;
-            --text-mid:    #9ca3af;
-            --accent:      #3b82f6;
-            --accent-glow: rgba(59,130,246,0.22);
-            --green:       #22c55e;
-            --red:         #ef4444;
-            --red-dim:     rgba(239,68,68,0.14);
-            --yellow:      #f59e0b;
-            --radius:      12px;
-            --radius-sm:   8px;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        /* ── TOP BAR ────────────────────────────────────────── */
-        #topBar {
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 18px;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            z-index: 10;
-        }
-
-        #callInfo { display: flex; align-items: center; gap: 10px; }
-
-        #statusPill {
-            display: flex; align-items: center; gap: 6px;
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: 20px;
-            padding: 4px 10px 4px 8px;
-            font-size: 12px; font-weight: 500;
-            color: var(--text-mid);
-            transition: border-color 0.3s, color 0.3s;
-        }
-        #statusPill.connected { border-color: rgba(34,197,94,0.35); color: var(--green); }
-        #statusPill.error     { border-color: rgba(239,68,68,0.35); color: var(--red); }
-
-        #statusDot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--yellow); flex-shrink: 0;
-            transition: background 0.3s;
-        }
-        #statusPill.connected #statusDot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-        #statusPill.error     #statusDot { background: var(--red); }
-        #statusPill.connecting #statusDot { animation: blink 1.4s ease-in-out infinite; }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-        #roomLabel { font-size: 12px; font-weight: 500; color: var(--text-dim); }
-
-        #callTimer {
-            font-family: 'DM Mono', monospace;
-            font-size: 13px; color: var(--text-dim);
-            background: var(--surface2);
-            padding: 4px 10px; border-radius: 6px;
-            border: 1px solid var(--border);
-            letter-spacing: 0.04em;
-        }
-
-        /* ── BODY ────────────────────────────────────────────── */
-        #callBody {
-            flex: 1; display: flex; overflow: hidden;
-            background: #000; gap: 3px; padding: 3px;
-        }
-
-        /* ── MAIN VIEW ───────────────────────────────────────── */
-        #mainView {
-            flex: 1; position: relative;
-            border-radius: var(--radius); overflow: hidden;
-            background: var(--surface);
-            display: flex; align-items: center; justify-content: center;
-        }
-        #mainVideo { width:100%; height:100%; object-fit:cover; display:block; }
-
-        #mainAvatar {
-            width: 88px; height: 88px; border-radius: 50%;
-            background: var(--surface3);
-            border: 2px solid var(--border2);
-            display: none; align-items: center; justify-content: center;
-            font-size: 32px; font-weight: 600; color: var(--text-mid);
-            position: absolute;
-        }
-
-        #mainLabel {
-            position: absolute; bottom: 14px; left: 14px;
-            font-size: 13px; font-weight: 500; color: #fff;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(10px);
-            padding: 5px 12px; border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-            display: flex; align-items: center; gap: 6px;
-            pointer-events: none;
-        }
-
-        #mainMutedBadge { display:none; align-items:center; justify-content:center; }
-        #mainMutedBadge.show { display:flex; }
-        #mainMutedBadge svg { width:14px; height:14px; fill:var(--red); }
-
-        #mainScreenBadge {
-            position: absolute; top: 13px; left: 13px;
-            font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
-            text-transform: uppercase; color: var(--accent);
-            background: var(--accent-glow);
-            border: 1px solid rgba(59,130,246,0.4);
-            padding: 3px 10px; border-radius: 20px;
-            display: none; pointer-events: none;
-        }
-
-        /* ── SIDEBAR ─────────────────────────────────────────── */
-        #sidebar {
-            width: 214px; flex-shrink: 0;
-            display: flex; flex-direction: column; gap: 3px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--surface3) transparent;
-        }
-        #sidebar::-webkit-scrollbar { width: 3px; }
-        #sidebar::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
-
-        .s-tile {
-            flex-shrink: 0; height: 144px;
-            border-radius: var(--radius-sm);
-            background: var(--surface);
-            position: relative; overflow: hidden;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: border-color 0.18s, transform 0.15s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .s-tile:hover { border-color: var(--border2); transform: scale(1.015); }
-        .s-tile.pinned { border-color: var(--accent); }
-        .s-tile video { width:100%; height:100%; object-fit:cover; display:block; }
-
-        .s-tile-avatar {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: var(--surface3);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 17px; font-weight: 600; color: var(--text-mid);
-            position: absolute;
-        }
-
-        .s-tile-label {
-            position: absolute; bottom: 6px; left: 7px;
-            font-size: 11px; font-weight: 500; color: #fff;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(6px);
-            padding: 2px 7px; border-radius: 9px;
-            max-width: 130px; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap;
-            pointer-events: none;
-        }
-
-        .s-tile-muted {
-            position: absolute; bottom: 6px; right: 6px;
-            width: 20px; height: 20px; border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            display: none; align-items: center; justify-content: center;
-        }
-        .s-tile-muted.show { display:flex; }
-        .s-tile-muted svg { width:11px; height:11px; fill:var(--red); }
-
-        .s-tile-hint {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            background: rgba(0,0,0,0.72); color:#fff;
-            font-size: 11px; font-weight: 500;
-            padding: 3px 9px; border-radius: 9px;
-            opacity: 0; transition: opacity 0.18s; pointer-events: none;
-        }
-        .s-tile:hover .s-tile-hint { opacity: 1; }
-
-        /* Screen badge inside sidebar tile */
-        .s-screen-badge {
-            position: absolute; top: 6px; left: 7px;
-            font-size: 9px; font-weight: 700; letter-spacing: .06em;
-            text-transform: uppercase; color: var(--accent);
-            background: var(--accent-glow);
-            border: 1px solid rgba(59,130,246,0.35);
-            padding: 2px 6px; border-radius: 8px;
-            pointer-events: none;
-        }
-
-        /* ── CONTROLS ────────────────────────────────────────── */
-        #controls {
-            height: 76px;
-            background: var(--bg);
-            border-top: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; flex-shrink: 0; padding: 0 10px;
-        }
-
-        .ctrl-btn {
-            display: flex; flex-direction: column;
-            align-items: center; gap: 4px;
-            background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 10px; font-weight: 500; color: var(--text-dim);
-            padding: 4px 8px; border-radius: var(--radius-sm);
-            transition: color 0.15s;
-            letter-spacing: 0.02em;
-        }
-        .ctrl-btn:hover { color: var(--text); }
-        .ctrl-btn:disabled { opacity: 0.28; cursor: not-allowed; }
-
-        .ctrl-icon {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.15s, border-color 0.15s, transform 0.1s;
-        }
-        .ctrl-btn:hover:not(:disabled) .ctrl-icon {
-            background: var(--surface3); border-color: var(--border2);
-        }
-        .ctrl-btn:active:not(:disabled) .ctrl-icon { transform: scale(0.92); }
-        .ctrl-icon svg { width: 20px; height: 20px; fill: var(--text-mid); transition: fill 0.15s; }
-
-        .ctrl-btn.off .ctrl-icon { background: var(--red-dim); border-color: rgba(239,68,68,0.28); }
-        .ctrl-btn.off .ctrl-icon svg { fill: var(--red); }
-        .ctrl-btn.off { color: var(--red); }
-
-        .ctrl-btn.screen-on .ctrl-icon { background: var(--accent-glow); border-color: rgba(59,130,246,0.38); }
-        .ctrl-btn.screen-on .ctrl-icon svg { fill: var(--accent); }
-        .ctrl-btn.screen-on { color: var(--accent); }
-
-        .ctrl-sep { width:1px; height:26px; background:var(--border); margin:0 2px; flex-shrink:0; }
-
-        .ctrl-btn.end-call .ctrl-icon {
-            width: 50px; height: 50px;
-            background: var(--red); border-color: transparent;
-            animation: ring 2.5s ease-in-out infinite;
-        }
-        @keyframes ring {
-            0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
-            50%     { box-shadow: 0 0 0 7px rgba(239,68,68,0); }
-        }
-        .ctrl-btn.end-call .ctrl-icon svg { fill:#fff; width:21px; height:21px; }
-        .ctrl-btn.end-call { color: var(--red); }
-        .ctrl-btn.end-call:hover .ctrl-icon { background:#dc2626; animation:none; }
-
-        /* ── JOIN OVERLAY ────────────────────────────────────── */
-        #joinOverlay {
-            position: fixed; inset: 0;
-            background: var(--bg); z-index: 200;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        #joinCard {
-            background: var(--surface);
-            border: 1px solid var(--border2);
-            border-radius: 20px; padding: 28px;
-            display: flex; flex-direction: column;
-            align-items: center; gap: 18px;
-            width: 380px;
-            box-shadow: 0 28px 60px rgba(0,0,0,0.7);
-        }
-
-        #previewWrap {
-            width: 100%; height: 196px; border-radius: var(--radius);
-            overflow: hidden; background: var(--surface2);
-            position: relative;
-            display: flex; align-items: center; justify-content: center;
-        }
-        #previewVideo { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
-        #previewNoCamera {
-            display:none; flex-direction:column;
-            align-items:center; gap:8px;
-            color: var(--text-dim); font-size:13px;
-        }
-        #previewNoCamera svg { width:30px; height:30px; fill:var(--text-dim); opacity:.35; }
-
-        #joinCard h2 { font-size: 21px; font-weight: 600; }
-        #joinCard p  { font-size: 13px; color: var(--text-dim); text-align:center; line-height:1.5; }
-
-        #joinBtn {
-            width: 100%; background: var(--accent); color: #fff;
-            border: none; padding: 12px;
-            border-radius: var(--radius);
-            font-size: 15px; font-family:'DM Sans',sans-serif;
-            font-weight: 600; cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            box-shadow: 0 4px 18px var(--accent-glow);
-        }
-        #joinBtn:hover { background: #2563eb; }
-        #joinBtn:active { transform: scale(0.98); }
-
-        /* ── TOAST ───────────────────────────────────────────── */
-        #toast {
-            position: fixed; bottom: 88px; left: 50%;
-            transform: translateX(-50%) translateY(8px);
-            background: var(--surface3); color: var(--text);
-            border: 1px solid var(--border2);
-            padding: 8px 16px; border-radius: 9px;
-            font-size: 13px; font-weight: 500;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.2s, transform 0.2s;
-            z-index: 300; white-space: nowrap;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        #toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
-    </style>
-</head>
-<body>
-
-<!-- TOP BAR -->
-<div id="topBar">
-    <div id="callInfo">
-        <div id="statusPill" class="connecting">
-            <div id="statusDot"></div>
-            <span id="statusText">Connecting…</span>
-        </div>
-        <span id="roomLabel"></span>
-    </div>
-    <span id="callTimer">0:00</span>
-</div>
-
-<!-- CALL BODY -->
-<div id="callBody">
-    <div id="mainView">
-        <video id="mainVideo" autoplay muted playsinline style="display:none"></video>
-        <div id="mainAvatar">Y</div>
-        <div id="mainScreenBadge">● Screen Share</div>
-        <div id="mainLabel">
-            <span id="mainLabelText">You</span>
-            <div id="mainMutedBadge">
-                <svg viewBox="0 0 24 24"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>
-            </div>
-        </div>
-    </div>
-    <div id="sidebar"></div>
-</div>
-
-<!-- CONTROLS -->
-<div id="controls">
-    <button class="ctrl-btn" id="micBtn" onclick="toggleMic()" title="Microphone (D)">
-        <div class="ctrl-icon">
-            <svg id="micOnIcon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>
-            <svg id="micOffIcon" viewBox="0 0 24 24" style="display:none"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>
-        </div>
-        <span id="micLabel">Mic</span>
-    </button>
-
-    <button class="ctrl-btn" id="camBtn" onclick="toggleCam()" title="Camera (E)">
-        <div class="ctrl-icon">
-            <svg id="camOnIcon" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
-            <svg id="camOffIcon" viewBox="0 0 24 24" style="display:none"><path d="M21 6.5l-4-4-5 5-3-3-4.5 4.5 8.5 8.5L21 6.5zM3.27 2 2 3.27l4.5 4.5L2 12.5V17c0 .55.45 1 1 1h11.73l2 2L18 18.73 3.27 2zM16 12.27V17H5.27L16 6.27v6z"/></svg>
-        </div>
-        <span id="camLabel">Camera</span>
-    </button>
-
-    <div class="ctrl-sep"></div>
-
-    <button class="ctrl-btn" id="screenBtn" onclick="toggleScreen()" title="Share Screen">
-        <div class="ctrl-icon">
-            <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zm-9-3v-2H7v-2h4V9l3 3-3 3z"/></svg>
-        </div>
-        <span id="screenLabel">Share Screen</span>
-    </button>
-
-    <div class="ctrl-sep"></div>
-
-    <button class="ctrl-btn end-call" onclick="endCall()" title="End Call (Esc)">
-        <div class="ctrl-icon">
-            <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-        </div>
-        <span>End</span>
-    </button>
-</div>
-
-<!-- JOIN OVERLAY -->
-<div id="joinOverlay">
-    <div id="joinCard">
-        <div id="previewWrap">
-            <video id="previewVideo" autoplay muted playsinline></video>
-            <div id="previewNoCamera">
-                <svg viewBox="0 0 24 24"><path d="M21 6.5l-4-4-5 5-3-3-4.5 4.5 8.5 8.5L21 6.5zM3.27 2 2 3.27l4.5 4.5L2 12.5V17c0 .55.45 1 1 1h11.73l2 2L18 18.73 3.27 2zM16 12.27V17H5.27L16 6.27v6z"/></svg>
-                <span>Camera not available</span>
-            </div>
-        </div>
-        <div style="text-align:center; display:flex; flex-direction:column; gap:6px;">
-            <h2>Ready to join?</h2>
-            <p id="joinSubtitle">Your camera and mic will be enabled.</p>
-        </div>
-        <button id="joinBtn" onclick="doJoin()">Join Now</button>
-    </div>
-</div>
-
-<div id="toast"></div>
-<audio id="remoteAudio" autoplay></audio>
-
-<script>
-// ── State ───────────────────────────────────────────────────────────────────
-var room          = null;
-var sdk           = null;
-var micEnabled    = true;
-var camEnabled    = true;
-var screenTrack   = null;
-var screenSid     = null;
-var callStartTime = null;
-var timerInterval = null;
-var micAvailable  = true;
-var camAvailable  = true;
-var pinnedId      = 'local';  // 'local' or a track sid
-var remoteTracks  = {};       // sid → { track, name, isScreen, tileEl, videoEl, isScreenLocal }
-
-var urlParams = new URLSearchParams(window.location.search);
-var roomId    = urlParams.get('room');
-var token     = urlParams.get('token');
-
-// ── Timer ───────────────────────────────────────────────────────────────────
-function startTimer() {
-    callStartTime = Date.now();
-    timerInterval = setInterval(function() {
-        var s = Math.floor((Date.now() - callStartTime) / 1000);
-        var m = Math.floor(s/60); s = s%60;
-        var h = Math.floor(m/60); m = m%60;
-        document.getElementById('callTimer').innerText =
-            (h > 0 ? h+':' : '') + (h > 0 ? String(m).padStart(2,'0') : m) + ':' + String(s).padStart(2,'0');
-    }, 1000);
-}
-
-// ── Toast ───────────────────────────────────────────────────────────────────
-function showToast(msg, dur) {
-    var t = document.getElementById('toast');
-    t.innerText = msg; t.classList.add('show');
-    clearTimeout(t._t);
-    t._t = setTimeout(function(){ t.classList.remove('show'); }, dur || 2500);
-}
-
-// ── Status ──────────────────────────────────────────────────────────────────
-function setStatus(state) {
-    document.getElementById('statusPill').className = state;
-    document.getElementById('statusText').innerText =
-        state === 'connected' ? 'Connected' :
-        state === 'error'     ? 'Error'     : 'Connecting…';
-    document.getElementById('roomLabel').innerText = roomId ? '· ' + roomId : '';
-}
-
-// ── Preview ──────────────────────────────────────────────────────────────────
-async function previewCamera() {
-    try {
-        var s = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-        document.getElementById('previewVideo').srcObject = s;
-    } catch(e) {
-        document.getElementById('previewVideo').style.display = 'none';
-        document.getElementById('previewNoCamera').style.display = 'flex';
-        document.getElementById('joinSubtitle').innerText = 'Camera unavailable — you can still join.';
-    }
-}
-previewCamera();
-
-// ── doJoin ──────────────────────────────────────────────────────────────────
-function doJoin() {
-    var pv = document.getElementById('previewVideo');
-    if (pv.srcObject) { pv.srcObject.getTracks().forEach(function(t){ t.stop(); }); }
-    document.getElementById('joinOverlay').style.display = 'none';
-    start();
-}
-
-// ── Main connect ─────────────────────────────────────────────────────────────
-async function start() {
-    if (!roomId || !token) { setStatus('error'); return; }
-    sdk = window.LiveKitClient || window.LivekitClient;
-    if (!sdk) { setStatus('error'); return; }
-    setStatus('connecting');
-
-    try {
-        room = new sdk.Room();
-
-        room.on(sdk.RoomEvent.TrackSubscribed, function(track, pub, participant) {
-            if (track.kind === 'video') { addRemoteTile(track, participant); }
-            if (track.kind === 'audio') {
-                var a = document.getElementById('remoteAudio');
-                track.attach(a); a.play().catch(function(){});
-            }
-        });
-
-        room.on(sdk.RoomEvent.TrackUnsubscribed, function(track) {
-            if (track.kind === 'video') { removeRemoteTile(track.sid); }
-        });
-
-        room.on(sdk.RoomEvent.ParticipantDisconnected, function(p) {
-            showToast(p.identity + ' left the call');
-        });
-
-        room.on(sdk.RoomEvent.Disconnected, function() {
-            setStatus('error'); clearInterval(timerInterval);
-            showToast('Disconnected. Reconnecting…', 4000);
-            setTimeout(function(){ window.location.reload(); }, 3000);
-        });
-
-        var proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        await room.connect(proto + '//' + window.location.host, token, { autoSubscribe: true });
-        setStatus('connected'); startTimer();
-
-        // Try media
-        var tracks = [];
-        try {
-            tracks = await sdk.createLocalTracks({ audio:true, video:true });
-            micAvailable = true; camAvailable = true;
-        } catch(e) {
-            try {
-                tracks = await sdk.createLocalTracks({ audio:true, video:false });
-                micAvailable = true; camAvailable = false; showToast('Camera unavailable');
-            } catch(e2) {
-                try { tracks = await sdk.createLocalTracks({ audio:false, video:false }); } catch(e3){}
-                micAvailable = false; camAvailable = false; showToast('Mic and camera unavailable');
-            }
-        }
-
-        if (!micAvailable) {
-            micEnabled = false;
-            var mb = document.getElementById('micBtn');
-            mb.disabled = true; mb.title = 'Microphone not available';
-            setMicUI(false);
-        }
-        if (!camAvailable) {
-            camEnabled = false;
-            var cb = document.getElementById('camBtn');
-            cb.disabled = true; cb.title = 'Camera not available';
-            setCamUI(false);
-        }
-
-        for (var i = 0; i < tracks.length; i++) {
-            var t = tracks[i];
-            await room.localParticipant.publishTrack(t);
-            if (t.kind === 'video') {
-                t.attach(document.getElementById('mainVideo'));
-                document.getElementById('mainVideo').style.display = 'block';
-                document.getElementById('mainAvatar').style.display = 'none';
-            }
-        }
-
-        buildLocalSidebarTile();
-
-    } catch(err) {
-        setStatus('error');
-        showToast('Error: ' + err.message, 5000);
-        console.error('VC:', err);
-    }
-}
-
-// ── Local sidebar tile ───────────────────────────────────────────────────────
-function buildLocalSidebarTile() {
-    if (document.getElementById('s_local')) return;
-    var tile = makeSidebarTile('s_local', 'You', false);
-    tile.onclick = function(){ pinParticipant('local'); };
-
-    var v = document.createElement('video');
-    v.autoplay = true; v.muted = true; v.playsinline = true;
-    v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    var mainV = document.getElementById('mainVideo');
-    if (mainV.srcObject) { v.srcObject = mainV.srcObject; }
-    tile.insertBefore(v, tile.firstChild);
-
-    var muteEl = document.createElement('div');
-    muteEl.className = 's-tile-muted'; muteEl.id = 's_local_muted';
-    muteEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>';
-    tile.appendChild(muteEl);
-
-    document.getElementById('sidebar').appendChild(tile);
-    if (pinnedId === 'local') { tile.classList.add('pinned'); }
-}
-
-// ── Helper: build base sidebar tile ─────────────────────────────────────────
-function makeSidebarTile(id, name, isScreen) {
-    var tile = document.createElement('div');
-    tile.className = 's-tile'; tile.id = id;
-
-    var avEl = document.createElement('div');
-    avEl.className = 's-tile-avatar';
-    avEl.innerText = name.charAt(0).toUpperCase();
-    tile.appendChild(avEl);
-
-    if (isScreen) {
-        var sb = document.createElement('div');
-        sb.className = 's-screen-badge'; sb.innerText = '● Screen';
-        tile.appendChild(sb);
-    }
-
-    var lbl = document.createElement('div');
-    lbl.className = 's-tile-label';
-    lbl.innerText = name + (isScreen ? ' · Screen' : '');
-    tile.appendChild(lbl);
-
-    var hint = document.createElement('div');
-    hint.className = 's-tile-hint'; hint.innerText = 'Pin';
-    tile.appendChild(hint);
-
-    return tile;
-}
-
-// ── Add remote tile ──────────────────────────────────────────────────────────
-function addRemoteTile(track, participant) {
-    var sid = track.sid;
-    if (remoteTracks[sid]) return;
-
-    var isScreen = track.source === 'screen_share' ||
-        (sdk.Track && sdk.Track.Source && track.source === sdk.Track.Source.ScreenShare);
-    var name = participant ? participant.identity : 'Remote';
-
-    var tile = makeSidebarTile('s_' + sid, name, isScreen);
-    tile.onclick = function(){ pinParticipant(sid); };
-
-    var v = document.createElement('video');
-    v.autoplay = true; v.playsinline = true;
-    v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    track.attach(v);
-    tile.insertBefore(v, tile.firstChild);
-
-    var muteEl = document.createElement('div');
-    muteEl.className = 's-tile-muted'; muteEl.id = 'smute_' + sid;
-    muteEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>';
-    tile.appendChild(muteEl);
-
-    document.getElementById('sidebar').appendChild(tile);
-    remoteTracks[sid] = { track:track, name:name, isScreen:isScreen, tileEl:tile, videoEl:v };
-
-    // Auto-pin: screen share takes priority, else pin first remote
-    if (isScreen || pinnedId === 'local') { pinParticipant(sid); }
-}
-
-// ── Remove remote tile ───────────────────────────────────────────────────────
-function removeRemoteTile(sid) {
-    var data = remoteTracks[sid];
-    if (data) { data.tileEl.remove(); delete remoteTracks[sid]; }
-    if (screenSid === sid) { screenSid = null; screenTrack = null; setScreenUI(false); }
-    if (pinnedId === sid) { pinParticipant('local'); }
-}
-
-// ── Pin ──────────────────────────────────────────────────────────────────────
-function pinParticipant(id) {
-    pinnedId = id;
-    document.querySelectorAll('.s-tile').forEach(function(t){ t.classList.remove('pinned'); });
-
-    var mainVideo   = document.getElementById('mainVideo');
-    var mainAvatar  = document.getElementById('mainAvatar');
-    var mainLblText = document.getElementById('mainLabelText');
-    var mainMuted   = document.getElementById('mainMutedBadge');
-    var screenBadge = document.getElementById('mainScreenBadge');
-
-    mainAvatar.style.display  = 'none';
-    mainVideo.style.display   = 'none';
-    screenBadge.style.display = 'none';
-    mainMuted.classList.remove('show');
-
-    if (id === 'local') {
-        mainLblText.innerText = 'You';
-        if (room && room.localParticipant) {
-            var vTracks = [];
-            if (room.localParticipant.videoTracks) {
-                room.localParticipant.videoTracks.forEach(function(publication) {
-                    if (publication && publication.track) { vTracks.push(publication.track); }
-                });
-            }
-            if (vTracks.length > 0 && camEnabled) {
-                vTracks[0].attach(mainVideo);
-                mainVideo.style.display = 'block';
-                mainAvatar.style.display = 'none';
-            } else {
-                mainVideo.style.display = 'none';
-                mainAvatar.style.display = 'flex';
-            }
-        } else {
-            mainAvatar.style.display = 'flex';
-        }
-        if (!micEnabled) mainMuted.classList.add('show');
-
-        var lt = document.getElementById('s_local');
-        if (lt) lt.classList.add('pinned');
-
-    } else {
-        var data = remoteTracks[id];
-        if (!data) { pinParticipant('local'); return; }
-
-        // Local screen share: use stored stream
-        if (data.isScreenLocal && data.stream) {
-            mainVideo.srcObject = data.stream;
-            mainVideo.style.display = 'block';
-        } else {
-            if (!data || !data.track || typeof data.track.attach !== 'function') {
-                console.error('[PIN] track missing for sid:', id, 'falling back to local');
-                pinParticipant('local');
-                return;
-            }
-            data.track.attach(mainVideo);
-            mainVideo.style.display = 'block';
-        }
-
-        mainLblText.innerText = data.name + (data.isScreen ? ' · Screen' : '');
-        if (data.isScreen) screenBadge.style.display = 'block';
-
-        var tile = document.getElementById('s_' + id);
-        if (tile) tile.classList.add('pinned');
-    }
-}
-
-// ── Mic ──────────────────────────────────────────────────────────────────────
-function setMicUI(on) {
-    document.getElementById('micOnIcon').style.display  = on ? 'block' : 'none';
-    document.getElementById('micOffIcon').style.display = on ? 'none'  : 'block';
-    document.getElementById('micLabel').innerText = on ? 'Mute' : 'Unmute';
-    document.getElementById('micBtn').classList.toggle('off', !on);
-
-    var sm = document.getElementById('s_local_muted');
-    if (sm) sm.classList.toggle('show', !on);
-    if (pinnedId === 'local') {
-        document.getElementById('mainMutedBadge').classList.toggle('show', !on);
-    }
-}
-
-async function toggleMic() {
-    if (!room || !room.localParticipant || !micAvailable) return;
-    micEnabled = !micEnabled;
-    try {
-        await room.localParticipant.setMicrophoneEnabled(micEnabled);
-        setMicUI(micEnabled);
-        showToast(micEnabled ? 'Mic on' : 'Mic muted');
-    } catch(e) { micEnabled = !micEnabled; console.error(e); }
-}
-
-// ── Camera ───────────────────────────────────────────────────────────────────
-function setCamUI(on) {
-    document.getElementById('camOnIcon').style.display  = on ? 'block' : 'none';
-    document.getElementById('camOffIcon').style.display = on ? 'none'  : 'block';
-    document.getElementById('camLabel').innerText = on ? 'Stop Cam' : 'Start Cam';
-    document.getElementById('camBtn').classList.toggle('off', !on);
-    if (pinnedId === 'local') {
-        document.getElementById('mainVideo').style.display  = on ? 'block' : 'none';
-        document.getElementById('mainAvatar').style.display = on ? 'none'  : 'flex';
-    }
-}
-
-async function toggleCam() {
-    if (!room || !room.localParticipant || !camAvailable) return;
-    camEnabled = !camEnabled;
-    try {
-        await room.localParticipant.setCameraEnabled(camEnabled);
-        setCamUI(camEnabled);
-        showToast(camEnabled ? 'Camera on' : 'Camera off');
-    } catch(e) { camEnabled = !camEnabled; console.error(e); }
-}
-
-// ── Screen share ─────────────────────────────────────────────────────────────
-function setScreenUI(on) {
-    document.getElementById('screenLabel').innerText = on ? 'Stop Sharing' : 'Share Screen';
-    document.getElementById('screenBtn').classList.toggle('screen-on', on);
-}
-
-async function toggleScreen() {
-    if (!room || !room.localParticipant) return;
-
-    if (screenTrack) {
-        try { await room.localParticipant.unpublishTrack(screenTrack); screenTrack.stop(); } catch(e){}
-        if (screenSid) {
-            var el = document.getElementById('s_' + screenSid);
-            if (el) el.remove();
-            if (pinnedId === screenSid) pinParticipant('local');
-            delete remoteTracks[screenSid];
-            screenSid = null;
-        }
-        screenTrack = null;
-        setScreenUI(false);
-        showToast('Screen sharing stopped');
-        return;
-    }
-
-    try {
-        var stream = await navigator.mediaDevices.getDisplayMedia({ video:true, audio:false });
-        var mediaTrack = stream.getVideoTracks()[0];
-
-        mediaTrack.addEventListener('ended', function() {
-            if (screenTrack) { toggleScreen(); }
-        });
-
-        var lsTrack = new sdk.LocalVideoTrack(mediaTrack);
-        await room.localParticipant.publishTrack(lsTrack, {
-            source: sdk.Track && sdk.Track.Source ? sdk.Track.Source.ScreenShare : 'screen_share'
-        });
-
-        screenTrack = lsTrack;
-        var sid = 'screen_' + Date.now();
-        screenSid = sid;
-
-        var tile = makeSidebarTile('s_' + sid, 'Your Screen', true);
-        tile.onclick = function(){ pinParticipant(sid); };
-
-        var v = document.createElement('video');
-        v.autoplay = true; v.muted = true; v.playsinline = true;
-        v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-        v.srcObject = stream;
-        tile.insertBefore(v, tile.firstChild);
-
-        document.getElementById('sidebar').appendChild(tile);
-
-        remoteTracks[sid] = {
-            track: lsTrack, name: 'Your Screen', isScreen: true,
-            isScreenLocal: true, stream: stream,
-            tileEl: tile, videoEl: v
-        };
-
-        pinParticipant(sid);
-        setScreenUI(true);
-        showToast('Screen sharing started');
-    } catch(e) {
-        if (e.name !== 'NotAllowedError') {
-            showToast('Screen share failed: ' + e.message, 4000);
-            console.error(e);
-        }
-    }
-}
-
-// ── End call ─────────────────────────────────────────────────────────────────
-async function endCall() {
-    if (screenTrack) {
-        try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){}
-    }
-    if (room) { try { await room.disconnect(); } catch(e){} room = null; }
-    clearInterval(timerInterval);
-    window.close();
-    setTimeout(function() {
-        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:DM Sans,sans-serif;color:#6b7280;font-size:14px;background:#0a0b0d;letter-spacing:.02em;">Call ended — you can close this tab.</div>';
-    }, 300);
-}
-
-// ── Keyboard ──────────────────────────────────────────────────────────────────
-document.addEventListener('keydown', function(e) {
-    if (e.target.tagName === 'INPUT') return;
-    if (e.key === 'd') toggleMic();
-    if (e.key === 'e') toggleCam();
-    if (e.key === 'Escape') endCall();
-});
-</script>
-</body>
-</html> --}}
 <!DOCTYPE html>
 <html>
 <head>
@@ -874,7 +6,7 @@ document.addEventListener('keydown', function(e) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/scripts/livekit-client.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -898,6 +30,11 @@ document.addEventListener('keydown', function(e) {
             --radius-sm:   8px;
         }
 
+        video::-webkit-media-controls { display: none !important; }
+        video::-webkit-media-controls-enclosure { display: none !important; }
+        video::-webkit-media-controls-panel { display: none !important; }
+        video { outline: none; }
+
         body {
             background: var(--bg);
             color: var(--text);
@@ -909,38 +46,29 @@ document.addEventListener('keydown', function(e) {
             user-select: none;
         }
 
-        /* ── TOP BAR ────────────────────────────────────────── */
+        /* ── TOP BAR ─────────────────────────────────────────── */
         #topBar {
             height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 0 18px;
             background: var(--bg);
             border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            z-index: 10;
+            flex-shrink: 0; z-index: 10;
         }
-
         #callInfo { display: flex; align-items: center; gap: 10px; }
 
         #statusPill {
             display: flex; align-items: center; gap: 6px;
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: 20px;
-            padding: 4px 10px 4px 8px;
-            font-size: 12px; font-weight: 500;
-            color: var(--text-mid);
+            background: var(--surface2); border: 1px solid var(--border2);
+            border-radius: 20px; padding: 4px 10px 4px 8px;
+            font-size: 12px; font-weight: 500; color: var(--text-mid);
             transition: border-color 0.3s, color 0.3s;
         }
         #statusPill.connected { border-color: rgba(34,197,94,0.35); color: var(--green); }
-        #statusPill.error     { border-color: rgba(239,68,68,0.35); color: var(--red); }
-
+        #statusPill.error     { border-color: rgba(239,68,68,0.35);  color: var(--red); }
         #statusDot {
             width: 7px; height: 7px; border-radius: 50%;
-            background: var(--yellow); flex-shrink: 0;
-            transition: background 0.3s;
+            background: var(--yellow); flex-shrink: 0; transition: background 0.3s;
         }
         #statusPill.connected #statusDot { background: var(--green); box-shadow: 0 0 6px var(--green); }
         #statusPill.error     #statusDot { background: var(--red); }
@@ -949,474 +77,371 @@ document.addEventListener('keydown', function(e) {
 
         #roomLabel { font-size: 12px; font-weight: 500; color: var(--text-dim); }
 
-        /* ── RECORDING BUTTON ── */
+        /* Recording button */
         #recordBtn {
             display: flex; align-items: center; gap: 6px;
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: 20px;
-            padding: 4px 10px 4px 8px;
-            font-size: 12px; font-weight: 500;
-            color: var(--text-mid);
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            background: var(--surface2); border: 1px solid var(--border2);
+            border-radius: 20px; padding: 4px 10px 4px 8px;
+            font-size: 12px; font-weight: 500; color: var(--text-mid);
+            cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s;
             font-family: 'DM Sans', sans-serif;
         }
-        #recordBtn:hover:not(:disabled) {
-            background: var(--surface3); border-color: var(--border); color: var(--text);
-        }
-        #recordBtn:disabled {
-            opacity: 0.5; cursor: not-allowed;
-        }
-        #recordDot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--text-dim); flex-shrink: 0;
-            transition: background 0.2s, box-shadow 0.2s;
-        }
-        #recordBtn.recording {
-            background: var(--red-dim);
-            border-color: rgba(239,68,68,0.35);
-            color: var(--red);
-        }
-        #recordBtn.recording #recordDot {
-            background: var(--red);
-            box-shadow: 0 0 6px var(--red);
-            animation: blink 1.4s ease-in-out infinite;
-        }
+        #recordBtn:hover:not(:disabled) { background: var(--surface3); border-color: var(--border); color: var(--text); }
+        #recordBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #recordDot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; transition: background 0.2s, box-shadow 0.2s; }
+        #recordBtn.recording { background: var(--red-dim); border-color: rgba(239,68,68,0.35); color: var(--red); }
+        #recordBtn.recording #recordDot { background: var(--red); box-shadow: 0 0 6px var(--red); animation: blink 1.4s ease-in-out infinite; }
 
-        /* ── TOP-RIGHT: timer + participant badge ── */
+        /* Recording border overlay */
+        #recordingBorder {
+            position: fixed; inset: 0; pointer-events: none; z-index: 500;
+            border: 3px solid transparent;
+            border-radius: 0; transition: border-color 0.3s;
+        }
+        #recordingBorder.active { border-color: var(--red); animation: recPulse 2s ease-in-out infinite; }
+        @keyframes recPulse { 0%,100%{box-shadow: inset 0 0 0 0 rgba(239,68,68,0.3);} 50%{box-shadow: inset 0 0 20px 4px rgba(239,68,68,0.15);} }
+
         #topRight { display: flex; align-items: center; gap: 8px; }
-
         #callTimer {
-            font-family: 'DM Mono', monospace;
-            font-size: 13px; color: var(--text-dim);
-            background: var(--surface2);
-            padding: 4px 10px; border-radius: 6px;
-            border: 1px solid var(--border);
-            letter-spacing: 0.04em;
+            font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-dim);
+            background: var(--surface2); padding: 4px 10px; border-radius: 6px;
+            border: 1px solid var(--border); letter-spacing: 0.04em;
         }
-
-        /* Participant count pill */
         #participantPill {
             display: flex; align-items: center; gap: 5px;
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: 20px;
-            padding: 4px 10px 4px 8px;
-            font-size: 12px; font-weight: 500;
-            color: var(--text-mid);
-            cursor: pointer;
-            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            background: var(--surface2); border: 1px solid var(--border2);
+            border-radius: 20px; padding: 4px 10px 4px 8px;
+            font-size: 12px; font-weight: 500; color: var(--text-mid);
+            cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
             white-space: nowrap;
         }
         #participantPill:hover { background: var(--surface3); border-color: var(--border2); color: var(--text); }
         #participantPill svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
         #participantCount { font-family: 'DM Mono', monospace; }
 
-        /* ── PARTICIPANT DRAWER ────────────────────────────── */
-        #drawerOverlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.35);
-            z-index: 100;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.22s;
-        }
-        #drawerOverlay.open { opacity: 1; pointer-events: all; }
-
-        #participantDrawer {
-            position: fixed; top: 0; right: 0; bottom: 0;
-            width: 280px;
-            background: var(--surface);
-            border-left: 1px solid var(--border2);
-            z-index: 101;
-            display: flex; flex-direction: column;
-            transform: translateX(100%);
-            transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: -8px 0 32px rgba(0,0,0,0.5);
-        }
-        #participantDrawer.open { transform: translateX(0); }
-
-        #drawerHeader {
-            padding: 16px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            flex-shrink: 0;
-        }
-        #drawerTitle {
-            font-size: 14px; font-weight: 600; color: var(--text);
-            display: flex; align-items: center; gap: 7px;
-        }
-        #drawerTitle svg { width: 16px; height: 16px; fill: var(--text-mid); }
-        #drawerCountBadge {
-            font-size: 11px; font-weight: 600;
-            background: var(--surface3);
-            border: 1px solid var(--border2);
-            color: var(--text-mid);
-            padding: 1px 7px; border-radius: 10px;
-            font-family: 'DM Mono', monospace;
-        }
-        #drawerCloseBtn {
-            width: 28px; height: 28px; border-radius: 7px;
-            background: none; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--text-dim);
-            transition: background 0.15s, color 0.15s;
-        }
-        #drawerCloseBtn:hover { background: var(--surface3); color: var(--text); }
-        #drawerCloseBtn svg { width: 16px; height: 16px; fill: currentColor; }
-
-        #participantList {
-            flex: 1; overflow-y: auto; padding: 10px 0;
-            scrollbar-width: thin;
-            scrollbar-color: var(--surface3) transparent;
-        }
-        #participantList::-webkit-scrollbar { width: 3px; }
-        #participantList::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
-
-        .p-item {
-            display: flex; align-items: center; gap: 10px;
-            padding: 9px 18px;
-            transition: background 0.12s;
-        }
-        .p-item:hover { background: var(--surface2); }
-
-        .p-avatar {
-            width: 34px; height: 34px; border-radius: 50%;
-            background: var(--surface3);
-            border: 1px solid var(--border2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 600; color: var(--text-mid);
-            flex-shrink: 0;
-        }
-
-        .p-name {
-            flex: 1; font-size: 13px; font-weight: 500; color: var(--text);
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .p-you-tag {
-            font-size: 10px; color: var(--text-dim);
-            background: var(--surface3);
-            padding: 1px 6px; border-radius: 6px;
-            margin-left: 4px;
-        }
-
-        .p-mic-icon { width: 16px; height: 16px; flex-shrink: 0; }
-        .p-mic-icon svg { width: 16px; height: 16px; fill: var(--text-dim); }
-        .p-mic-icon.muted svg { fill: var(--red); }
-
-        /* ── BODY ────────────────────────────────────────────── */
+        /* ── CALL BODY ────────────────────────────────────────── */
         #callBody {
             flex: 1; display: flex; overflow: hidden;
             background: #000; gap: 3px; padding: 3px;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
         }
 
         /* ── MAIN VIEW ───────────────────────────────────────── */
         #mainView {
-            flex: 1; position: relative;
-            border-radius: var(--radius); overflow: hidden;
-            background: var(--surface);
-            display: flex; align-items: center; justify-content: center;
+            flex: 1; position: relative; border-radius: var(--radius); overflow: hidden;
+            background: var(--surface); display: flex; align-items: center; justify-content: center;
+            transition: border 0.2s;
         }
+        #mainView.speaking { box-shadow: 0 0 0 2px rgba(59,130,246,0.7), 0 0 18px rgba(59,130,246,0.25); }
         #mainVideo { width:100%; height:100%; object-fit:cover; display:block; }
-
         #mainAvatar {
             width: 88px; height: 88px; border-radius: 50%;
-            background: var(--surface3);
-            border: 2px solid var(--border2);
+            background: var(--surface3); border: 2px solid var(--border2);
             display: none; align-items: center; justify-content: center;
-            font-size: 32px; font-weight: 600; color: var(--text-mid);
-            position: absolute;
+            font-size: 32px; font-weight: 600; color: var(--text-mid); position: absolute;
         }
-
         #mainLabel {
             position: absolute; bottom: 14px; left: 14px;
             font-size: 13px; font-weight: 500; color: #fff;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(10px);
             padding: 5px 12px; border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.08);
-            display: flex; align-items: center; gap: 6px;
-            pointer-events: none;
+            display: flex; align-items: center; gap: 6px; pointer-events: none;
         }
-
         #mainMutedBadge { display:none; align-items:center; justify-content:center; }
         #mainMutedBadge.show { display:flex; }
         #mainMutedBadge svg { width:14px; height:14px; fill:var(--red); }
-
         #mainScreenBadge {
             position: absolute; top: 13px; left: 13px;
-            font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
-            text-transform: uppercase; color: var(--accent);
-            background: var(--accent-glow);
-            border: 1px solid rgba(59,130,246,0.4);
-            padding: 3px 10px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+            color: var(--accent); background: var(--accent-glow);
+            border: 1px solid rgba(59,130,246,0.4); padding: 3px 10px; border-radius: 20px;
             display: none; pointer-events: none;
         }
 
         /* ── SIDEBAR ─────────────────────────────────────────── */
         #sidebar {
-            width: 214px; flex-shrink: 0;
-            display: flex; flex-direction: column; gap: 3px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--surface3) transparent;
+            width: 214px; flex-shrink: 0; display: flex; flex-direction: column; gap: 3px;
+            overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--surface3) transparent;
         }
         #sidebar::-webkit-scrollbar { width: 3px; }
         #sidebar::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
 
         .s-tile {
-            flex-shrink: 0; height: 144px;
-            border-radius: var(--radius-sm);
-            background: var(--surface);
-            position: relative; overflow: hidden;
-            cursor: pointer;
+            flex-shrink: 0; height: 144px; border-radius: var(--radius-sm);
+            background: var(--surface); position: relative; overflow: hidden; cursor: pointer;
             border: 2px solid transparent;
-            transition: border-color 0.18s, transform 0.15s;
+            transition: border-color 0.18s, transform 0.15s, box-shadow 0.2s;
             display: flex; align-items: center; justify-content: center;
         }
         .s-tile:hover { border-color: var(--border2); transform: scale(1.015); }
         .s-tile.pinned { border-color: var(--accent); }
-        .s-tile video { width:100%; height:100%; object-fit:cover; display:block; }
-
+        .s-tile.speaking { border-color: rgba(59,130,246,0.7); box-shadow: 0 0 12px rgba(59,130,246,0.25); }
+        .s-tile video { width:100%; height:100%; object-fit:cover; display:block; pointer-events: none; }
+        .s-tile.mirrored video, video.mirrored { transform: scaleX(-1) !important; }
+        .s-tile.unmirrored video, video.unmirrored { transform: scaleX(1) !important; }
+        #previewVideo.mirrored { transform: scaleX(-1) !important; }
         .s-tile-avatar {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: var(--surface3);
+            width: 44px; height: 44px; border-radius: 50%; background: var(--surface3);
             display: flex; align-items: center; justify-content: center;
-            font-size: 17px; font-weight: 600; color: var(--text-mid);
-            position: absolute;
+            font-size: 17px; font-weight: 600; color: var(--text-mid); position: absolute;
         }
-
-        /* Fix: hide avatar when video is showing */
         .s-tile.has-video .s-tile-avatar { display: none; }
-
         .s-tile-label {
             position: absolute; bottom: 6px; left: 7px;
             font-size: 11px; font-weight: 500; color: #fff;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
             padding: 2px 7px; border-radius: 9px;
-            max-width: 130px; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap;
+            max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
             pointer-events: none;
         }
-
         .s-tile-muted {
             position: absolute; bottom: 6px; right: 6px;
             width: 20px; height: 20px; border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center;
         }
         .s-tile-muted.show { display:flex; }
         .s-tile-muted svg { width:11px; height:11px; fill:var(--red); }
-
         .s-tile-hint {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            background: rgba(0,0,0,0.72); color:#fff;
-            font-size: 11px; font-weight: 500;
-            padding: 3px 9px; border-radius: 9px;
-            opacity: 0; transition: opacity 0.18s; pointer-events: none;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: rgba(0,0,0,0.72); color:#fff; font-size: 11px; font-weight: 500;
+            padding: 3px 9px; border-radius: 9px; opacity: 0; transition: opacity 0.18s; pointer-events: none;
         }
         .s-tile:hover .s-tile-hint { opacity: 1; }
-
-        /* Screen badge inside sidebar tile */
         .s-screen-badge {
             position: absolute; top: 6px; left: 7px;
-            font-size: 9px; font-weight: 700; letter-spacing: .06em;
-            text-transform: uppercase; color: var(--accent);
-            background: var(--accent-glow);
-            border: 1px solid rgba(59,130,246,0.35);
-            padding: 2px 6px; border-radius: 8px;
+            font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+            color: var(--accent); background: var(--accent-glow);
+            border: 1px solid rgba(59,130,246,0.35); padding: 2px 6px; border-radius: 8px;
             pointer-events: none;
         }
 
-        /* ── CONTROLS ────────────────────────────────────────── */
+        /* ── CONTROLS ─────────────────────────────────────────── */
         #controls {
-            height: 76px;
-            background: var(--bg);
-            border-top: 1px solid var(--border);
+            height: 76px; background: var(--bg); border-top: 1px solid var(--border);
             display: flex; align-items: center; justify-content: center;
             gap: 6px; flex-shrink: 0; padding: 0 10px;
         }
-
         .ctrl-btn {
-            display: flex; flex-direction: column;
-            align-items: center; gap: 4px;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
             background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 10px; font-weight: 500; color: var(--text-dim);
-            padding: 4px 8px; border-radius: var(--radius-sm);
-            transition: color 0.15s;
-            letter-spacing: 0.02em;
+            font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500; color: var(--text-dim);
+            padding: 4px 8px; border-radius: var(--radius-sm); transition: color 0.15s; letter-spacing: 0.02em;
         }
         .ctrl-btn:hover { color: var(--text); }
         .ctrl-btn:disabled { opacity: 0.28; cursor: not-allowed; }
-
         .ctrl-icon {
             width: 44px; height: 44px; border-radius: 50%;
-            background: var(--surface2);
-            border: 1px solid var(--border);
+            background: var(--surface2); border: 1px solid var(--border);
             display: flex; align-items: center; justify-content: center;
             transition: background 0.15s, border-color 0.15s, transform 0.1s;
         }
-        .ctrl-btn:hover:not(:disabled) .ctrl-icon {
-            background: var(--surface3); border-color: var(--border2);
-        }
+        .ctrl-btn:hover:not(:disabled) .ctrl-icon { background: var(--surface3); border-color: var(--border2); }
         .ctrl-btn:active:not(:disabled) .ctrl-icon { transform: scale(0.92); }
         .ctrl-icon svg { width: 20px; height: 20px; fill: var(--text-mid); transition: fill 0.15s; }
-
         .ctrl-btn.off .ctrl-icon { background: var(--red-dim); border-color: rgba(239,68,68,0.28); }
         .ctrl-btn.off .ctrl-icon svg { fill: var(--red); }
         .ctrl-btn.off { color: var(--red); }
-
         .ctrl-btn.screen-on .ctrl-icon { background: var(--accent-glow); border-color: rgba(59,130,246,0.38); }
         .ctrl-btn.screen-on .ctrl-icon svg { fill: var(--accent); }
         .ctrl-btn.screen-on { color: var(--accent); }
-
         .ctrl-sep { width:1px; height:26px; background:var(--border); margin:0 2px; flex-shrink:0; }
-
         .ctrl-btn.end-call .ctrl-icon {
-            width: 50px; height: 50px;
-            background: var(--red); border-color: transparent;
+            width: 50px; height: 50px; background: var(--red); border-color: transparent;
             animation: ring 2.5s ease-in-out infinite;
         }
-        @keyframes ring {
-            0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
-            50%     { box-shadow: 0 0 0 7px rgba(239,68,68,0); }
-        }
+        @keyframes ring { 0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50%{ box-shadow: 0 0 0 7px rgba(239,68,68,0); } }
         .ctrl-btn.end-call .ctrl-icon svg { fill:#fff; width:21px; height:21px; }
         .ctrl-btn.end-call { color: var(--red); }
         .ctrl-btn.end-call:hover .ctrl-icon { background:#dc2626; animation:none; }
 
-        /* ── JOIN OVERLAY ────────────────────────────────────── */
-        #joinOverlay {
-            position: fixed; inset: 0;
-            background: var(--bg); z-index: 200;
-            display: flex; align-items: center; justify-content: center;
+        /* ── PARTICIPANT DRAWER ────────────────────────────────── */
+        #drawerOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+        #drawerOverlay.open { opacity: 1; pointer-events: all; }
+        #participantDrawer {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 280px;
+            background: var(--surface); border-left: 1px solid var(--border2);
+            z-index: 101; display: flex; flex-direction: column;
+            transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.5);
         }
+        #participantDrawer.open { transform: translateX(0); }
+        #drawerHeader { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        #drawerTitle { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 7px; }
+        #drawerTitle svg { width: 16px; height: 16px; fill: var(--text-mid); }
+        #drawerCountBadge { font-size: 11px; font-weight: 600; background: var(--surface3); border: 1px solid var(--border2); color: var(--text-mid); padding: 1px 7px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+        #drawerCloseBtn { width: 28px; height: 28px; border-radius: 7px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dim); transition: background 0.15s, color 0.15s; }
+        #drawerCloseBtn:hover { background: var(--surface3); color: var(--text); }
+        #drawerCloseBtn svg { width: 16px; height: 16px; fill: currentColor; }
+        #participantList { flex: 1; overflow-y: auto; padding: 10px 0; scrollbar-width: thin; scrollbar-color: var(--surface3) transparent; }
+        #participantList::-webkit-scrollbar { width: 3px; }
+        #participantList::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+        .p-item { display: flex; align-items: center; gap: 10px; padding: 9px 18px; transition: background 0.12s; }
+        .p-item:hover { background: var(--surface2); }
+        .p-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--surface3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-mid); flex-shrink: 0; position: relative; }
+        .p-avatar .p-speaking-dot { position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); display: none; }
+        .p-avatar.speaking .p-speaking-dot { display: block; animation: pulseDot 1.2s ease-in-out infinite; }
+        @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.2)} }
+        .p-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .p-you-tag { font-size: 10px; color: var(--text-dim); background: var(--surface3); padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
+        .p-mic-icon { width: 16px; height: 16px; flex-shrink: 0; }
+        .p-mic-icon svg { width: 16px; height: 16px; fill: var(--text-dim); }
+        .p-mic-icon.muted svg { fill: var(--red); }
 
+        /* ── SETTINGS DRAWER ──────────────────────────────────── */
+        #settingsDrawer {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 320px;
+            background: var(--surface); border-left: 1px solid var(--border2);
+            z-index: 102; display: flex; flex-direction: column;
+            transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.5);
+        }
+        #settingsDrawer.open { transform: translateX(0); }
+        #settingsHeader { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        #settingsTitle { font-size: 14px; font-weight: 600; color: var(--text); }
+        #settingsCloseBtn { width: 28px; height: 28px; border-radius: 7px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dim); transition: background 0.15s, color 0.15s; }
+        #settingsCloseBtn:hover { background: var(--surface3); color: var(--text); }
+        #settingsCloseBtn svg { width: 16px; height: 16px; fill: currentColor; }
+
+        /* Settings tabs */
+        #settingsTabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 18px; gap: 2px; flex-shrink: 0; }
+        .sett-tab {
+            padding: 10px 14px; font-size: 12px; font-weight: 500; color: var(--text-dim);
+            cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif;
+            border-bottom: 2px solid transparent; margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .sett-tab:hover { color: var(--text); }
+        .sett-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        #settingsBody { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 16px; scrollbar-width: thin; scrollbar-color: var(--surface3) transparent; }
+        #settingsBody::-webkit-scrollbar { width: 3px; }
+        #settingsBody::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+        .sett-section { display: none; flex-direction: column; gap: 14px; }
+        .sett-section.active { display: flex; }
+
+        .sett-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+        .sett-select {
+            width: 100%; padding: 9px 12px; background: var(--surface2); border: 1px solid var(--border2);
+            border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; cursor: pointer; outline: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center;
+            padding-right: 30px;
+        }
+        .sett-select:focus { border-color: var(--accent); }
+
+        .sett-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .sett-toggle-label { font-size: 13px; font-weight: 500; color: var(--text); }
+        .sett-toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+        .sett-toggle input { opacity: 0; width: 0; height: 0; }
+        .sett-slider { position: absolute; inset: 0; background: var(--surface3); border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .sett-slider:before { content: ''; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: var(--text-dim); border-radius: 50%; transition: 0.2s; }
+        .sett-toggle input:checked + .sett-slider { background: var(--accent); }
+        .sett-toggle input:checked + .sett-slider:before { transform: translateX(16px); background: #fff; }
+
+        /* Background options */
+        .bg-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .bg-option {
+            aspect-ratio: 16/9; border-radius: 8px; border: 2px solid var(--border2);
+            cursor: pointer; overflow: hidden; position: relative; transition: border-color 0.15s, transform 0.15s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; color: var(--text-dim);
+            background: var(--surface2); text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .bg-option:hover { border-color: var(--accent); transform: scale(1.03); }
+        .bg-option.selected { border-color: var(--accent); }
+        .bg-option.selected::after { content: '✓'; position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; }
+        .bg-office { background: linear-gradient(135deg, #1a2340 0%, #2d3a52 50%, #1e2d44 100%); color: #8899bb; }
+        .bg-nature { background: linear-gradient(135deg, #1a3325 0%, #2d5437 50%, #1e4028 100%); color: #7aaa88; }
+
+        /* Recording tab */
+        #recTabInfo { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+        #recToggleBtn {
+            width: 100%; padding: 11px; border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;
+            transition: background 0.15s, opacity 0.15s; border: none;
+        }
+        #recToggleBtn.idle { background: var(--accent); color: #fff; }
+        #recToggleBtn.idle:hover { background: #2563eb; }
+        #recToggleBtn.recording { background: var(--red); color: #fff; }
+        #recToggleBtn.recording:hover { background: #dc2626; }
+        #recToggleBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── JOIN OVERLAY ──────────────────────────────────────── */
+        #joinOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: flex; align-items: center; justify-content: center; }
         #joinCard {
-            background: var(--surface);
-            border: 1px solid var(--border2);
+            background: var(--surface); border: 1px solid var(--border2);
             border-radius: 20px; padding: 28px;
-            display: flex; flex-direction: column;
-            align-items: center; gap: 18px;
-            width: 380px;
-            box-shadow: 0 28px 60px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column; align-items: center; gap: 18px;
+            width: 380px; box-shadow: 0 28px 60px rgba(0,0,0,0.7);
         }
-
-        #previewWrap {
-            width: 100%; height: 196px; border-radius: var(--radius);
-            overflow: hidden; background: var(--surface2);
-            position: relative;
-            display: flex; align-items: center; justify-content: center;
-        }
+        #previewWrap { width: 100%; height: 196px; border-radius: var(--radius); overflow: hidden; background: var(--surface2); position: relative; display: flex; align-items: center; justify-content: center; }
         #previewVideo { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
-        #previewNoCamera {
-            display:none; flex-direction:column;
-            align-items:center; gap:8px;
-            color: var(--text-dim); font-size:13px;
-        }
+        #previewNoCamera { display:none; flex-direction:column; align-items:center; gap:8px; color: var(--text-dim); font-size:13px; }
         #previewNoCamera svg { width:30px; height:30px; fill:var(--text-dim); opacity:.35; }
-
         #joinCard h2 { font-size: 21px; font-weight: 600; }
         #joinCard p  { font-size: 13px; color: var(--text-dim); text-align:center; line-height:1.5; }
-
         #joinBtn {
-            width: 100%; background: var(--accent); color: #fff;
-            border: none; padding: 12px;
-            border-radius: var(--radius);
-            font-size: 15px; font-family:'DM Sans',sans-serif;
-            font-weight: 600; cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            width: 100%; background: var(--accent); color: #fff; border: none; padding: 12px;
+            border-radius: var(--radius); font-size: 15px; font-family:'DM Sans',sans-serif;
+            font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s;
             box-shadow: 0 4px 18px var(--accent-glow);
         }
         #joinBtn:hover { background: #2563eb; }
         #joinBtn:active { transform: scale(0.98); }
 
-        /* ── TOAST ───────────────────────────────────────────── */
+        /* ── TOAST ────────────────────────────────────────────── */
         #toast {
             position: fixed; bottom: 88px; left: 50%;
             transform: translateX(-50%) translateY(8px);
             background: var(--surface3); color: var(--text);
-            border: 1px solid var(--border2);
-            padding: 8px 16px; border-radius: 9px;
-            font-size: 13px; font-weight: 500;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.2s, transform 0.2s;
-            z-index: 300; white-space: nowrap;
+            border: 1px solid var(--border2); padding: 8px 16px; border-radius: 9px;
+            font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s; z-index: 300; white-space: nowrap;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
         #toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
 
-        /* ── END CALL MODAL ──────────────────────────────────── */
+        /* ── END CALL MODAL ───────────────────────────────────── */
         #endCallModalOverlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 400;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 400;
             display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.18s;
+            opacity: 0; pointer-events: none; transition: opacity 0.18s;
         }
         #endCallModalOverlay.open { opacity: 1; pointer-events: all; }
-
         #endCallModal {
-            background: var(--surface);
-            border: 1px solid var(--border2);
-            border-radius: 16px;
-            padding: 24px;
-            width: 320px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.7);
-            transform: scale(0.96) translateY(6px);
-            transition: transform 0.18s cubic-bezier(0.4,0,0.2,1);
+            background: var(--surface); border: 1px solid var(--border2); border-radius: 16px;
+            padding: 24px; width: 320px; box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+            transform: scale(0.96) translateY(6px); transition: transform 0.18s cubic-bezier(0.4,0,0.2,1);
         }
         #endCallModalOverlay.open #endCallModal { transform: scale(1) translateY(0); }
-
-        #endCallModal h3 {
-            font-size: 16px; font-weight: 600; color: var(--text);
-            margin-bottom: 6px;
-        }
-        #endCallModal p {
-            font-size: 13px; color: var(--text-dim); line-height: 1.5;
-            margin-bottom: 20px;
-        }
-
+        #endCallModal h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+        #endCallModal p  { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px; }
         .modal-btn-row { display: flex; flex-direction: column; gap: 8px; }
-
         .modal-btn {
-            width: 100%; padding: 11px 16px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border2);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px; font-weight: 500;
-            cursor: pointer;
+            width: 100%; padding: 11px 16px; border-radius: var(--radius-sm);
+            border: 1px solid var(--border2); font-family: 'DM Sans', sans-serif;
+            font-size: 14px; font-weight: 500; cursor: pointer;
             transition: background 0.15s, border-color 0.15s;
             text-align: left; display: flex; align-items: center; gap: 10px;
         }
         .modal-btn svg { width: 17px; height: 17px; flex-shrink: 0; }
-
-        .modal-btn.leave {
-            background: var(--surface2); color: var(--text);
-        }
+        .modal-btn.leave { background: var(--surface2); color: var(--text); }
         .modal-btn.leave svg { fill: var(--text-mid); }
         .modal-btn.leave:hover { background: var(--surface3); border-color: var(--border2); }
-
-        .modal-btn.end-all {
-            background: var(--red-dim); color: var(--red);
-            border-color: rgba(239,68,68,0.3);
-        }
+        .modal-btn.end-all { background: var(--red-dim); color: var(--red); border-color: rgba(239,68,68,0.3); }
         .modal-btn.end-all svg { fill: var(--red); }
         .modal-btn.end-all:hover { background: rgba(239,68,68,0.22); }
-
-        .modal-btn.cancel {
-            background: none; color: var(--text-dim);
-            border-color: transparent;
-            font-size: 13px; text-align: center; justify-content: center;
-        }
+        .modal-btn.cancel { background: none; color: var(--text-dim); border-color: transparent; font-size: 13px; text-align: center; justify-content: center; }
         .modal-btn.cancel:hover { color: var(--text); background: var(--surface2); }
     </style>
 </head>
 <body>
+
+<!-- RECORDING BORDER INDICATOR -->
+<div id="recordingBorder"></div>
 
 <!-- TOP BAR -->
 <div id="topBar">
@@ -1458,7 +483,7 @@ document.addEventListener('keydown', function(e) {
 
 <!-- CONTROLS -->
 <div id="controls">
-    <button class="ctrl-btn" id="micBtn" onclick="toggleMic()" title="Microphone (D)">
+    <button class="ctrl-btn" id="micBtn" onclick="toggleMic()" title="Microphone (Ctrl+Shift+A)">
         <div class="ctrl-icon">
             <svg id="micOnIcon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>
             <svg id="micOffIcon" viewBox="0 0 24 24" style="display:none"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>
@@ -1466,7 +491,7 @@ document.addEventListener('keydown', function(e) {
         <span id="micLabel">Mic</span>
     </button>
 
-    <button class="ctrl-btn" id="camBtn" onclick="toggleCam()" title="Camera (E)">
+    <button class="ctrl-btn" id="camBtn" onclick="toggleCam()" title="Camera (Ctrl+Shift+V)">
         <div class="ctrl-icon">
             <svg id="camOnIcon" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
             <svg id="camOffIcon" viewBox="0 0 24 24" style="display:none"><path d="M21 6.5l-4-4-5 5-3-3-4.5 4.5 8.5 8.5L21 6.5zM3.27 2 2 3.27l4.5 4.5L2 12.5V17c0 .55.45 1 1 1h11.73l2 2L18 18.73 3.27 2zM16 12.27V17H5.27L16 6.27v6z"/></svg>
@@ -1481,6 +506,22 @@ document.addEventListener('keydown', function(e) {
             <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zm-9-3v-2H7v-2h4V9l3 3-3 3z"/></svg>
         </div>
         <span id="screenLabel">Share Screen</span>
+    </button>
+
+    <div class="ctrl-sep"></div>
+
+    <button class="ctrl-btn" id="settingsBtn" onclick="toggleSettings()" title="Settings">
+        <div class="ctrl-icon">
+            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+        </div>
+        <span>Settings</span>
+    </button>
+
+    <button class="ctrl-btn" id="participantsBtn" onclick="toggleDrawer()" title="Participants">
+        <div class="ctrl-icon">
+            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </div>
+        <span>People</span>
     </button>
 
     <div class="ctrl-sep"></div>
@@ -1511,6 +552,72 @@ document.addEventListener('keydown', function(e) {
     <div id="participantList"></div>
 </div>
 
+<!-- SETTINGS DRAWER -->
+<div id="settingsDrawer">
+    <div id="settingsHeader">
+        <div id="settingsTitle">Settings</div>
+        <button id="settingsCloseBtn" onclick="closeSettings()">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+    </div>
+    <div id="settingsTabs">
+        <button class="sett-tab active" onclick="switchSettTab('media', this)">Media</button>
+        <button class="sett-tab" onclick="switchSettTab('background', this)">Background</button>
+        <button class="sett-tab" onclick="switchSettTab('recording', this)">Recording</button>
+    </div>
+    <div id="settingsBody">
+        <!-- Media Tab -->
+        <div class="sett-section active" id="sett-media">
+            <div>
+                <div class="sett-label">Camera</div>
+                <select class="sett-select" id="camSelect" onchange="switchCamera(this.value)">
+                    <option value="">Loading cameras…</option>
+                </select>
+            </div>
+            <div>
+                <div class="sett-label">Microphone</div>
+                <select class="sett-select" id="micSelect" onchange="switchMic(this.value)">
+                    <option value="">Loading mics…</option>
+                </select>
+            </div>
+            <div>
+                <div class="sett-label">Speaker</div>
+                <select class="sett-select" id="speakerSelect" onchange="switchSpeaker(this.value)">
+                    <option value="">Loading speakers…</option>
+                </select>
+            </div>
+            <div class="sett-toggle-row">
+                <span class="sett-toggle-label">Camera</span>
+                <label class="sett-toggle"><input type="checkbox" id="settCamToggle" checked onchange="toggleCam()"><span class="sett-slider"></span></label>
+            </div>
+            <div class="sett-toggle-row">
+                <span class="sett-toggle-label">Microphone</span>
+                <label class="sett-toggle"><input type="checkbox" id="settMicToggle" checked onchange="toggleMic()"><span class="sett-slider"></span></label>
+            </div>
+        </div>
+        <!-- Background Tab -->
+        <div class="sett-section" id="sett-background">
+            <div class="sett-label">Virtual Background</div>
+            <div class="bg-options">
+                <div class="bg-option selected" id="bg-none" onclick="setBg('none', this)">None</div>
+                <div class="bg-option" id="bg-blur" onclick="setBg('blur', this)">Blur</div>
+                <div class="bg-option bg-office" id="bg-office" onclick="setBg('office', this)">Office</div>
+                <div class="bg-option bg-nature" id="bg-nature" onclick="setBg('nature', this)">Nature</div>
+            </div>
+            <p style="font-size:11px;color:var(--text-dim);line-height:1.5;">Virtual backgrounds require BackgroundBlur/VirtualBackground processors from the LiveKit client SDK. If unsupported, the option will be silently skipped.</p>
+        </div>
+        <!-- Recording Tab -->
+        <div class="sett-section" id="sett-recording">
+            <p id="recTabInfo">Record this call to a file. Recording requires a configured <code style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">/api/startrecording</code> endpoint on the server.</p>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);">
+                <div id="recStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;"></div>
+                <span id="recStatusText" style="font-size:12px;color:var(--text-dim);">Not recording</span>
+            </div>
+            <button id="recToggleBtn" class="idle" onclick="toggleRecording()">Start Recording</button>
+        </div>
+    </div>
+</div>
+
 <!-- HOST END CALL MODAL -->
 <div id="endCallModalOverlay">
     <div id="endCallModal">
@@ -1531,33 +638,55 @@ document.addEventListener('keydown', function(e) {
 </div>
 
 <div id="toast"></div>
-<audio id="remoteAudio" autoplay></audio>
+<!-- Multiple audio elements to handle multiple remote participants -->
+<div id="audioElements"></div>
+
+<!-- JOIN OVERLAY (rendered at end so it's on top) -->
+<div id="joinOverlay">
+    <div id="joinCard">
+        <div id="previewWrap">
+            <video id="previewVideo" class="mirrored" autoplay muted playsinline></video>
+            <div id="previewNoCamera">
+                <svg viewBox="0 0 24 24"><path d="M21 6.5l-4-4-5 5-3-3-4.5 4.5 8.5 8.5L21 6.5zM3.27 2 2 3.27l4.5 4.5L2 12.5V17c0 .55.45 1 1 1h11.73l2 2L18 18.73 3.27 2zM16 12.27V17H5.27L16 6.27v6z"/></svg>
+                <span>Camera not available</span>
+            </div>
+        </div>
+        <div style="text-align:center; display:flex; flex-direction:column; gap:6px;">
+            <h2>Ready to join?</h2>
+            <p id="joinSubtitle">Your camera and mic will be enabled.</p>
+        </div>
+        <button id="joinBtn" onclick="doJoin()">Join Now</button>
+    </div>
+</div>
 
 <script>
-// ── State ───────────────────────────────────────────────────────────────────
-var room          = null;
-var sdk           = null;
-var micEnabled    = true;
-var camEnabled    = true;
-var screenTrack   = null;
-var screenSid     = null;
-var callStartTime = null;
-var timerInterval = null;
-var micAvailable  = true;
-var camAvailable  = true;
-var pinnedId      = 'local';
-var remoteTracks  = {};
-var remoteParticipants = {}; // identity → { name, micMuted }
-
-var recordState = 'idle';
-var currentEgressId = null;
+// ── State ────────────────────────────────────────────────────────────────────
+var room               = null;
+var sdk                = null;
+var micEnabled         = true;
+var camEnabled         = true;
+var screenTrack        = null;
+var screenSid          = null;
+var callStartTime      = null;
+var timerInterval      = null;
+var micAvailable       = true;
+var camAvailable       = true;
+var pinnedId           = 'local';
+var remoteTracks       = {};       // sid/identity → { track, name, isScreen, tileEl, videoEl, ... }
+var remoteParticipants = {};       // identity → { name, micMuted, speaking }
+var activeSpeakers     = new Set();
+var recordState        = 'idle';   // idle | recording | stopping
+var currentEgressId    = null;
+var currentBg          = 'none';
+var settingsOpen       = false;
+var reconnectAttempted = false;
 
 var urlParams = new URLSearchParams(window.location.search);
 var roomId    = urlParams.get('room');
 var token     = urlParams.get('token');
 var isHost    = urlParams.get('role') === 'host' || urlParams.get('host') === '1' || urlParams.get('host') === 'true';
 
-// ── Recording ───────────────────────────────────────────────────────────────
+// ── Recording ────────────────────────────────────────────────────────────────
 async function toggleRecording() {
     if (recordState === 'idle') {
         recordState = 'recording';
@@ -1572,14 +701,18 @@ async function toggleRecording() {
             var data = await res.json();
             if (data.egressId) {
                 currentEgressId = data.egressId;
-                showToast("Recording started");
-            } else {
-                throw new Error("No egressId returned");
-            }
+                showToast('Recording started');
+                document.getElementById('recordingBorder').classList.add('active');
+                document.getElementById('recStatusDot').style.background = 'var(--red)';
+                document.getElementById('recStatusDot').style.boxShadow = '0 0 6px var(--red)';
+                document.getElementById('recStatusDot').style.animation = 'blink 1.4s ease-in-out infinite';
+                document.getElementById('recStatusText').textContent = 'Recording…';
+                document.getElementById('recStatusText').style.color = 'var(--red)';
+            } else { throw new Error('No egressId returned'); }
         } catch(e) {
             recordState = 'idle';
             updateRecordUI();
-            showToast("Recording failed: " + e.message);
+            showToast('Recording failed: ' + e.message);
         }
     } else if (recordState === 'recording') {
         if (!currentEgressId) return;
@@ -1595,11 +728,16 @@ async function toggleRecording() {
             currentEgressId = null;
             recordState = 'idle';
             updateRecordUI();
-            showToast("Recording stopped");
+            showToast('Recording stopped');
+            document.getElementById('recordingBorder').classList.remove('active');
+            document.getElementById('recStatusDot').style.background = 'var(--text-dim)';
+            document.getElementById('recStatusDot').style.boxShadow = '';
+            document.getElementById('recStatusDot').style.animation = '';
+            document.getElementById('recStatusText').textContent = 'Not recording';
+            document.getElementById('recStatusText').style.color = 'var(--text-dim)';
         } catch(e) {
-            recordState = 'recording';
-            updateRecordUI();
-            showToast("Could not stop recording: " + e.message);
+            recordState = 'recording'; updateRecordUI();
+            showToast('Could not stop recording: ' + e.message);
         }
     }
 }
@@ -1607,35 +745,31 @@ async function toggleRecording() {
 function updateRecordUI() {
     var btn = document.getElementById('recordBtn');
     var txt = document.getElementById('recordText');
+    var recBtn = document.getElementById('recToggleBtn');
     if (!btn) return;
     if (recordState === 'idle') {
-        btn.className = '';
-        btn.disabled = false;
-        txt.innerText = 'REC';
+        btn.className = ''; btn.disabled = false; txt.innerText = 'REC';
+        if (recBtn) { recBtn.className = 'idle'; recBtn.disabled = false; recBtn.textContent = 'Start Recording'; }
     } else if (recordState === 'recording') {
-        btn.className = 'recording';
-        btn.disabled = false;
-        txt.innerText = 'Recording';
+        btn.className = 'recording'; btn.disabled = false; txt.innerText = 'Recording';
+        if (recBtn) { recBtn.className = 'recording'; recBtn.disabled = false; recBtn.textContent = 'Stop Recording'; }
     } else if (recordState === 'stopping') {
-        btn.className = '';
-        btn.disabled = true;
-        txt.innerText = 'Stopping…';
+        btn.className = ''; btn.disabled = true; txt.innerText = 'Stopping…';
+        if (recBtn) { recBtn.className = 'idle'; recBtn.disabled = true; recBtn.textContent = 'Stopping…'; }
     }
 }
 
 function stopRecordingIfNeeded() {
     if (recordState === 'recording' && currentEgressId) {
         fetch('/api/stoprecording', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ egressId: currentEgressId })
         }).catch(function(){});
-        recordState = 'stopping';
-        updateRecordUI();
+        recordState = 'stopping'; updateRecordUI();
     }
 }
 
-// ── Timer ───────────────────────────────────────────────────────────────────
+// ── Timer ────────────────────────────────────────────────────────────────────
 function startTimer() {
     callStartTime = Date.now();
     timerInterval = setInterval(function() {
@@ -1647,7 +781,7 @@ function startTimer() {
     }, 1000);
 }
 
-// ── Toast ───────────────────────────────────────────────────────────────────
+// ── Toast ────────────────────────────────────────────────────────────────────
 function showToast(msg, dur) {
     var t = document.getElementById('toast');
     t.innerText = msg; t.classList.add('show');
@@ -1655,7 +789,7 @@ function showToast(msg, dur) {
     t._t = setTimeout(function(){ t.classList.remove('show'); }, dur || 2500);
 }
 
-// ── Status ──────────────────────────────────────────────────────────────────
+// ── Status ───────────────────────────────────────────────────────────────────
 function setStatus(state) {
     document.getElementById('statusPill').className = state;
     document.getElementById('statusText').innerText =
@@ -1664,7 +798,7 @@ function setStatus(state) {
     document.getElementById('roomLabel').innerText = roomId ? '· ' + roomId : '';
 }
 
-// ── Preview ──────────────────────────────────────────────────────────────────
+// ── Preview ───────────────────────────────────────────────────────────────────
 async function previewCamera() {
     try {
         var s = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
@@ -1677,7 +811,7 @@ async function previewCamera() {
 }
 previewCamera();
 
-// ── doJoin ──────────────────────────────────────────────────────────────────
+// ── doJoin ───────────────────────────────────────────────────────────────────
 function doJoin() {
     var pv = document.getElementById('previewVideo');
     if (pv.srcObject) { pv.srcObject.getTracks().forEach(function(t){ t.stop(); }); }
@@ -1685,26 +819,30 @@ function doJoin() {
     start();
 }
 
-// ── Main connect ─────────────────────────────────────────────────────────────
+// ── Main connect ──────────────────────────────────────────────────────────────
 async function start() {
     if (room !== null) {
         console.log('[CONNECT] WARNING: room already exists, state:', room.state);
         try { await room.disconnect(); } catch(e){}
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(function(r){ setTimeout(r, 500); });
         room = null;
     }
 
     console.log('[CONNECT] start() called, roomId:', roomId, 'token length:', token ? token.length : 0);
-    if (!roomId || !token) { setStatus('error'); return; }
+    if (!roomId || !token) { setStatus('error'); showToast('Missing room or token', 5000); return; }
     sdk = window.LiveKitClient || window.LivekitClient;
-    console.log('[CONNECT] SDK found:', !!sdk, 'SDK version:', sdk.version || 'unknown');
-    if (!sdk) { setStatus('error'); return; }
+    console.log('[CONNECT] SDK found:', !!sdk, 'SDK keys:', sdk ? Object.keys(sdk).slice(0,10).join(',') : 'none');
+    if (!sdk) { setStatus('error'); showToast('LiveKit SDK not loaded', 5000); return; }
     setStatus('connecting');
 
     try {
-        room = new sdk.Room();
+        room = new sdk.Room({
+            adaptiveStream: true,
+            dynacast: true,
+        });
         console.log('[CONNECT] room object created');
 
+        // ── Room events ──────────────────────────────────────────
         room.on(sdk.RoomEvent.MediaDevicesError, function(error) {
             console.log('[CONNECT] MediaDevicesError', error.name, error.message);
         });
@@ -1716,31 +854,36 @@ async function start() {
         });
 
         room.on(sdk.RoomEvent.TrackSubscribed, function(track, pub, participant) {
+            console.log('[CONNECT] TrackSubscribed:', track.kind, 'from', participant ? participant.identity : 'unknown', 'source:', track.source);
             if (participant) {
                 if (!remoteParticipants[participant.identity]) {
-                    remoteParticipants[participant.identity] = { name: participant.identity, micMuted: false };
+                    remoteParticipants[participant.identity] = { name: participant.identity, micMuted: false, speaking: false };
                     addParticipantTile(participant);
                 }
             }
-            if (track.kind === 'video') { 
+            if (track.kind === 'video') {
                 updateParticipantVideo(participant, track);
             }
             if (track.kind === 'audio') {
-                var a = document.getElementById('remoteAudio');
-                track.attach(a); a.play().catch(function(){});
+                attachRemoteAudio(participant, track);
             }
             updateParticipantCount();
             renderParticipantList();
         });
 
         room.on(sdk.RoomEvent.TrackUnsubscribed, function(track, pub, participant) {
-            if (track.kind === 'video' && participant) { 
+            console.log('[CONNECT] TrackUnsubscribed:', track.kind, 'from', participant ? participant.identity : 'unknown');
+            if (track.kind === 'video' && participant) {
                 clearParticipantVideo(participant);
+            }
+            if (track.kind === 'audio' && participant) {
+                detachRemoteAudio(participant.identity);
             }
         });
 
         room.on(sdk.RoomEvent.ParticipantConnected, function(p) {
-            remoteParticipants[p.identity] = { name: p.identity, micMuted: false };
+            console.log('[CONNECT] ParticipantConnected:', p.identity);
+            remoteParticipants[p.identity] = { name: p.identity, micMuted: false, speaking: false };
             addParticipantTile(p);
             updateParticipantCount();
             renderParticipantList();
@@ -1748,23 +891,24 @@ async function start() {
         });
 
         room.on(sdk.RoomEvent.ParticipantDisconnected, function(p) {
+            console.log('[CONNECT] ParticipantDisconnected:', p.identity);
             delete remoteParticipants[p.identity];
             removeParticipantTile(p.identity);
+            detachRemoteAudio(p.identity);
             updateParticipantCount();
             renderParticipantList();
             showToast(p.identity + ' left the call');
         });
 
+        // ── Mute events ──────────────────────────────────────────
         room.on(sdk.RoomEvent.TrackMuted, function(pub, participant) {
             if (pub.kind === 'audio') {
-                console.log('[MIC] TrackMuted event:', participant ? participant.identity : 'unknown', 'sid:', pub.trackSid, 'isMuted:', pub.isMuted);
+                console.log('[MIC] TrackMuted:', participant ? participant.identity : 'unknown');
                 if (participant) {
                     var smuteEl = document.getElementById('smute_' + participant.identity);
-                    console.log('[MIC] smute_ element exists for', participant.identity, ':', !!smuteEl);
                     if (smuteEl) smuteEl.classList.add('show');
                     if (pinnedId === participant.identity) {
-                        var mainMutedBadge = document.getElementById('mainMutedBadge');
-                        if (mainMutedBadge) mainMutedBadge.classList.add('show');
+                        document.getElementById('mainMutedBadge').classList.add('show');
                     }
                     if (remoteParticipants[participant.identity]) {
                         remoteParticipants[participant.identity].micMuted = true;
@@ -1776,14 +920,12 @@ async function start() {
 
         room.on(sdk.RoomEvent.TrackUnmuted, function(pub, participant) {
             if (pub.kind === 'audio') {
-                console.log('[MIC] TrackUnmuted event:', participant ? participant.identity : 'unknown', 'sid:', pub.trackSid, 'isMuted:', pub.isMuted);
+                console.log('[MIC] TrackUnmuted:', participant ? participant.identity : 'unknown');
                 if (participant) {
                     var smuteEl = document.getElementById('smute_' + participant.identity);
-                    console.log('[MIC] smute_ element exists for', participant.identity, ':', !!smuteEl);
                     if (smuteEl) smuteEl.classList.remove('show');
                     if (pinnedId === participant.identity) {
-                        var mainMutedBadge = document.getElementById('mainMutedBadge');
-                        if (mainMutedBadge) mainMutedBadge.classList.remove('show');
+                        document.getElementById('mainMutedBadge').classList.remove('show');
                     }
                     if (remoteParticipants[participant.identity]) {
                         remoteParticipants[participant.identity].micMuted = false;
@@ -1793,44 +935,88 @@ async function start() {
             }
         });
 
-        // Data messages (guest listens for endForAll)
-        room.on(sdk.RoomEvent.DataReceived, function(payload) {
+        // ── Active speakers ──────────────────────────────────────
+        room.on(sdk.RoomEvent.ActiveSpeakersChanged, function(speakers) {
+            // speakers is an array of Participant objects
+            var newSpeakers = new Set();
+            speakers.forEach(function(p) { newSpeakers.add(p.identity); });
+
+            // Update all tiles
+            document.querySelectorAll('.s-tile').forEach(function(tile) {
+                var tileId = tile.id.replace(/^s_/, '');
+                var isSpeaking = newSpeakers.has(tileId) || (tileId === 'local' && (room.localParticipant && newSpeakers.has(room.localParticipant.identity)));
+                tile.classList.toggle('speaking', isSpeaking);
+            });
+
+            // Update main view glow
+            var mainSpeaking = false;
+            if (pinnedId === 'local') {
+                mainSpeaking = room.localParticipant && newSpeakers.has(room.localParticipant.identity);
+            } else {
+                mainSpeaking = newSpeakers.has(pinnedId);
+            }
+            document.getElementById('mainView').classList.toggle('speaking', mainSpeaking);
+
+            // Update participant list speaking dots
+            if (remoteParticipants) {
+                Object.keys(remoteParticipants).forEach(function(id) {
+                    if (remoteParticipants[id]) {
+                        remoteParticipants[id].speaking = newSpeakers.has(id);
+                    }
+                });
+            }
+            activeSpeakers = newSpeakers;
+            renderParticipantList();
+        });
+
+        // ── Data messages ────────────────────────────────────────
+        room.on(sdk.RoomEvent.DataReceived, function(payload, participant) {
             try {
                 var msg = JSON.parse(new TextDecoder().decode(payload));
                 if (msg && msg.action === 'endForAll') {
                     showToast('Host ended the call', 3000);
-                    setTimeout(function() {
-                        endCallScreen();
-                    }, 2000);
+                    setTimeout(function() { endCallScreen(); }, 2000);
                 }
             } catch(e) {}
         });
 
+        // ── Disconnect / reconnect ───────────────────────────────
         room.on(sdk.RoomEvent.Disconnected, function(reason) {
-            console.log('[CONNECT] Disconnected reason:', reason, 'room.state:', room ? room.state : 'null');
+            console.log('[CONNECT] Disconnected reason:', reason);
             setStatus('error'); clearInterval(timerInterval);
-            showToast('Disconnected. Reconnecting…', 4000);
-            setTimeout(function(){ window.location.reload(); }, 3000);
+            if (!reconnectAttempted) {
+                reconnectAttempted = true;
+                showToast('Disconnected. Reconnecting…', 4000);
+                setTimeout(function(){
+                    reconnectAttempted = false;
+                    start();
+                }, 3000);
+            } else {
+                showToast('Could not reconnect. Please refresh.', 6000);
+            }
         });
 
+        // ── Connect ──────────────────────────────────────────────
         var proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         var connectUrl = proto + '//' + window.location.host;
         console.log('[CONNECT] Before room.connect, url:', connectUrl);
         await room.connect(connectUrl, token, { autoSubscribe: true });
-        console.log('[CONNECT] After room.connect resolves, room.state:', room.state, 'room.sid:', room.sid, 'room.name:', room.name);
-        setStatus('connected'); startTimer();
+        console.log('[CONNECT] After room.connect resolves, room.state:', room.state, 'room.name:', room.name);
+        setStatus('connected');
+        startTimer();
+        populateDeviceSelectors();
 
         // Populate existing remote participants
         var existingParticipants = room.remoteParticipants || room.participants;
         if (existingParticipants) {
             existingParticipants.forEach(function(p) {
-                remoteParticipants[p.identity] = { name: p.identity, micMuted: false };
+                remoteParticipants[p.identity] = { name: p.identity, micMuted: false, speaking: false };
                 addParticipantTile(p);
-                // Check for existing tracks
                 var tracks = p.videoTracks || p.tracks;
                 if (tracks) {
                     tracks.forEach(function(pub) {
                         if (pub.track && pub.kind === 'video') updateParticipantVideo(p, pub.track);
+                        if (pub.track && pub.kind === 'audio') attachRemoteAudio(p, pub.track);
                     });
                 }
             });
@@ -1838,7 +1024,7 @@ async function start() {
         updateParticipantCount();
         renderParticipantList();
 
-        // Try media
+        // ── Media capture with fallback ──────────────────────────
         var tracks = [];
         console.log('[CONNECT] media capture starting');
         try {
@@ -1846,20 +1032,17 @@ async function start() {
             console.log('[CONNECT] media capture success (audio+video)');
             micAvailable = true; camAvailable = true;
         } catch(e) {
-            console.log('[CONNECT] media capture failure (audio+video):', e.name, e.message);
+            console.log('[CONNECT] audio+video failed:', e.name);
             try {
                 tracks = await sdk.createLocalTracks({ audio:true, video:false });
                 console.log('[CONNECT] media capture success (audio only)');
-                micAvailable = true; camAvailable = false; showToast('Camera unavailable');
+                micAvailable = true; camAvailable = false;
+                showToast('Camera unavailable — audio only');
             } catch(e2) {
-                console.log('[CONNECT] media capture failure (audio only):', e2.name, e2.message);
-                try { 
-                    tracks = await sdk.createLocalTracks({ audio:false, video:false }); 
-                    console.log('[CONNECT] media capture success (none)');
-                } catch(e3){
-                    console.log('[CONNECT] media capture failure (none):', e3.name, e3.message);
-                }
-                micAvailable = false; camAvailable = false; showToast('Mic and camera unavailable');
+                console.log('[CONNECT] audio only failed:', e2.name);
+                try { tracks = await sdk.createLocalTracks({ audio:false, video:false }); } catch(e3){}
+                micAvailable = false; camAvailable = false;
+                showToast('Mic and camera unavailable — listener mode');
             }
         }
 
@@ -1879,32 +1062,164 @@ async function start() {
         for (var i = 0; i < tracks.length; i++) {
             var t = tracks[i];
             await room.localParticipant.publishTrack(t);
-            console.log('[CONNECT] published track:', t.sid, t.kind, t.mediaStreamTrack ? t.mediaStreamTrack.readyState : 'unknown');
+            console.log('[CONNECT] published track:', t.sid, t.kind);
             if (t.kind === 'video') {
                 t.attach(document.getElementById('mainVideo'));
                 document.getElementById('mainVideo').style.display = 'block';
+                document.getElementById('mainVideo').className = 'mirrored';
                 document.getElementById('mainAvatar').style.display = 'none';
             }
         }
 
         buildLocalSidebarTile();
-
+        tryEnableNoiseFilter();
         console.log('[CONNECT] start() completed successfully');
 
     } catch(err) {
-        console.log('[CONNECT] start() catch:', err.name, err.message, err.stack);
+        console.log('[CONNECT] start() catch:', err.name, err.message);
         setStatus('error');
         showToast('Error: ' + err.message, 5000);
-        console.error('VC:', err);
     }
 }
 
-// ── Participant count & list ──────────────────────────────────────────────────
+// ── Noise filter (Krisp) ──────────────────────────────────────────────────────
+function tryEnableNoiseFilter() {
+    // Only on non-low-power devices; try using SDK's noise filter if available
+    try {
+        var isLowPower = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2;
+        if (!isLowPower && sdk.KrispNoiseFilter && room && room.localParticipant) {
+            sdk.KrispNoiseFilter.create().then(function(filter) {
+                if (room && room.localParticipant) {
+                    room.localParticipant.setAudioTrackProcessor(filter);
+                    console.log('[MIC] Krisp noise filter enabled');
+                }
+            }).catch(function(e) {
+                console.log('[MIC] Krisp not available:', e.message);
+            });
+        }
+    } catch(e) {
+        console.log('[MIC] Noise filter init skipped:', e.message);
+    }
+}
+
+// ── Audio management ─────────────────────────────────────────────────────────
+var remoteAudioElements = {};
+
+function attachRemoteAudio(participant, track) {
+    if (!participant) return;
+    var id = participant.identity;
+    // Detach old if any
+    detachRemoteAudio(id);
+    var a = document.createElement('audio');
+    a.autoplay = true;
+    a.id = 'audio_' + id;
+    document.getElementById('audioElements').appendChild(a);
+    track.attach(a);
+    a.play().catch(function(){});
+    remoteAudioElements[id] = a;
+}
+
+function detachRemoteAudio(id) {
+    if (remoteAudioElements[id]) {
+        remoteAudioElements[id].remove();
+        delete remoteAudioElements[id];
+    }
+}
+
+// ── Device selectors ──────────────────────────────────────────────────────────
+async function populateDeviceSelectors() {
+    try {
+        var devices = await navigator.mediaDevices.enumerateDevices();
+        var cams = devices.filter(function(d){ return d.kind === 'videoinput'; });
+        var mics = devices.filter(function(d){ return d.kind === 'audioinput'; });
+        var spks = devices.filter(function(d){ return d.kind === 'audiooutput'; });
+
+        function populate(sel, devs) {
+            sel.innerHTML = '';
+            devs.forEach(function(d, i) {
+                var opt = document.createElement('option');
+                opt.value = d.deviceId;
+                opt.textContent = d.label || ('Device ' + (i+1));
+                sel.appendChild(opt);
+            });
+            if (devs.length === 0) {
+                var opt = document.createElement('option');
+                opt.textContent = 'No devices found'; sel.appendChild(opt);
+            }
+        }
+
+        populate(document.getElementById('camSelect'), cams);
+        populate(document.getElementById('micSelect'), mics);
+        populate(document.getElementById('speakerSelect'), spks);
+    } catch(e) {
+        console.log('[SETTINGS] Could not enumerate devices:', e.message);
+    }
+}
+
+async function switchCamera(deviceId) {
+    if (!room || !room.localParticipant || !deviceId) return;
+    try {
+        await room.switchActiveDevice('videoinput', deviceId);
+        showToast('Camera switched');
+    } catch(e) { showToast('Could not switch camera: ' + e.message); }
+}
+
+async function switchMic(deviceId) {
+    if (!room || !room.localParticipant || !deviceId) return;
+    try {
+        await room.switchActiveDevice('audioinput', deviceId);
+        showToast('Microphone switched');
+    } catch(e) { showToast('Could not switch mic: ' + e.message); }
+}
+
+async function switchSpeaker(deviceId) {
+    if (!deviceId) return;
+    // Apply to all audio elements
+    Object.values(remoteAudioElements).forEach(function(a) {
+        if (a.setSinkId) { a.setSinkId(deviceId).catch(function(){}); }
+    });
+    showToast('Speaker switched');
+}
+
+// ── Background ────────────────────────────────────────────────────────────────
+function setBg(type, el) {
+    document.querySelectorAll('.bg-option').forEach(function(o){ o.classList.remove('selected'); });
+    el.classList.add('selected');
+    currentBg = type;
+
+    if (!sdk || !room || !room.localParticipant) return;
+    try {
+        if (type === 'none') {
+            if (sdk.BackgroundBlur) {
+                room.localParticipant.getTrackPublication(sdk.Track.Source.Camera)
+                    ?.track?.stopProcessor?.();
+            }
+        } else if (type === 'blur') {
+            if (sdk.BackgroundBlur) {
+                var processor = sdk.BackgroundBlur(10, { delegate: 'GPU' });
+                var pub = room.localParticipant.getTrackPublication(sdk.Track.Source.Camera);
+                if (pub && pub.track) { pub.track.setProcessor(processor); }
+            } else { showToast('Background blur not available in this SDK version'); }
+        } else if (type === 'office' || type === 'nature') {
+            if (sdk.VirtualBackground) {
+                // Use a solid color as virtual background (no external image needed)
+                var colors = { office: '#1a2340', nature: '#1a3325' };
+                var processor = sdk.VirtualBackground({ blurRadius: 0, imagePath: null });
+                var pub = room.localParticipant.getTrackPublication(sdk.Track.Source.Camera);
+                if (pub && pub.track) { pub.track.setProcessor(processor); }
+            } else { showToast('Virtual background not available in this SDK version'); }
+        }
+    } catch(e) {
+        console.log('[BG] Background processor error:', e.message);
+        showToast('Background effect not supported');
+    }
+}
+
+// ── Participant count & list ───────────────────────────────────────────────────
 function updateParticipantCount() {
     var remoteCount = 0;
     if (room && room.remoteParticipants) { remoteCount = room.remoteParticipants.size; }
     else { remoteCount = Object.keys(remoteParticipants).length; }
-    
     var count = 1 + remoteCount;
     var el = document.getElementById('participantCount');
     if (el) el.innerText = count;
@@ -1919,24 +1234,28 @@ function renderParticipantList() {
     // Self first
     var selfName = (room && room.localParticipant && room.localParticipant.identity)
         ? room.localParticipant.identity : 'You';
-    var selfItem = makeParticipantItem(selfName, !micEnabled, true);
+    var selfSpeaking = activeSpeakers.has(selfName);
+    var selfItem = makeParticipantItem(selfName, !micEnabled, true, selfSpeaking);
     list.appendChild(selfItem);
 
     // Remote participants
     Object.keys(remoteParticipants).forEach(function(id) {
         var p = remoteParticipants[id];
-        var item = makeParticipantItem(p.name, p.micMuted, false);
+        var item = makeParticipantItem(p.name, p.micMuted, false, p.speaking);
         list.appendChild(item);
     });
 }
 
-function makeParticipantItem(name, isMuted, isSelf) {
+function makeParticipantItem(name, isMuted, isSelf, isSpeaking) {
     var item = document.createElement('div');
     item.className = 'p-item';
 
     var av = document.createElement('div');
-    av.className = 'p-avatar';
+    av.className = 'p-avatar' + (isSpeaking ? ' speaking' : '');
     av.innerText = name.charAt(0).toUpperCase();
+    var dot = document.createElement('div');
+    dot.className = 'p-speaking-dot';
+    av.appendChild(dot);
     item.appendChild(av);
 
     var nameWrap = document.createElement('div');
@@ -1960,17 +1279,17 @@ function makeParticipantItem(name, isMuted, isSelf) {
         micEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>';
     }
     item.appendChild(micEl);
-
     return item;
 }
 
-// ── Drawer ───────────────────────────────────────────────────────────────────
+// ── Drawer ────────────────────────────────────────────────────────────────────
 function toggleDrawer() {
     var drawer = document.getElementById('participantDrawer');
     var overlay = document.getElementById('drawerOverlay');
     if (drawer.classList.contains('open')) {
         closeDrawer();
     } else {
+        closeSettings();
         renderParticipantList();
         drawer.classList.add('open');
         overlay.classList.add('open');
@@ -1982,7 +1301,32 @@ function closeDrawer() {
     document.getElementById('drawerOverlay').classList.remove('open');
 }
 
-// ── Sidebar Management ──────────────────────────────────────────────────────
+// ── Settings ──────────────────────────────────────────────────────────────────
+function toggleSettings() {
+    var drawer = document.getElementById('settingsDrawer');
+    if (drawer.classList.contains('open')) {
+        closeSettings();
+    } else {
+        closeDrawer();
+        drawer.classList.add('open');
+        settingsOpen = true;
+        populateDeviceSelectors();
+    }
+}
+
+function closeSettings() {
+    document.getElementById('settingsDrawer').classList.remove('open');
+    settingsOpen = false;
+}
+
+function switchSettTab(tabId, btn) {
+    document.querySelectorAll('.sett-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.sett-section').forEach(function(s){ s.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('sett-' + tabId).classList.add('active');
+}
+
+// ── Sidebar management ────────────────────────────────────────────────────────
 function addParticipantTile(p) {
     var id = p.identity;
     if (document.getElementById('s_' + id)) return;
@@ -1998,27 +1342,25 @@ function addParticipantTile(p) {
     document.getElementById('sidebar').appendChild(tile);
     remoteTracks[id] = { name: id, tileEl: tile };
 
-    // Auto-pin if it's the first remote
     if (pinnedId === 'local') { pinParticipant(id); }
 }
 
 function removeParticipantTile(id) {
     var data = remoteTracks[id];
-    if (data) {
-        if (data.tileEl) data.tileEl.remove();
-        delete remoteTracks[id];
-    }
+    if (data && data.tileEl) { data.tileEl.remove(); }
+    delete remoteTracks[id];
     if (pinnedId === id) pinParticipant('local');
 }
 
 function updateParticipantVideo(p, track) {
-    console.log('[PIN] incoming track - sid:', track.sid, 'identity:', p.identity, 'source:', track.source, 'kind:', track.kind);
-    console.log('[PIN] track object keys:', Object.keys(track));
+    if (!p) return;
     var id = p.identity;
+    console.log('[PIN] incoming video track - identity:', id, 'source:', track.source);
     var data = remoteTracks[id];
     if (!data) { addParticipantTile(p); data = remoteTracks[id]; }
+    if (!data) return;
 
-    // Remove old video if any
+    // Remove old video
     var oldV = data.tileEl.querySelector('video');
     if (oldV) oldV.remove();
 
@@ -2029,6 +1371,7 @@ function updateParticipantVideo(p, track) {
     data.tileEl.insertBefore(v, data.tileEl.firstChild);
     data.tileEl.classList.add('has-video');
     data.track = track;
+    data.videoEl = v;
     data.isScreen = (track.source === 'screen_share' || (sdk.Track && track.source === sdk.Track.Source.ScreenShare));
 
     if (data.isScreen) {
@@ -2039,35 +1382,36 @@ function updateParticipantVideo(p, track) {
         }
         pinParticipant(id);
     } else if (pinnedId === id) {
-        // If this participant is currently pinned, update the main video too
         var mainVideo = document.getElementById('mainVideo');
         track.attach(mainVideo);
         mainVideo.style.display = 'block';
+        mainVideo.className = 'unmirrored';
         document.getElementById('mainAvatar').style.display = 'none';
         mainVideo.play().catch(function(){});
     }
 }
 
 function clearParticipantVideo(p) {
+    if (!p) return;
     var id = p.identity;
     var data = remoteTracks[id];
-    if (data) {
+    if (data && data.tileEl) {
         var v = data.tileEl.querySelector('video');
         if (v) v.remove();
         data.tileEl.classList.remove('has-video');
-        delete data.track;
+        delete data.track; delete data.videoEl;
     }
     if (pinnedId === id) {
-        var mainVideo = document.getElementById('mainVideo');
-        mainVideo.style.display = 'none';
+        document.getElementById('mainVideo').style.display = 'none';
         document.getElementById('mainAvatar').style.display = 'flex';
     }
 }
 
-// ── Sidebar Tiles Helpers ────────────────────────────────────────────────────
+// ── Build local sidebar tile ──────────────────────────────────────────────────
 function buildLocalSidebarTile() {
     if (document.getElementById('s_local')) return;
     var tile = makeSidebarTile('s_local', 'You', false);
+    tile.classList.add('mirrored');
     tile.onclick = function(){ pinParticipant('local'); };
 
     var muteEl = document.createElement('div');
@@ -2075,22 +1419,20 @@ function buildLocalSidebarTile() {
     muteEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>';
     tile.appendChild(muteEl);
 
-    document.getElementById('sidebar').appendChild(tile);
-    
-    // Attach local video if available
     if (camEnabled) {
         var v = document.createElement('video');
         v.autoplay = true; v.muted = true; v.playsinline = true;
         v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
         var mainV = document.getElementById('mainVideo');
-        console.log('[PIN] buildLocalSidebarTile - mainVideo.srcObject exists:', !!mainV.srcObject);
         if (mainV.srcObject) { v.srcObject = mainV.srcObject; tile.classList.add('has-video'); }
         tile.insertBefore(v, tile.firstChild);
     }
 
+    document.getElementById('sidebar').appendChild(tile);
     if (pinnedId === 'local') { tile.classList.add('pinned'); }
 }
 
+// ── Sidebar tile factory ──────────────────────────────────────────────────────
 function makeSidebarTile(id, name, isScreen) {
     var tile = document.createElement('div');
     tile.className = 's-tile'; tile.id = id;
@@ -2106,14 +1448,16 @@ function makeSidebarTile(id, name, isScreen) {
     lbl.className = 's-tile-label'; lbl.innerText = name + (isScreen ? ' · Screen' : '');
     tile.appendChild(lbl);
     var hint = document.createElement('div');
-    hint.className = 's-tile-hint'; hint.innerText = 'Pin';
+    hint.className = 's-tile-hint'; hint.innerText = pinnedId === id.replace(/^s_/,'') ? 'Unpin' : 'Pin';
     tile.appendChild(hint);
     return tile;
 }
 
-// ── Pin ──────────────────────────────────────────────────────────────────────
+// ── Pin ───────────────────────────────────────────────────────────────────────
 function pinParticipant(id) {
-    console.log('[PIN] pinParticipant called with id:', id, 'current pinnedId:', pinnedId);
+    var name = (id === 'local') ? (room && room.localParticipant ? room.localParticipant.identity : 'You') : (remoteTracks[id] ? remoteTracks[id].name : 'Unknown');
+    console.log('[PIN] pinParticipant called with id:', id, 'name:', name);
+    var prevPinned = pinnedId;
     pinnedId = id;
     document.querySelectorAll('.s-tile').forEach(function(t){ t.classList.remove('pinned'); });
 
@@ -2122,155 +1466,190 @@ function pinParticipant(id) {
     var mainLblText = document.getElementById('mainLabelText');
     var mainMuted   = document.getElementById('mainMutedBadge');
     var screenBadge = document.getElementById('mainScreenBadge');
+    var mainView    = document.getElementById('mainView');
 
     mainAvatar.style.display  = 'none';
     mainVideo.style.display   = 'none';
     screenBadge.style.display = 'none';
     mainMuted.classList.remove('show');
+    mainView.classList.remove('speaking');
+    
+    // Explicitly clear srcObject to ensure a fresh track attachment
+    if (mainVideo.srcObject) { mainVideo.srcObject = null; }
 
     if (id === 'local') {
-        console.log('[PIN] Branch: local');
-        mainLblText.innerText = 'You';
+        mainLblText.innerText = room && room.localParticipant ? room.localParticipant.identity : 'You';
         if (room && room.localParticipant) {
             var vTracks = [];
             if (room.localParticipant.videoTracks) {
-                room.localParticipant.videoTracks.forEach(function(publication) {
-                    if (publication && publication.track) { vTracks.push(publication.track); }
+                room.localParticipant.videoTracks.forEach(function(pub) {
+                    if (pub && pub.track) { vTracks.push(pub.track); }
                 });
             }
             if (vTracks.length > 0 && camEnabled) {
-                vTracks[0].attach(mainVideo);
-                console.log('[PIN] mainVideo.srcObject after attach (local):', mainVideo.srcObject);
                 mainVideo.style.display = 'block';
-                mainAvatar.style.display = 'none';
+                mainVideo.className = 'mirrored';
+                vTracks[0].attach(mainVideo);
+                mainVideo.play().catch(function(){});
+                setTimeout(function() { console.log('[PIN] Local Video Details:', mainVideo.videoWidth + 'x' + mainVideo.videoHeight, 'ReadyState:', mainVideo.readyState); }, 500);
             } else {
-                mainVideo.style.display = 'none';
                 mainAvatar.style.display = 'flex';
             }
         } else {
             mainAvatar.style.display = 'flex';
         }
         if (!micEnabled) mainMuted.classList.add('show');
-
         var lt = document.getElementById('s_local');
         if (lt) lt.classList.add('pinned');
-
+        // Speaking indicator
+        if (room && room.localParticipant && activeSpeakers.has(room.localParticipant.identity)) {
+            mainView.classList.add('speaking');
+        }
     } else {
-        console.log('[PIN] Branch: remote');
         var data = remoteTracks[id];
-        console.log('[PIN] remoteTracks['+id+']:', data);
-        if (!data) { pinParticipant('local'); return; }
-
-        console.log('[PIN] isScreenLocal:', !!data.isScreenLocal);
+        if (!data) { console.warn('[PIN] No track data for sid:', id); pinParticipant('local'); return; }
 
         mainLblText.innerText = data.name + (data.isScreen ? ' · Screen' : '');
         if (data.isScreen) screenBadge.style.display = 'block';
 
-        console.log('[PIN] data.track exists:', !!data.track, 'type:', data.track ? typeof data.track : 'undefined');
-        if (!data || !data.track || typeof data.track.attach !== 'function') {
-            console.error('[PIN] track missing for sid:', id, 'falling back to local');
-            pinParticipant('local');
-            return;
-        }
-        if (data.track) {
-            console.log('[PIN] data.track.attach is function:', typeof data.track.attach === 'function');
-            try {
-                data.track.attach(mainVideo);
-            } catch (err) {
-                console.log('[PIN] Error attaching data.track:', err);
-            }
-            console.log('[PIN] mainVideo.srcObject after attach (remote track):', mainVideo.srcObject ? 'MediaStream' : 'null');
-            setTimeout(function() {
-                console.log('[PIN] mainVideo.readyState:', mainVideo.readyState, 'mainVideo.videoWidth:', mainVideo.videoWidth);
-            }, 500);
-
+        if (data.isScreenLocal && data.stream) {
             mainVideo.style.display = 'block';
-            mainVideo.play().catch(function(){});
-        } else if (data.isScreenLocal && data.stream) {
+            mainVideo.className = 'unmirrored';
             mainVideo.srcObject = data.stream;
-            mainVideo.style.display = 'block';
             mainVideo.play().catch(function(){});
+            setTimeout(function() { console.log('[PIN] Screen Share Details:', mainVideo.videoWidth + 'x' + mainVideo.videoHeight, 'ReadyState:', mainVideo.readyState); }, 500);
+        } else if (data.track && typeof data.track.attach === 'function') {
+            try { 
+                mainVideo.style.display = 'block';
+                mainVideo.className = 'unmirrored';
+                data.track.attach(mainVideo); 
+                mainVideo.play().catch(function(){});
+                setTimeout(function() { console.log('[PIN] Remote Video Details:', mainVideo.videoWidth + 'x' + mainVideo.videoHeight, 'ReadyState:', mainVideo.readyState, 'SID:', id); }, 500);
+            } catch(err) { console.error('[PIN] track.attach error:', err); }
         } else {
+            console.warn('[PIN] data.track is missing or unattachable for sid:', id);
             mainAvatar.style.display = 'flex';
+        }
+
+        // Remote mic mute badge
+        if (remoteParticipants[id] && remoteParticipants[id].micMuted) {
+            mainMuted.classList.add('show');
         }
 
         var tile = document.getElementById('s_' + id);
         if (tile) tile.classList.add('pinned');
+
+        // Speaking indicator
+        if (activeSpeakers.has(id)) { mainView.classList.add('speaking'); }
     }
+
+    // Update hint text
+    document.querySelectorAll('.s-tile-hint').forEach(function(h) {
+        var tileId = h.closest('.s-tile').id.replace(/^s_/, '');
+        h.innerText = (tileId === id) ? 'Unpin' : 'Pin';
+    });
 }
 
-// ── Mic ──────────────────────────────────────────────────────────────────────
+// ── Mic ───────────────────────────────────────────────────────────────────────
 function setMicUI(on) {
-    console.log('[MIC] setMicUI called, on:', on, 'micAvailable:', micAvailable);
-    if (room && room.localParticipant) {
-        console.log('[MIC] current localParticipant.isMicrophoneEnabled:', room.localParticipant.isMicrophoneEnabled);
-    }
+    console.log('[MIC] setMicUI:', on);
     document.getElementById('micOnIcon').style.display  = on ? 'block' : 'none';
     document.getElementById('micOffIcon').style.display = on ? 'none'  : 'block';
     document.getElementById('micLabel').innerText = on ? 'Mute' : 'Unmute';
     document.getElementById('micBtn').classList.toggle('off', !on);
 
     var sm = document.getElementById('s_local_muted');
-    console.log('[MIC] sidebar local muted icon exists:', !!sm);
     if (sm) sm.classList.toggle('show', !on);
     if (pinnedId === 'local') {
-        var mainMutedBadge = document.getElementById('mainMutedBadge');
-        console.log('[MIC] pinnedId is local. mainMutedBadge classList:', mainMutedBadge ? mainMutedBadge.classList.toString() : 'null');
-        if (mainMutedBadge) mainMutedBadge.classList.toggle('show', !on);
+        document.getElementById('mainMutedBadge').classList.toggle('show', !on);
     }
-    // Update participant list mic status
+
+    // Sync settings toggle
+    var settToggle = document.getElementById('settMicToggle');
+    if (settToggle) settToggle.checked = on;
+
     renderParticipantList();
 }
 
 async function toggleMic() {
     if (!room || !room.localParticipant || !micAvailable) return;
-    console.log('[MIC] toggleMic called, micEnabled before toggle:', micEnabled);
+    console.log('[MIC] toggleMic, current:', micEnabled);
     micEnabled = !micEnabled;
-    console.log('[MIC] calling setMicrophoneEnabled with:', micEnabled);
     try {
         await room.localParticipant.setMicrophoneEnabled(micEnabled);
-        console.log('[MIC] setMicrophoneEnabled resolved, actual isMicrophoneEnabled:', room.localParticipant.isMicrophoneEnabled);
+        console.log('[MIC] setMicrophoneEnabled resolved:', room.localParticipant.isMicrophoneEnabled);
         setMicUI(micEnabled);
         showToast(micEnabled ? 'Mic on' : 'Mic muted');
-    } catch(e) { 
-        console.log('[MIC] Error in toggleMic:', e);
-        micEnabled = !micEnabled; console.error(e); 
+    } catch(e) {
+        console.log('[MIC] toggleMic error:', e);
+        micEnabled = !micEnabled;
     }
 }
 
-// ── Camera ───────────────────────────────────────────────────────────────────
+// ── Camera ────────────────────────────────────────────────────────────────────
+// setCamUI is called AFTER setCameraEnabled resolves so the fresh track is published.
 function setCamUI(on) {
     document.getElementById('camOnIcon').style.display  = on ? 'block' : 'none';
     document.getElementById('camOffIcon').style.display = on ? 'none'  : 'block';
     document.getElementById('camLabel').innerText = on ? 'Stop Cam' : 'Start Cam';
     document.getElementById('camBtn').classList.toggle('off', !on);
 
-    // Update local sidebar tile avatar/video visibility
+    var settToggle = document.getElementById('settCamToggle');
+    if (settToggle) settToggle.checked = on;
+
     var localTile = document.getElementById('s_local');
-    if (localTile) {
-        var localVid = localTile.querySelector('video');
-        if (localVid) {
-            localVid.style.display = on ? 'block' : 'none';
+
+    if (!on) {
+        // Camera OFF: hide video, show avatar placeholder
+        if (localTile) {
+            var localVid = localTile.querySelector('video');
+            if (localVid) localVid.style.display = 'none';
+            localTile.classList.remove('has-video');
         }
-        localTile.classList.toggle('has-video', on && !!localVid);
+        if (pinnedId === 'local') {
+            document.getElementById('mainVideo').style.display = 'none';
+            document.getElementById('mainAvatar').style.display = 'flex';
+        }
+        return;
     }
 
+    // Camera ON: find the fresh track (SDK has already published it at this point)
+    if (!room || !room.localParticipant) return;
+    var freshTrack = null;
+    if (room.localParticipant.videoTracks) {
+        room.localParticipant.videoTracks.forEach(function(pub) {
+            if (pub && pub.track && !freshTrack) { freshTrack = pub.track; }
+        });
+    }
+    if (!freshTrack) {
+        // Still not ready — fall back to avatar
+        if (pinnedId === 'local') {
+            document.getElementById('mainVideo').style.display = 'none';
+            document.getElementById('mainAvatar').style.display = 'flex';
+        }
+        return;
+    }
+
+    // Re-build sidebar video with the fresh track (removes stale srcObject)
+    if (localTile) {
+        var oldVid = localTile.querySelector('video');
+        if (oldVid) oldVid.remove();
+        var sideVid = document.createElement('video');
+        sideVid.autoplay = true; sideVid.muted = true; sideVid.playsinline = true;
+        sideVid.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        freshTrack.attach(sideVid);
+        localTile.insertBefore(sideVid, localTile.firstChild);
+        localTile.classList.add('has-video');
+        sideVid.play().catch(function(){});
+    }
+
+    // Re-attach to main view if local is pinned
     if (pinnedId === 'local') {
         var mainVideo = document.getElementById('mainVideo');
-        var mainAvatar = document.getElementById('mainAvatar');
-        mainVideo.style.display  = on ? 'block' : 'none';
-        mainAvatar.style.display = on ? 'none'  : 'flex';
-        if (on && room && room.localParticipant) {
-            var vTracks = [];
-            if (room.localParticipant.videoTracks) {
-                room.localParticipant.videoTracks.forEach(function(publication) {
-                    if (publication && publication.track) { vTracks.push(publication.track); }
-                });
-            }
-            if (vTracks.length > 0) {
-                vTracks[0].attach(mainVideo); mainVideo.play().catch(function(){});
-            }
-        }
+        freshTrack.attach(mainVideo);
+        mainVideo.style.display = 'block';
+        document.getElementById('mainAvatar').style.display = 'none';
+        mainVideo.play().catch(function(){});
     }
 }
 
@@ -2279,12 +1658,14 @@ async function toggleCam() {
     camEnabled = !camEnabled;
     try {
         await room.localParticipant.setCameraEnabled(camEnabled);
+        // setCameraEnabled resolves only after the new track is published —
+        // safe to read videoTracks now.
         setCamUI(camEnabled);
         showToast(camEnabled ? 'Camera on' : 'Camera off');
     } catch(e) { camEnabled = !camEnabled; console.error(e); }
 }
 
-// ── Screen share ─────────────────────────────────────────────────────────────
+// ── Screen share ──────────────────────────────────────────────────────────────
 function setScreenUI(on) {
     document.getElementById('screenLabel').innerText = on ? 'Stop Sharing' : 'Share Screen';
     document.getElementById('screenBtn').classList.toggle('screen-on', on);
@@ -2339,8 +1720,7 @@ async function toggleScreen() {
 
         remoteTracks[sid] = {
             track: lsTrack, name: 'Your Screen', isScreen: true,
-            isScreenLocal: true, stream: stream,
-            tileEl: tile, videoEl: v
+            isScreenLocal: true, stream: stream, tileEl: tile, videoEl: v
         };
 
         pinParticipant(sid);
@@ -2349,18 +1729,15 @@ async function toggleScreen() {
     } catch(e) {
         if (e.name !== 'NotAllowedError') {
             showToast('Screen share failed: ' + e.message, 4000);
-            console.error(e);
         }
     }
 }
 
-// ── End call handling ─────────────────────────────────────────────────────────
+// ── End call ──────────────────────────────────────────────────────────────────
 function handleEndClick() {
     if (isHost) {
-        // Show modal with Leave / End for All options
         document.getElementById('endCallModalOverlay').classList.add('open');
     } else {
-        // Guest: just leave
         endCall();
     }
 }
@@ -2369,19 +1746,15 @@ function closeEndModal() {
     document.getElementById('endCallModalOverlay').classList.remove('open');
 }
 
-// Host: leave only (others stay)
 async function doLeaveCall() {
     closeEndModal();
     stopRecordingIfNeeded();
-    if (screenTrack) {
-        try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){}
-    }
+    if (screenTrack) { try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){} }
     if (room) { try { await room.disconnect(); } catch(e){} room = null; }
     clearInterval(timerInterval);
     endCallScreen();
 }
 
-// Host: end for all
 async function doEndForAll() {
     closeEndModal();
     stopRecordingIfNeeded();
@@ -2389,25 +1762,19 @@ async function doEndForAll() {
         try {
             var msg = JSON.stringify({ action: 'endForAll' });
             await room.localParticipant.publishData(new TextEncoder().encode(msg), { reliable: true });
-        } catch(e) { console.error('Failed to send endForAll:', e); }
+        } catch(e) { console.error('[END] Failed to send endForAll:', e); }
     }
-    // Small delay so guests receive the message before host disconnects
     setTimeout(async function() {
-        if (screenTrack) {
-            try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){}
-        }
+        if (screenTrack) { try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){} }
         if (room) { try { await room.disconnect(); } catch(e){} room = null; }
         clearInterval(timerInterval);
         endCallScreen();
     }, 400);
 }
 
-// ── End call (guest / common) ─────────────────────────────────────────────────
 async function endCall() {
     stopRecordingIfNeeded();
-    if (screenTrack) {
-        try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){}
-    }
+    if (screenTrack) { try { screenTrack.stop(); await room.localParticipant.unpublishTrack(screenTrack); } catch(e){} }
     if (room) { try { await room.disconnect(); } catch(e){} room = null; }
     clearInterval(timerInterval);
     window.close();
@@ -2421,16 +1788,28 @@ function endCallScreen() {
     }, 300);
 }
 
-// ── Keyboard ──────────────────────────────────────────────────────────────────
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
-    if (e.target.tagName === 'INPUT') return;
-    if (e.key === 'd') toggleMic();
-    if (e.key === 'e') toggleCam();
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    var isMac = navigator.platform.indexOf('Mac') !== -1;
+    var mod = isMac ? e.metaKey : e.ctrlKey;
+
+    // Ctrl/Cmd + Shift + A → toggle mic
+    if (mod && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault(); toggleMic(); return;
+    }
+    // Ctrl/Cmd + Shift + V → toggle camera
+    if (mod && e.shiftKey && (e.key === 'V' || e.key === 'v')) {
+        e.preventDefault(); toggleCam(); return;
+    }
+
     if (e.key === 'Escape') {
-        // If modal or drawer open, close them first
+        // Close open panels first
         if (document.getElementById('endCallModalOverlay').classList.contains('open')) {
             closeEndModal(); return;
         }
+        if (settingsOpen) { closeSettings(); return; }
         if (document.getElementById('participantDrawer').classList.contains('open')) {
             closeDrawer(); return;
         }
@@ -2438,24 +1817,5 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
-
-<!-- JOIN OVERLAY (kept at end so it renders on top) -->
-<div id="joinOverlay">
-    <div id="joinCard">
-        <div id="previewWrap">
-            <video id="previewVideo" autoplay muted playsinline></video>
-            <div id="previewNoCamera">
-                <svg viewBox="0 0 24 24"><path d="M21 6.5l-4-4-5 5-3-3-4.5 4.5 8.5 8.5L21 6.5zM3.27 2 2 3.27l4.5 4.5L2 12.5V17c0 .55.45 1 1 1h11.73l2 2L18 18.73 3.27 2zM16 12.27V17H5.27L16 6.27v6z"/></svg>
-                <span>Camera not available</span>
-            </div>
-        </div>
-        <div style="text-align:center; display:flex; flex-direction:column; gap:6px;">
-            <h2>Ready to join?</h2>
-            <p id="joinSubtitle">Your camera and mic will be enabled.</p>
-        </div>
-        <button id="joinBtn" onclick="doJoin()">Join Now</button>
-    </div>
-</div>
-
 </body>
 </html>
